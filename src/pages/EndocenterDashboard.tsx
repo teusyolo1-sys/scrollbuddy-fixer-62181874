@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { BarChart3, Calendar, Rocket, CheckSquare, RefreshCw, AlertTriangle } from "lucide-react";
+import { BarChart3, Calendar, Rocket, CheckSquare, RefreshCw, AlertTriangle, Settings } from "lucide-react";
+import { EndocenterProvider, useEndocenter } from "@/store/endocenterStore";
 import TeamDashboard from "@/components/endocenter/TeamDashboard";
 import MasterSchedule from "@/components/endocenter/MasterSchedule";
 import ProjectPipeline from "@/components/endocenter/ProjectPipeline";
 import ResponsibilityMatrix from "@/components/endocenter/ResponsibilityMatrix";
 import WorkflowDiagram from "@/components/endocenter/WorkflowDiagram";
 import DeadlineManagement from "@/components/endocenter/DeadlineManagement";
+import SettingsDialog from "@/components/endocenter/SettingsDialog";
 
 const tabs = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -16,8 +18,10 @@ const tabs = [
   { id: "deadlines", label: "Prazos & Crises", icon: AlertTriangle },
 ];
 
-export default function EndocenterDashboard() {
+function DashboardContent() {
   const [activeTab, setActiveTab] = useState("dashboard");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const { company } = useEndocenter();
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#F1F5F9" }}>
@@ -26,12 +30,19 @@ export default function EndocenterDashboard() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                Endocenter — Dashboard da Equipe
+                {company.name} — Dashboard da Equipe
               </h1>
               <p className="text-sm text-slate-400 mt-0.5">
-                Gestão operacional de marketing · Março 2025
+                {company.subtitle} · {company.month}
               </p>
             </div>
+            <button
+              onClick={() => setSettingsOpen(true)}
+              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              title="Configurações"
+            >
+              <Settings size={20} />
+            </button>
           </div>
           <nav className="flex gap-1 overflow-x-auto pb-1 -mb-1">
             {tabs.map((tab) => {
@@ -66,8 +77,18 @@ export default function EndocenterDashboard() {
       </main>
 
       <footer className="text-center py-6 text-xs text-slate-400">
-        Endocenter Marketing Dashboard · Atualizado em Março 2025
+        {company.name} Marketing Dashboard · Atualizado em {company.month}
       </footer>
+
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
+  );
+}
+
+export default function EndocenterDashboard() {
+  return (
+    <EndocenterProvider>
+      <DashboardContent />
+    </EndocenterProvider>
   );
 }
