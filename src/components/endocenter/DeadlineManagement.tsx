@@ -34,6 +34,7 @@ export default function DeadlineManagement() {
 
   const [filter, setFilter] = useState("Todos");
   const [editMode, setEditMode] = useState(false);
+  const [openStatusDeadlineId, setOpenStatusDeadlineId] = useState<string | null>(null);
 
   const filteredDeadlines = useMemo(
     () => (filter === "Todos" ? deadlines : deadlines.filter((deadline) => deadline.frequency === filter)),
