@@ -231,6 +231,11 @@
     outline: none;
   }
 
+  /* Global rounded selects */
+  select {
+    border-radius: var(--ios-radius-sm) !important;
+  }
+
   .ios-input:focus {
     background: rgba(120, 120, 128, 0.1);
     border-color: hsl(var(--ios-blue) / 0.35);
