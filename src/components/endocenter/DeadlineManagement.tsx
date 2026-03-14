@@ -208,6 +208,8 @@ export default function DeadlineManagement() {
                 <span className="text-[11px] text-muted-foreground">Status da tarefa</span>
                 <StatusPill
                   value={deadline.status}
+                  isOpen={openStatusDeadlineId === deadline.id}
+                  onOpenChange={(nextOpen) => setOpenStatusDeadlineId(nextOpen ? deadline.id : null)}
                   onChange={(s) => updateDeadline(deadline.id, { status: s })}
                 />
               </div>
