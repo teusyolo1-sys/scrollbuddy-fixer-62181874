@@ -1,5 +1,6 @@
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { supabaseConfigured } from "@/integrations/supabase/client";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import EditorPage from "./pages/EditorPage";
@@ -8,6 +9,22 @@ import AdminPage from "./pages/AdminPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutResultPage from "./pages/CheckoutResultPage";
 import PixPaymentPage from "./pages/PixPaymentPage";
+
+const SetupNotice = () => (
+  <div className="min-h-screen flex items-center justify-center bg-background p-6">
+    <div className="text-center max-w-lg space-y-4">
+      <h1 className="text-3xl font-bold text-foreground">⚙️ Configuração necessária</h1>
+      <p className="text-muted-foreground">
+        Para usar o Site Editor Pro, configure as variáveis de ambiente do Supabase no projeto:
+      </p>
+      <div className="bg-card border border-border rounded-xl p-4 text-left text-sm font-mono space-y-1">
+        <p><span className="text-primary">VITE_SUPABASE_URL</span>=https://seu-projeto.supabase.co</p>
+        <p><span className="text-primary">VITE_SUPABASE_PUBLISHABLE_KEY</span>=eyJ...</p>
+      </div>
+      <p className="text-xs text-muted-foreground">Adicione nas configurações do projeto no Lovable (Settings → Environment Variables) ou ative o Lovable Cloud.</p>
+    </div>
+  </div>
+);
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAdmin, loading } = useUserRole();
@@ -41,20 +58,30 @@ const AuthRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-const App = () => (
-  <AuthProvider>
-    <BrowserRouter>
-      <Sonner />
-      <Routes>
-        <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
-        <Route path="/" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminPage /></AdminRoute></ProtectedRoute>} />
-        <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-        <Route path="/checkout/pix" element={<ProtectedRoute><PixPaymentPage /></ProtectedRoute>} />
-        <Route path="/checkout/:status" element={<ProtectedRoute><CheckoutResultPage /></ProtectedRoute>} />
-      </Routes>
-    </BrowserRouter>
-  </AuthProvider>
-);
+const App = () => {
+  if (!supabaseConfigured) {
+    return (
+      <BrowserRouter>
+        <SetupNotice />
+      </BrowserRouter>
+    );
+  }
+
+  return (
+    <AuthProvider>
+      <BrowserRouter>
+        <Sonner />
+        <Routes>
+          <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
+          <Route path="/" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminPage /></AdminRoute></ProtectedRoute>} />
+          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+          <Route path="/checkout/pix" element={<ProtectedRoute><PixPaymentPage /></ProtectedRoute>} />
+          <Route path="/checkout/:status" element={<ProtectedRoute><CheckoutResultPage /></ProtectedRoute>} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
+  );
+};
 
 export default App;
