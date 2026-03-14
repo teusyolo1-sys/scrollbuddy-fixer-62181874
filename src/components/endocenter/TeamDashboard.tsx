@@ -153,7 +153,7 @@ export default function TeamDashboard() {
                   {/* Expand button */}
                   <motion.button
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => setExpandedMemberId(isExpanded ? null : member.id)}
+                    onClick={(e) => { e.stopPropagation(); setExpandedMemberId(isExpanded ? null : member.id); }}
                     className="w-full mt-4 py-2.5 px-4 text-xs font-semibold flex items-center justify-between"
                     style={{
                       borderRadius: "var(--ios-radius-sm)",
