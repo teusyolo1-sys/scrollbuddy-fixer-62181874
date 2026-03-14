@@ -206,7 +206,7 @@ export default function DeadlineManagement() {
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-muted-foreground">Status da tarefa</span>
                 <select
-                  className={`rounded-lg border border-border px-2 py-1 text-xs ${statusConfig[deadline.status].className}`}
+                  className={`rounded-full border-none outline-none px-3 py-1.5 text-xs font-semibold cursor-pointer ${statusConfig[deadline.status].className}`}
                   value={deadline.status}
                   onChange={(event) => updateDeadline(deadline.id, { status: event.target.value as DeadlineStatus })}
                 >
