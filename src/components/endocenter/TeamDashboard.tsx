@@ -214,60 +214,37 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
       <div className="p-5" style={{ borderLeft: `4px solid ${member.color}` }}>
         <div className="flex items-center gap-3.5">
           {member.photoUrl ? (
-            <motion.img
-              src={member.photoUrl}
-              alt={member.name}
-              className="h-12 w-12 object-cover"
-              style={{ borderRadius: "var(--ios-radius)" }}
-              whileHover={{ scale: 1.1, rotate: 2 }}
-              transition={bouncy}
-            />
+            <img src={member.photoUrl} alt={member.name} className="h-12 w-12 object-cover rounded-2xl" />
           ) : (
-            <motion.div
-              className="h-12 w-12 flex items-center justify-center"
-              style={{ borderRadius: "var(--ios-radius)", background: `${member.color}15` }}
-              whileHover={{ scale: 1.1, rotate: -3 }}
-              transition={bouncy}
-            >
+            <div className="h-12 w-12 flex items-center justify-center rounded-2xl" style={{ background: `${member.color}15` }}>
               <User className="h-5 w-5" style={{ color: member.color }} />
-            </motion.div>
+            </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="text-base font-bold text-foreground truncate">{member.name}</div>
             <div className="text-sm font-medium" style={{ color: member.color }}>{member.role}</div>
           </div>
-          <motion.span
-            className={`ios-badge ${
-              member.status === "Ativo" ? "ios-status-active"
-                : member.status === "Férias" ? "ios-status-warning"
-                : "ios-status-danger"
-            }`}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ ...bouncy, delay: index * 0.1 + 0.2 }}
-          >
+          <span className={`ios-badge ${
+            member.status === "Ativo" ? "ios-status-active"
+              : member.status === "Férias" ? "ios-status-warning"
+              : "ios-status-danger"
+          }`}>
             {member.status}
-          </motion.span>
+          </span>
         </div>
 
-        {/* Stats — bouncy stagger */}
+        {/* Stats */}
         <div className="grid grid-cols-3 gap-2.5 mt-4">
           {[
             { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}`, sub: "/ mês" },
             { label: "Carga Horária", value: `${member.hours}h`, sub: "/ mês" },
             { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}`, sub: "calculado" },
-          ].map((stat, si) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...bouncy, delay: index * 0.1 + si * 0.06 + 0.15 }}
-              className="p-3 text-center rounded-2xl bg-secondary/40"
-            >
+          ].map((stat) => (
+            <div key={stat.label} className="p-3 text-center rounded-2xl bg-secondary/40">
               <div className="text-[10px] font-medium text-muted-foreground">{stat.label}</div>
               <div className="text-sm font-bold text-foreground mt-0.5">{stat.value}</div>
               <div className="text-[10px] text-muted-foreground">{stat.sub}</div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
