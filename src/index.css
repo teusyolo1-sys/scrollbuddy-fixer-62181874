@@ -2,99 +2,124 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @layer base {
   :root {
-    --background: 222 47% 3%;
-    --foreground: 216 30% 90%;
-    --card: 222 40% 5%;
-    --card-foreground: 216 30% 90%;
-    --popover: 222 45% 6%;
-    --popover-foreground: 216 30% 90%;
-    --primary: 152 100% 45%;
-    --primary-foreground: 0 0% 0%;
-    --secondary: 220 20% 10%;
-    --secondary-foreground: 216 20% 75%;
-    --muted: 220 15% 12%;
-    --muted-foreground: 216 15% 55%;
-    --accent: 152 100% 45%;
-    --accent-foreground: 0 0% 0%;
-    --destructive: 350 80% 55%;
+    --background: 220 20% 97%;
+    --foreground: 220 30% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 10%;
+    --primary: 215 90% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 15% 93%;
+    --secondary-foreground: 220 30% 25%;
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 10% 45%;
+    --accent: 215 90% 55%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 75% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 12%;
-    --input: 220 15% 12%;
-    --ring: 152 100% 45%;
-    --radius: 0.625rem;
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 215 90% 55%;
+    --radius: 1rem;
+
+    /* iOS 26 custom tokens */
+    --ios-glass: rgba(255, 255, 255, 0.72);
+    --ios-glass-heavy: rgba(255, 255, 255, 0.88);
+    --ios-glass-ultra: rgba(255, 255, 255, 0.95);
+    --ios-blur: 40px;
+    --ios-blur-heavy: 60px;
+    --ios-shadow: 0 2px 20px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.08);
+    --ios-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.06);
+    --ios-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
+    --ios-radius: 1.25rem;
+    --ios-radius-lg: 1.75rem;
+    --ios-radius-xl: 2.25rem;
   }
 }
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground; margin: 0; padding: 0; overflow-x: hidden; }
+  body {
+    @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
 
-  /* Scrollbar styling */
+  /* iOS-style scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: hsl(152 100% 45% / 0.4) transparent;
+    scrollbar-color: rgba(0,0,0,0.15) transparent;
   }
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 4px;
+    height: 4px;
     background: transparent;
   }
-  ::-webkit-scrollbar-track {
-    background: transparent !important;
-  }
   ::-webkit-scrollbar-thumb {
-    background: hsl(152 100% 45% / 0.4);
+    background: rgba(0,0,0,0.15);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: hsl(152 100% 45% / 0.6);
-  }
-  ::-webkit-scrollbar-corner {
-    background: transparent;
-  }
-}
-
-@layer base {
-  :root {
-    --gradient-preview: linear-gradient(145deg, hsl(222 47% 5%), hsl(222 47% 3%));
-    --gradient-accent-line: linear-gradient(90deg, transparent, hsl(var(--primary) / 0.4), transparent);
+    background: rgba(0,0,0,0.25);
   }
 }
 
 @layer utilities {
-  /* Glass morphism */
-  .glass-surface {
-    background: hsl(var(--card) / 0.95);
-    backdrop-filter: blur(12px);
+  /* iOS Glass surfaces */
+  .ios-glass {
+    background: var(--ios-glass);
+    backdrop-filter: blur(var(--ios-blur));
+    -webkit-backdrop-filter: blur(var(--ios-blur));
   }
-  .glass-border-hi {
-    border: 1px solid hsl(var(--border) / 0.6);
+  .ios-glass-heavy {
+    background: var(--ios-glass-heavy);
+    backdrop-filter: blur(var(--ios-blur-heavy));
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy));
   }
-
-  /* Accent utilities */
-  .accent-dim-bg {
-    background: hsl(var(--primary) / 0.08);
+  .ios-glass-ultra {
+    background: var(--ios-glass-ultra);
+    backdrop-filter: blur(var(--ios-blur-heavy));
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy));
   }
-  .accent-mid-bg {
-    background: hsl(var(--primary) / 0.15);
+  .ios-glass-dark {
+    background: rgba(20, 25, 40, 0.82);
+    backdrop-filter: blur(var(--ios-blur-heavy));
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy));
   }
-  .accent-glow {
-    box-shadow: 0 0 12px hsl(var(--primary) / 0.3), 0 0 4px hsl(var(--primary) / 0.15);
+  .ios-shadow {
+    box-shadow: var(--ios-shadow);
   }
-
-  /* Top bar button */
-  .tb-btn {
-    @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-semibold tracking-wide whitespace-nowrap transition-all duration-150 cursor-pointer border-none;
+  .ios-shadow-lg {
+    box-shadow: var(--ios-shadow-lg);
   }
-
-  /* Float animation */
-  @keyframes float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-8px); }
+  .ios-shadow-xl {
+    box-shadow: var(--ios-shadow-xl);
   }
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
+  .ios-card {
+    background: var(--ios-glass-heavy);
+    backdrop-filter: blur(var(--ios-blur));
+    -webkit-backdrop-filter: blur(var(--ios-blur));
+    box-shadow: var(--ios-shadow);
+    border: 1px solid rgba(255,255,255,0.5);
+    border-radius: var(--ios-radius-lg);
+  }
+  .ios-input {
+    background: rgba(120, 120, 128, 0.08);
+    border: none;
+    border-radius: 12px;
+    transition: all 0.2s ease;
+  }
+  .ios-input:focus {
+    background: rgba(120, 120, 128, 0.12);
+    box-shadow: 0 0 0 3px hsl(215 90% 55% / 0.2);
   }
 }
