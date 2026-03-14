@@ -79,6 +79,7 @@ const App = () => {
           <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/checkout/pix" element={<ProtectedRoute><PixPaymentPage /></ProtectedRoute>} />
           <Route path="/checkout/:status" element={<ProtectedRoute><CheckoutResultPage /></ProtectedRoute>} />
+          <Route path="/endocenter" element={<EndocenterDashboard />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
