@@ -284,3 +284,57 @@ export default function DeadlineManagement() {
     </div>
   );
 }
+
+/* ── Custom rounded status dropdown ── */
+function StatusPill({ value, onChange }: { value: DeadlineStatus; onChange: (s: DeadlineStatus) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const current = statusConfig[value];
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className={`rounded-full px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all ${current.className}`}
+      >
+        {current.label}
+        <ChevronDown className="h-3 w-3" />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -4 }}
+            transition={{ type: "spring", damping: 22, stiffness: 400 }}
+            className="absolute right-0 top-full mt-1.5 z-50 rounded-2xl overflow-hidden border border-border/50 bg-card shadow-lg"
+            style={{ minWidth: 130 }}
+          >
+            {allStatuses.map((s) => (
+              <button
+                key={s}
+                onClick={() => { onChange(s); setOpen(false); }}
+                className={`w-full text-left px-3.5 py-2 text-xs font-medium transition-colors ${
+                  s === value ? statusConfig[s].className + " font-bold" : "text-foreground hover:bg-secondary/60"
+                }`}
+              >
+                {statusConfig[s].label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
