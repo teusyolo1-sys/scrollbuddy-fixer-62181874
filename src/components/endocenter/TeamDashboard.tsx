@@ -297,81 +297,53 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
         </motion.button>
       </div>
 
-      {/* Expanded detail — fluid morph height */}
+      {/* Expanded detail */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0, scale: 0.97 }}
-            animate={{ height: "auto", opacity: 1, scale: 1 }}
-            exit={{ height: 0, opacity: 0, scale: 0.97 }}
-            transition={{ type: "spring", damping: 20, stiffness: 250, mass: 0.6 }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.5 }}
             className="overflow-hidden"
+            style={{ willChange: "height, opacity" }}
           >
             <div className="px-5 pb-5 pt-3 space-y-4 border-t border-border/30">
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...bouncy, delay: 0.05 }}
-              >
+              <div>
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Especialidade</div>
                 <p className="text-sm text-foreground mt-1">{member.specialty || member.role}</p>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...bouncy, delay: 0.1 }}
-              >
+              <div>
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Principais tarefas</div>
                 <ul className="mt-1.5 space-y-1.5">
                   {member.tasks.map((task, ti) => (
-                    <motion.li
-                      key={`${member.id}-task-${ti}`}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ ...bouncy, delay: 0.12 + ti * 0.04 }}
-                      className="text-sm text-foreground flex items-start gap-2"
-                    >
+                    <li key={`${member.id}-task-${ti}`} className="text-sm text-foreground flex items-start gap-2">
                       <span className="mt-1.5 h-[6px] w-[6px] rounded-full shrink-0" style={{ backgroundColor: member.color }} />
                       {task}
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...bouncy, delay: 0.18 }}
-              >
+              <div>
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">KPIs</div>
                 <ul className="mt-1.5 space-y-1.5">
                   {member.kpis.map((kpi, ki) => (
-                    <motion.li
-                      key={`${member.id}-kpi-${ki}`}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ ...bouncy, delay: 0.2 + ki * 0.04 }}
-                      className="text-sm text-foreground flex items-center gap-2"
-                    >
+                    <li key={`${member.id}-kpi-${ki}`} className="text-sm text-foreground flex items-center gap-2">
                       <Target className="h-3.5 w-3.5 shrink-0" style={{ color: member.color }} />
                       {kpi}
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ ...bouncy, delay: 0.25 }}
-                className="p-4 rounded-2xl bg-secondary/30 border border-border/30"
-              >
+              <div className="p-4 rounded-2xl bg-secondary/30 border border-border/30">
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Case do membro</div>
                 <p className="text-sm text-foreground mt-1">
                   {member.caseNotes || "Sem case registrado. Edite no Lobby de Gestão (⚙)."}
                 </p>
-              </motion.div>
+              </div>
 
               <p className="text-[11px] text-muted-foreground">
                 Cálculo: R$ {member.remuneration.toLocaleString("pt-BR")} ÷ {member.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora
