@@ -3,12 +3,19 @@
 import { supabase } from "../supabase/client";
 
 let lovableAuth: any = null;
+let authInitPromise: Promise<void> | null = null;
 
-try {
-  const mod = await import("@lovable.dev/cloud-auth-js");
-  lovableAuth = mod.createLovableAuth();
-} catch {
-  // Cloud auth not available — social login will be disabled
+function initAuth() {
+  if (!authInitPromise) {
+    authInitPromise = import("@lovable.dev/cloud-auth-js")
+      .then((mod) => {
+        lovableAuth = mod.createLovableAuth();
+      })
+      .catch(() => {
+        // Cloud auth not available
+      });
+  }
+  return authInitPromise;
 }
 
 type SignInOptions = {
@@ -19,19 +26,18 @@ type SignInOptions = {
 export const lovable = {
   auth: {
     signInWithOAuth: async (provider: "google" | "apple", opts?: SignInOptions) => {
+      await initAuth();
+      
       if (!lovableAuth) {
         return { error: new Error("Login social não disponível. Configure o Lovable Cloud.") };
       }
 
       const result = await lovableAuth.signInWithOAuth(provider, {
         redirect_uri: opts?.redirect_uri,
-        extraParams: {
-          ...opts?.extraParams,
-        },
+        extraParams: { ...opts?.extraParams },
       });
 
-      if (result.redirected) return result;
-      if (result.error) return result;
+      if (result.redirected || result.error) return result;
 
       try {
         await supabase.auth.setSession(result.tokens);
