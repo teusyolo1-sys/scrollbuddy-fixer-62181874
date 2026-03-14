@@ -34,6 +34,7 @@ export default function DeadlineManagement() {
 
   const [filter, setFilter] = useState("Todos");
   const [editMode, setEditMode] = useState(false);
+  const [openStatusDeadlineId, setOpenStatusDeadlineId] = useState<string | null>(null);
 
   const filteredDeadlines = useMemo(
     () => (filter === "Todos" ? deadlines : deadlines.filter((deadline) => deadline.frequency === filter)),
@@ -94,7 +95,7 @@ export default function DeadlineManagement() {
         ))}
       </div>
 
-      <div className="ios-card overflow-hidden">
+      <div className="ios-card overflow-visible">
         <div className="p-4 border-b border-border/60 flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-base font-semibold text-foreground">Tabela de prazos críticos</h3>
           <div className="p-1 rounded-xl bg-secondary/70 flex gap-1">
@@ -207,6 +208,8 @@ export default function DeadlineManagement() {
                 <span className="text-[11px] text-muted-foreground">Status da tarefa</span>
                 <StatusPill
                   value={deadline.status}
+                  isOpen={openStatusDeadlineId === deadline.id}
+                  onOpenChange={(nextOpen) => setOpenStatusDeadlineId(nextOpen ? deadline.id : null)}
                   onChange={(s) => updateDeadline(deadline.id, { status: s })}
                 />
               </div>
@@ -286,25 +289,34 @@ export default function DeadlineManagement() {
 }
 
 /* ── Custom rounded status dropdown ── */
-function StatusPill({ value, onChange }: { value: DeadlineStatus; onChange: (s: DeadlineStatus) => void }) {
-  const [open, setOpen] = useState(false);
+function StatusPill({
+  value,
+  onChange,
+  isOpen,
+  onOpenChange,
+}: {
+  value: DeadlineStatus;
+  onChange: (s: DeadlineStatus) => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!isOpen) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) onOpenChange(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  }, [isOpen, onOpenChange]);
 
   const current = statusConfig[value];
 
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen((p) => !p)}
+        onClick={() => onOpenChange(!isOpen)}
         className={`rounded-full px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all ${current.className}`}
       >
         {current.label}
@@ -312,7 +324,7 @@ function StatusPill({ value, onChange }: { value: DeadlineStatus; onChange: (s: 
       </button>
 
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -324,7 +336,10 @@ function StatusPill({ value, onChange }: { value: DeadlineStatus; onChange: (s: 
             {allStatuses.map((s) => (
               <button
                 key={s}
-                onClick={() => { onChange(s); setOpen(false); }}
+                onClick={() => {
+                  onChange(s);
+                  onOpenChange(false);
+                }}
                 className={`w-full text-left px-3.5 py-2 text-xs font-medium transition-colors ${
                   s === value ? statusConfig[s].className + " font-bold" : "text-foreground hover:bg-secondary/60"
                 }`}
