@@ -137,12 +137,11 @@
 
   /* ── Card — the core iOS 26 squircle surface ── */
   .ios-card {
-    background: var(--ios-glass-heavy);
-    backdrop-filter: blur(var(--ios-blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(180%);
+    background: hsl(var(--card));
     box-shadow: var(--ios-shadow);
-    border: 1px solid rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(0, 0, 0, 0.04);
     border-radius: var(--ios-radius-lg);
+    isolation: isolate;
     transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
                 box-shadow 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
