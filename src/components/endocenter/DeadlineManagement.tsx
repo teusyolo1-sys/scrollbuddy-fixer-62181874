@@ -95,7 +95,7 @@ export default function DeadlineManagement() {
         ))}
       </div>
 
-      <div className="ios-card overflow-hidden">
+      <div className="ios-card overflow-visible">
         <div className="p-4 border-b border-border/60 flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-base font-semibold text-foreground">Tabela de prazos críticos</h3>
           <div className="p-1 rounded-xl bg-secondary/70 flex gap-1">
