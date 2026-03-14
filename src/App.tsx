@@ -74,7 +74,8 @@ const App = () => {
         <Sonner />
         <Routes>
           <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
-          <Route path="/" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
+          <Route path="/editor" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
+          <Route path="/" element={<EndocenterDashboard />} />
           <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminPage /></AdminRoute></ProtectedRoute>} />
           <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/checkout/pix" element={<ProtectedRoute><PixPaymentPage /></ProtectedRoute>} />
