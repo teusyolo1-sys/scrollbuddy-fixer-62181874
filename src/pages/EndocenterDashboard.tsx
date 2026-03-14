@@ -101,7 +101,7 @@ function DashboardContent() {
       </header>
 
       {/* Main content */}
-      <main className="max-w-7xl mx-auto px-5 sm:px-6 py-7">
+      <main className="relative z-10 max-w-7xl mx-auto px-5 sm:px-6 py-7">
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, y: 8 }}
@@ -117,7 +117,7 @@ function DashboardContent() {
         </motion.div>
       </main>
 
-      <footer className="text-center py-8 text-xs text-muted-foreground">
+      <footer className="relative z-0 text-center py-8 text-xs text-muted-foreground">
         {company.name} · Dashboard operacional
       </footer>
 

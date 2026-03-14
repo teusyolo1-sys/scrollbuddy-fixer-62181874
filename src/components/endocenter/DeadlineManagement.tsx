@@ -95,7 +95,7 @@ export default function DeadlineManagement() {
         ))}
       </div>
 
-      <div className="ios-card overflow-visible">
+      <div className={`ios-card overflow-visible relative ${openStatusDeadlineId ? "z-50" : "z-0"}`}>
         <div className="p-4 border-b border-border/60 flex items-center justify-between gap-3 flex-wrap">
           <h3 className="text-base font-semibold text-foreground">Tabela de prazos críticos</h3>
           <div className="p-1 rounded-xl bg-secondary/70 flex gap-1">
@@ -120,7 +120,7 @@ export default function DeadlineManagement() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: index * 0.02 }}
-              className="p-4 space-y-2"
+              className={`p-4 space-y-2 relative ${openStatusDeadlineId === deadline.id ? "z-40" : "z-0"}`}
             >
               {editMode ? (
                 <>
@@ -301,6 +301,7 @@ function StatusPill({
   onOpenChange: (open: boolean) => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const [openUpward, setOpenUpward] = useState(false);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -310,6 +311,16 @@ function StatusPill({
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [isOpen, onOpenChange]);
+
+  useEffect(() => {
+    if (!isOpen || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const estimatedMenuHeight = allStatuses.length * 34 + 12;
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const spaceAbove = rect.top;
+
+    setOpenUpward(spaceBelow < estimatedMenuHeight && spaceAbove > spaceBelow);
+  }, [isOpen]);
 
   const current = statusConfig[value];
 
@@ -326,11 +337,13 @@ function StatusPill({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: -4 }}
+            initial={{ opacity: 0, scale: 0.92, y: openUpward ? 4 : -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: -4 }}
+            exit={{ opacity: 0, scale: 0.92, y: openUpward ? 4 : -4 }}
             transition={{ type: "spring", damping: 22, stiffness: 400 }}
-            className="absolute right-0 top-full mt-1.5 z-50 rounded-2xl overflow-hidden border border-border/50 bg-card shadow-lg"
+            className={`absolute right-0 z-50 rounded-2xl border border-border/50 bg-card shadow-lg max-h-56 overflow-y-auto ${
+              openUpward ? "bottom-full mb-1.5" : "top-full mt-1.5"
+            }`}
             style={{ minWidth: 130 }}
           >
             {allStatuses.map((s) => (
