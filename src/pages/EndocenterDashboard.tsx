@@ -104,9 +104,9 @@ function DashboardContent() {
       <main className="max-w-7xl mx-auto px-5 sm:px-6 py-7">
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 14 }}
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: "spring", damping: 26, stiffness: 300 }}
+          transition={{ type: "spring", damping: 28, stiffness: 380, mass: 0.5 }}
         >
           {activeTab === "dashboard" && <TeamDashboard />}
           {activeTab === "schedule" && <MasterSchedule />}

@@ -5,20 +5,20 @@ import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
 
 const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
 
-/* ── iOS 26 animation presets ── */
-// Abertura de Diafragma — circular expansion bloom
+/* ── Optimized iOS 26 animation presets ── */
+// Diaphragm — fast bloom with less oscillation
 const diaphragm = {
-  initial: { opacity: 0, scale: 0.6, borderRadius: "50%" },
-  animate: { opacity: 1, scale: 1, borderRadius: "var(--ios-radius-lg)" },
-  transition: { type: "spring", damping: 18, stiffness: 200, mass: 0.8 },
+  initial: { opacity: 0, scale: 0.85 },
+  animate: { opacity: 1, scale: 1 },
+  transition: { type: "spring", damping: 26, stiffness: 340, mass: 0.5 },
 };
 
-// Bouncy Motion — elastic overshoot
+// Bouncy — snappy elastic with quick settle
 const bouncy = {
   type: "spring" as const,
-  damping: 12,
-  stiffness: 280,
-  mass: 0.6,
+  damping: 20,
+  stiffness: 380,
+  mass: 0.45,
 };
 
 export default function TeamDashboard() {
@@ -203,71 +203,48 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
 
   return (
     <motion.div
-      // Diaphragm bloom — cards "sprout" onto the screen
-      initial={{ opacity: 0, scale: 0.65, borderRadius: "50%" }}
-      animate={{ opacity: 1, scale: 1, borderRadius: "var(--ios-radius-lg)" }}
-      transition={{ ...bouncy, delay: index * 0.1 }}
-      whileHover={{ scale: 1.015, transition: { duration: 0.2 } }}
+      initial={{ opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ ...bouncy, delay: Math.min(index * 0.05, 0.2) }}
+      whileHover={{ scale: 1.01, transition: { duration: 0.15 } }}
+      style={{ willChange: "transform, opacity" }}
       className="ios-card overflow-hidden"
     >
       {/* Header */}
       <div className="p-5" style={{ borderLeft: `4px solid ${member.color}` }}>
         <div className="flex items-center gap-3.5">
           {member.photoUrl ? (
-            <motion.img
-              src={member.photoUrl}
-              alt={member.name}
-              className="h-12 w-12 object-cover"
-              style={{ borderRadius: "var(--ios-radius)" }}
-              whileHover={{ scale: 1.1, rotate: 2 }}
-              transition={bouncy}
-            />
+            <img src={member.photoUrl} alt={member.name} className="h-12 w-12 object-cover rounded-2xl" />
           ) : (
-            <motion.div
-              className="h-12 w-12 flex items-center justify-center"
-              style={{ borderRadius: "var(--ios-radius)", background: `${member.color}15` }}
-              whileHover={{ scale: 1.1, rotate: -3 }}
-              transition={bouncy}
-            >
+            <div className="h-12 w-12 flex items-center justify-center rounded-2xl" style={{ background: `${member.color}15` }}>
               <User className="h-5 w-5" style={{ color: member.color }} />
-            </motion.div>
+            </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="text-base font-bold text-foreground truncate">{member.name}</div>
             <div className="text-sm font-medium" style={{ color: member.color }}>{member.role}</div>
           </div>
-          <motion.span
-            className={`ios-badge ${
-              member.status === "Ativo" ? "ios-status-active"
-                : member.status === "Férias" ? "ios-status-warning"
-                : "ios-status-danger"
-            }`}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ ...bouncy, delay: index * 0.1 + 0.2 }}
-          >
+          <span className={`ios-badge ${
+            member.status === "Ativo" ? "ios-status-active"
+              : member.status === "Férias" ? "ios-status-warning"
+              : "ios-status-danger"
+          }`}>
             {member.status}
-          </motion.span>
+          </span>
         </div>
 
-        {/* Stats — bouncy stagger */}
+        {/* Stats */}
         <div className="grid grid-cols-3 gap-2.5 mt-4">
           {[
             { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}`, sub: "/ mês" },
             { label: "Carga Horária", value: `${member.hours}h`, sub: "/ mês" },
             { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}`, sub: "calculado" },
-          ].map((stat, si) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ ...bouncy, delay: index * 0.1 + si * 0.06 + 0.15 }}
-              className="p-3 text-center rounded-2xl bg-secondary/40"
-            >
+          ].map((stat) => (
+            <div key={stat.label} className="p-3 text-center rounded-2xl bg-secondary/40">
               <div className="text-[10px] font-medium text-muted-foreground">{stat.label}</div>
               <div className="text-sm font-bold text-foreground mt-0.5">{stat.value}</div>
               <div className="text-[10px] text-muted-foreground">{stat.sub}</div>
-            </motion.div>
+            </div>
           ))}
         </div>
 
@@ -297,81 +274,53 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
         </motion.button>
       </div>
 
-      {/* Expanded detail — fluid morph height */}
+      {/* Expanded detail */}
       <AnimatePresence>
         {isExpanded && (
           <motion.div
-            initial={{ height: 0, opacity: 0, scale: 0.97 }}
-            animate={{ height: "auto", opacity: 1, scale: 1 }}
-            exit={{ height: 0, opacity: 0, scale: 0.97 }}
-            transition={{ type: "spring", damping: 20, stiffness: 250, mass: 0.6 }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.5 }}
             className="overflow-hidden"
+            style={{ willChange: "height, opacity" }}
           >
             <div className="px-5 pb-5 pt-3 space-y-4 border-t border-border/30">
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...bouncy, delay: 0.05 }}
-              >
+              <div>
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Especialidade</div>
                 <p className="text-sm text-foreground mt-1">{member.specialty || member.role}</p>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...bouncy, delay: 0.1 }}
-              >
+              <div>
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Principais tarefas</div>
                 <ul className="mt-1.5 space-y-1.5">
                   {member.tasks.map((task, ti) => (
-                    <motion.li
-                      key={`${member.id}-task-${ti}`}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ ...bouncy, delay: 0.12 + ti * 0.04 }}
-                      className="text-sm text-foreground flex items-start gap-2"
-                    >
+                    <li key={`${member.id}-task-${ti}`} className="text-sm text-foreground flex items-start gap-2">
                       <span className="mt-1.5 h-[6px] w-[6px] rounded-full shrink-0" style={{ backgroundColor: member.color }} />
                       {task}
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ ...bouncy, delay: 0.18 }}
-              >
+              <div>
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">KPIs</div>
                 <ul className="mt-1.5 space-y-1.5">
                   {member.kpis.map((kpi, ki) => (
-                    <motion.li
-                      key={`${member.id}-kpi-${ki}`}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ ...bouncy, delay: 0.2 + ki * 0.04 }}
-                      className="text-sm text-foreground flex items-center gap-2"
-                    >
+                    <li key={`${member.id}-kpi-${ki}`} className="text-sm text-foreground flex items-center gap-2">
                       <Target className="h-3.5 w-3.5 shrink-0" style={{ color: member.color }} />
                       {kpi}
-                    </motion.li>
+                    </li>
                   ))}
                 </ul>
-              </motion.div>
+              </div>
 
-              <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ ...bouncy, delay: 0.25 }}
-                className="p-4 rounded-2xl bg-secondary/30 border border-border/30"
-              >
+              <div className="p-4 rounded-2xl bg-secondary/30 border border-border/30">
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Case do membro</div>
                 <p className="text-sm text-foreground mt-1">
                   {member.caseNotes || "Sem case registrado. Edite no Lobby de Gestão (⚙)."}
                 </p>
-              </motion.div>
+              </div>
 
               <p className="text-[11px] text-muted-foreground">
                 Cálculo: R$ {member.remuneration.toLocaleString("pt-BR")} ÷ {member.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora

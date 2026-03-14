@@ -128,9 +128,9 @@ export default function LobbyPage() {
             return (
               <motion.button
                 key={company.id}
-                initial={{ opacity: 0, y: 30, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ delay: i * 0.08, type: "spring", damping: 22, stiffness: 260 }}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: Math.min(i * 0.05, 0.15), type: "spring", damping: 26, stiffness: 340 }}
                 onClick={() => openCompany(company)}
                 className="ios-squircle p-0 text-left overflow-hidden group"
               >
