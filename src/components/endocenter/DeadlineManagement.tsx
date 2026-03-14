@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle, Plus, Trash2, XCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { useMemo, useState, useRef, useEffect } from "react";
+import { AlertTriangle, CheckCircle, ChevronDown, Plus, Trash2, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type DeadlinePriority, type DeadlineStatus } from "@/store/endocenterStore";
 
 const priorityConfig: Record<DeadlinePriority, { label: string; className: string }> = {
