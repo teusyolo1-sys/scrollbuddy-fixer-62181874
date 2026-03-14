@@ -42,10 +42,10 @@
     --ios-glass-heavy: rgba(255, 255, 255, 0.92);
     --ios-glass-ultra: rgba(255, 255, 255, 0.97);
 
-    /* Blur intensities */
-    --ios-blur-subtle: 20px;
-    --ios-blur: 40px;
-    --ios-blur-heavy: 80px;
+    /* Blur intensities (tuned to avoid GPU artifacts) */
+    --ios-blur-subtle: 10px;
+    --ios-blur: 18px;
+    --ios-blur-heavy: 30px;
 
     /* Shadows — soft, diffused, multi-layer */
     --ios-shadow-subtle: 
