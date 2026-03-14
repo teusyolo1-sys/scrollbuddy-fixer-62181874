@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { BarChart3, Building2, Settings, Users, X } from "lucide-react";
 import CompanySettingsTab from "@/components/endocenter/settings/CompanySettingsTab";
 import TeamSettingsTab from "@/components/endocenter/settings/TeamSettingsTab";
@@ -22,6 +22,7 @@ const tabs: { id: TabId; label: string; icon: typeof Settings }[] = [
 
 export default function SettingsDialog({ open, onClose }: Props) {
   const [tab, setTab] = useState<TabId>("company");
+  const reduceMotion = useReducedMotion();
 
   return (
     <AnimatePresence>
@@ -30,23 +31,20 @@ export default function SettingsDialog({ open, onClose }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center"
-          style={{ background: "rgba(0,0,0,0.25)", backdropFilter: "blur(12px)" }}
-          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+          transition={reduceMotion ? { duration: 0 } : { duration: 0.18 }}
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center ios-modal-overlay"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
         >
           <motion.div
-            initial={{ y: 50, opacity: 0, scale: 0.97 }}
+            initial={reduceMotion ? false : { y: 36, opacity: 0, scale: 0.99 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 30, opacity: 0, scale: 0.97 }}
-            transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="w-full sm:max-w-2xl max-h-[92vh] overflow-hidden flex flex-col"
+            exit={reduceMotion ? { opacity: 0 } : { y: 20, opacity: 0, scale: 0.99 }}
+            transition={reduceMotion ? { duration: 0 } : { type: "spring", damping: 30, stiffness: 360, mass: 0.65 }}
+            className="w-full sm:max-w-2xl max-h-[92vh] overflow-hidden flex flex-col ios-modal-surface"
             style={{
               borderRadius: "var(--ios-radius-2xl) var(--ios-radius-2xl) 0 0",
-              background: "var(--ios-glass-ultra)",
-              backdropFilter: "blur(80px) saturate(200%)",
-              boxShadow: "var(--ios-shadow-float)",
-              border: "1px solid rgba(255,255,255,0.5)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -63,8 +61,7 @@ export default function SettingsDialog({ open, onClose }: Props) {
               </div>
               <button
                 onClick={onClose}
-                className="w-8 h-8 flex items-center justify-center"
-                style={{ borderRadius: "var(--ios-radius-sm)", background: "rgba(120,120,128,0.1)" }}
+                className="w-8 h-8 flex items-center justify-center rounded-xl bg-secondary/70"
               >
                 <X className="h-4 w-4 text-muted-foreground" />
               </button>
@@ -93,10 +90,10 @@ export default function SettingsDialog({ open, onClose }: Props) {
               <AnimatePresence mode="wait">
                 <motion.div
                   key={tab}
-                  initial={{ opacity: 0, x: 16 }}
+                  initial={reduceMotion ? false : { opacity: 0, x: 8 }}
                   animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -16 }}
-                  transition={{ duration: 0.18 }}
+                  exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -8 }}
+                  transition={reduceMotion ? { duration: 0 } : { duration: 0.14, ease: "easeOut" }}
                 >
                   {tab === "company" && <CompanySettingsTab />}
                   {tab === "team" && <TeamSettingsTab />}

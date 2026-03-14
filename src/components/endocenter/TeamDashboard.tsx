@@ -161,11 +161,10 @@ function MemberCard({ member, isExpanded, onToggle }: MemberCardProps) {
 
   return (
     <motion.div
-      layout
-      layoutId={`member-${member.id}`}
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ type: "spring", damping: 28, stiffness: 320 }}
+      layout="position"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", damping: 34, stiffness: 420, mass: 0.7 }}
       className={`ios-card overflow-hidden ${isExpanded ? "w-full" : "w-full sm:w-[calc(50%-0.375rem)] lg:w-[calc(33.333%-0.5rem)]"}`}
       style={{ minWidth: isExpanded ? undefined : 260 }}
     >
