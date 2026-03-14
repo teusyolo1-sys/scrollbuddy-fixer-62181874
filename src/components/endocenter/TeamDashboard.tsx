@@ -69,7 +69,7 @@ export default function TeamDashboard() {
               key={card.label}
               initial={diaphragm.initial}
               animate={diaphragm.animate}
-              transition={{ ...diaphragm.transition, delay: i * 0.08 }}
+              transition={{ type: "spring", damping: 18, stiffness: 200, mass: 0.8, delay: i * 0.08 }}
               className="ios-card p-5"
             >
               <div className="w-10 h-10 rounded-2xl flex items-center justify-center mb-3" style={{ background: `${card.color}15` }}>
