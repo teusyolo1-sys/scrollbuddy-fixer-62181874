@@ -289,25 +289,34 @@ export default function DeadlineManagement() {
 }
 
 /* ── Custom rounded status dropdown ── */
-function StatusPill({ value, onChange }: { value: DeadlineStatus; onChange: (s: DeadlineStatus) => void }) {
-  const [open, setOpen] = useState(false);
+function StatusPill({
+  value,
+  onChange,
+  isOpen,
+  onOpenChange,
+}: {
+  value: DeadlineStatus;
+  onChange: (s: DeadlineStatus) => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    if (!isOpen) return;
     const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(e.target as Node)) onOpenChange(false);
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
+  }, [isOpen, onOpenChange]);
 
   const current = statusConfig[value];
 
   return (
     <div className="relative" ref={ref}>
       <button
-        onClick={() => setOpen((p) => !p)}
+        onClick={() => onOpenChange(!isOpen)}
         className={`rounded-full px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all ${current.className}`}
       >
         {current.label}
@@ -315,7 +324,7 @@ function StatusPill({ value, onChange }: { value: DeadlineStatus; onChange: (s: 
       </button>
 
       <AnimatePresence>
-        {open && (
+        {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: -4 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -327,7 +336,10 @@ function StatusPill({ value, onChange }: { value: DeadlineStatus; onChange: (s: 
             {allStatuses.map((s) => (
               <button
                 key={s}
-                onClick={() => { onChange(s); setOpen(false); }}
+                onClick={() => {
+                  onChange(s);
+                  onOpenChange(false);
+                }}
                 className={`w-full text-left px-3.5 py-2 text-xs font-medium transition-colors ${
                   s === value ? statusConfig[s].className + " font-bold" : "text-foreground hover:bg-secondary/60"
                 }`}
