@@ -203,11 +203,11 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
 
   return (
     <motion.div
-      // Diaphragm bloom — cards "sprout" onto the screen
-      initial={{ opacity: 0, scale: 0.65, borderRadius: "50%" }}
-      animate={{ opacity: 1, scale: 1, borderRadius: "var(--ios-radius-lg)" }}
-      transition={{ ...bouncy, delay: index * 0.1 }}
-      whileHover={{ scale: 1.015, transition: { duration: 0.2 } }}
+      initial={{ opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ ...bouncy, delay: Math.min(index * 0.05, 0.2) }}
+      whileHover={{ scale: 1.01, transition: { duration: 0.15 } }}
+      style={{ willChange: "transform, opacity" }}
       className="ios-card overflow-hidden"
     >
       {/* Header */}
