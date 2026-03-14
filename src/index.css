@@ -29,7 +29,7 @@
 
 @layer base {
   * { @apply border-border; }
-  body { @apply bg-background text-foreground; margin: 0; padding: 0; overflow: hidden; }
+  body { @apply bg-background text-foreground; margin: 0; padding: 0; overflow-x: hidden; }
 
   /* Scrollbar styling */
   * {
