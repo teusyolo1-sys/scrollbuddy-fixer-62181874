@@ -205,17 +205,10 @@ export default function DeadlineManagement() {
 
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-muted-foreground">Status da tarefa</span>
-                <select
-                  className={`rounded-full border-none outline-none px-3 py-1.5 text-xs font-semibold cursor-pointer ${statusConfig[deadline.status].className}`}
+                <StatusPill
                   value={deadline.status}
-                  onChange={(event) => updateDeadline(deadline.id, { status: event.target.value as DeadlineStatus })}
-                >
-                  {allStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {statusConfig[status].label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(s) => updateDeadline(deadline.id, { status: s })}
+                />
               </div>
             </motion.div>
           ))}
