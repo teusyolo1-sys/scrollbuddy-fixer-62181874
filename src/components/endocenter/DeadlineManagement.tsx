@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
-import { AlertTriangle, CheckCircle, Plus, Trash2, XCircle } from "lucide-react";
-import { motion } from "framer-motion";
+import { useMemo, useState, useRef, useEffect } from "react";
+import { AlertTriangle, CheckCircle, ChevronDown, Plus, Trash2, XCircle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type DeadlinePriority, type DeadlineStatus } from "@/store/endocenterStore";
 
 const priorityConfig: Record<DeadlinePriority, { label: string; className: string }> = {
@@ -205,17 +205,10 @@ export default function DeadlineManagement() {
 
               <div className="flex items-center justify-between">
                 <span className="text-[11px] text-muted-foreground">Status da tarefa</span>
-                <select
-                  className={`rounded-full border-none outline-none px-3 py-1.5 text-xs font-semibold cursor-pointer ${statusConfig[deadline.status].className}`}
+                <StatusPill
                   value={deadline.status}
-                  onChange={(event) => updateDeadline(deadline.id, { status: event.target.value as DeadlineStatus })}
-                >
-                  {allStatuses.map((status) => (
-                    <option key={status} value={status}>
-                      {statusConfig[status].label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(s) => updateDeadline(deadline.id, { status: s })}
+                />
               </div>
             </motion.div>
           ))}
@@ -288,6 +281,60 @@ export default function DeadlineManagement() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+/* ── Custom rounded status dropdown ── */
+function StatusPill({ value, onChange }: { value: DeadlineStatus; onChange: (s: DeadlineStatus) => void }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const current = statusConfig[value];
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((p) => !p)}
+        className={`rounded-full px-3 py-1.5 text-xs font-semibold flex items-center gap-1.5 cursor-pointer transition-all ${current.className}`}
+      >
+        {current.label}
+        <ChevronDown className="h-3 w-3" />
+      </button>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: -4 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: -4 }}
+            transition={{ type: "spring", damping: 22, stiffness: 400 }}
+            className="absolute right-0 top-full mt-1.5 z-50 rounded-2xl overflow-hidden border border-border/50 bg-card shadow-lg"
+            style={{ minWidth: 130 }}
+          >
+            {allStatuses.map((s) => (
+              <button
+                key={s}
+                onClick={() => { onChange(s); setOpen(false); }}
+                className={`w-full text-left px-3.5 py-2 text-xs font-medium transition-colors ${
+                  s === value ? statusConfig[s].className + " font-bold" : "text-foreground hover:bg-secondary/60"
+                }`}
+              >
+                {statusConfig[s].label}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
