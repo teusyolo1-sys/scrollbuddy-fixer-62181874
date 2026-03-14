@@ -111,22 +111,31 @@
 
 @layer utilities {
   /* ── Glass Surfaces ── */
+  .ios-glass,
+  .ios-glass-heavy,
+  .ios-glass-ultra {
+    isolation: isolate;
+    will-change: backdrop-filter;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
   .ios-glass {
-    background: var(--ios-glass);
-    backdrop-filter: blur(var(--ios-blur)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(180%);
+    background: hsl(var(--card) / 0.72);
+    backdrop-filter: blur(var(--ios-blur)) saturate(135%);
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(135%);
   }
 
   .ios-glass-heavy {
-    background: var(--ios-glass-heavy);
-    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(180%);
-    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(180%);
+    background: hsl(var(--card) / 0.84);
+    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(140%);
   }
 
   .ios-glass-ultra {
-    background: var(--ios-glass-ultra);
-    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(200%);
-    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(200%);
+    background: hsl(var(--card) / 0.92);
+    backdrop-filter: blur(calc(var(--ios-blur-heavy) + 6px)) saturate(145%);
+    -webkit-backdrop-filter: blur(calc(var(--ios-blur-heavy) + 6px)) saturate(145%);
   }
 
   .ios-glass-dark {
@@ -136,29 +145,40 @@
   }
 
   .ios-modal-overlay {
-    background: hsl(var(--foreground) / 0.2);
-    backdrop-filter: blur(8px) saturate(110%);
-    -webkit-backdrop-filter: blur(8px) saturate(110%);
+    position: relative;
+    background: hsl(var(--foreground) / 0.24);
+    backdrop-filter: blur(var(--ios-blur-subtle)) saturate(115%);
+    -webkit-backdrop-filter: blur(var(--ios-blur-subtle)) saturate(115%);
+    isolation: isolate;
   }
 
   .ios-modal-surface {
-    background: hsl(var(--card) / 0.92);
-    border: 1px solid hsl(var(--border) / 0.7);
+    background: hsl(var(--card) / 0.9);
+    border: 1px solid hsl(var(--border) / 0.65);
     box-shadow: var(--ios-shadow-float);
-    backdrop-filter: blur(18px) saturate(120%);
-    -webkit-backdrop-filter: blur(18px) saturate(120%);
-    contain: paint;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transform: translateZ(0);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .ios-glass,
+    .ios-glass-heavy,
+    .ios-glass-ultra,
+    .ios-modal-overlay {
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      background: hsl(var(--card) / 0.94);
+    }
   }
 
   @media (max-width: 640px) {
     .ios-modal-overlay {
-      backdrop-filter: blur(4px) saturate(100%);
-      -webkit-backdrop-filter: blur(4px) saturate(100%);
+      backdrop-filter: blur(6px) saturate(108%);
+      -webkit-backdrop-filter: blur(6px) saturate(108%);
     }
 
     .ios-modal-surface {
-      backdrop-filter: none;
-      -webkit-backdrop-filter: none;
       background: hsl(var(--card));
     }
   }
