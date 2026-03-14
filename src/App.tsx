@@ -9,6 +9,7 @@ import AdminPage from "./pages/AdminPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import CheckoutResultPage from "./pages/CheckoutResultPage";
 import PixPaymentPage from "./pages/PixPaymentPage";
+import EndocenterDashboard from "./pages/EndocenterDashboard";
 
 const SetupNotice = () => (
   <div className="min-h-screen flex items-center justify-center bg-background p-6">
