@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { BarChart3, Calendar, Rocket, CheckSquare, RefreshCw, AlertTriangle, Settings } from "lucide-react";
+import { motion } from "framer-motion";
 import { EndocenterProvider, useEndocenter } from "@/store/endocenterStore";
 import TeamDashboard from "@/components/endocenter/TeamDashboard";
 import MasterSchedule from "@/components/endocenter/MasterSchedule";
@@ -24,43 +25,62 @@ function DashboardContent() {
   const { company } = useEndocenter();
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "#F1F5F9" }}>
-      <header style={{ backgroundColor: "#0A1628" }} className="sticky top-0 z-50">
+    <div className="min-h-screen" style={{ background: "linear-gradient(180deg, hsl(220,20%,95%) 0%, hsl(220,25%,97%) 100%)" }}>
+      {/* iOS-style header with glass effect */}
+      <header className="sticky top-0 z-50 ios-glass-dark" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
-                {company.name} — Dashboard da Equipe
-              </h1>
-              <p className="text-sm text-slate-400 mt-0.5">
+              <motion.h1
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-xl sm:text-2xl font-bold text-white tracking-tight"
+              >
+                {company.name}
+              </motion.h1>
+              <p className="text-sm mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>
                 {company.subtitle} · {company.month}
               </p>
             </div>
-            <button
+            <motion.button
+              whileTap={{ scale: 0.9, rotate: 45 }}
+              transition={{ type: "spring", stiffness: 400 }}
               onClick={() => setSettingsOpen(true)}
-              className="p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-colors"
+              style={{ background: "rgba(255,255,255,0.1)" }}
               title="Configurações"
             >
-              <Settings size={20} />
-            </button>
+              <Settings size={18} style={{ color: "rgba(255,255,255,0.7)" }} />
+            </motion.button>
           </div>
+
+          {/* iOS-style segmented navigation */}
           <nav className="flex gap-1 overflow-x-auto pb-1 -mb-1">
             {tabs.map((tab) => {
               const Icon = tab.icon;
+              const isActive = activeTab === tab.id;
               return (
-                <button
+                <motion.button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium whitespace-nowrap transition-all"
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all duration-300 relative"
                   style={{
-                    backgroundColor: activeTab === tab.id ? "rgba(255,255,255,0.15)" : "transparent",
-                    color: activeTab === tab.id ? "#FFFFFF" : "#94A3B8",
-                    borderBottom: activeTab === tab.id ? "2px solid #3B82F6" : "2px solid transparent",
+                    backgroundColor: isActive ? "rgba(255,255,255,0.15)" : "transparent",
+                    color: isActive ? "#FFFFFF" : "rgba(255,255,255,0.45)",
                   }}
                 >
                   <Icon size={14} />
                   {tab.label}
-                </button>
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTabIndicator"
+                      className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full"
+                      style={{ background: "hsl(215,90%,60%)" }}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
+                </motion.button>
               );
             })}
           </nav>
@@ -68,15 +88,22 @@ function DashboardContent() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {activeTab === "dashboard" && <TeamDashboard />}
-        {activeTab === "schedule" && <MasterSchedule />}
-        {activeTab === "pipeline" && <ProjectPipeline />}
-        {activeTab === "matrix" && <ResponsibilityMatrix />}
-        {activeTab === "workflow" && <WorkflowDiagram />}
-        {activeTab === "deadlines" && <DeadlineManagement />}
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ type: "spring", damping: 25, stiffness: 300 }}
+        >
+          {activeTab === "dashboard" && <TeamDashboard />}
+          {activeTab === "schedule" && <MasterSchedule />}
+          {activeTab === "pipeline" && <ProjectPipeline />}
+          {activeTab === "matrix" && <ResponsibilityMatrix />}
+          {activeTab === "workflow" && <WorkflowDiagram />}
+          {activeTab === "deadlines" && <DeadlineManagement />}
+        </motion.div>
       </main>
 
-      <footer className="text-center py-6 text-xs text-slate-400">
+      <footer className="text-center py-6 text-xs" style={{ color: "hsl(220,10%,65%)" }}>
         {company.name} Marketing Dashboard · Atualizado em {company.month}
       </footer>
 

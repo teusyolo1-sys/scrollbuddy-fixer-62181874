@@ -1,50 +1,50 @@
 import { useState } from "react";
-import { Brain, Radio, PenTool, Palette, Users, CheckCircle, AlertTriangle, XCircle, Clock, Phone, FolderOpen, Video, Zap, AlertOctagon, Timer } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Clock, Phone, Zap, AlertOctagon, Timer } from "lucide-react";
+import { motion } from "framer-motion";
 
 type Priority = "critical" | "high" | "medium" | "low";
 type DeadlineStatus = "on_track" | "at_risk" | "overdue" | "done";
 
 interface Deadline {
-  id: string; task: string; responsible: string; responsibleIcon: string;
-  dueDay: string; frequency: string; priority: Priority; status: DeadlineStatus; consequence: string;
+  id: string; task: string; responsible: string; dueDay: string; frequency: string; priority: Priority; status: DeadlineStatus; consequence: string;
 }
 
 const deadlines: Deadline[] = [
-  { id: "d1", task: "Briefing mensal entregue para a equipe", responsible: "Estrategista", responsibleIcon: "brain", dueDay: "Dia 25 (mês anterior)", frequency: "Mensal", priority: "critical", status: "on_track", consequence: "Equipe sem direção para o mês" },
-  { id: "d2", task: "Calendário editorial publicado no Drive", responsible: "Estrategista", responsibleIcon: "brain", dueDay: "Dia 27 (mês anterior)", frequency: "Mensal", priority: "critical", status: "on_track", consequence: "Produção sem organização" },
-  { id: "d3", task: "Copies de anúncios da semana", responsible: "Copywriter", responsibleIcon: "pen", dueDay: "3ª-feira de cada semana", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Atraso na criação das artes" },
-  { id: "d4", task: "Legendas de posts da semana", responsible: "Copywriter", responsibleIcon: "pen", dueDay: "2ª-feira de cada semana", frequency: "Semanal", priority: "high", status: "at_risk", consequence: "Posts sem texto para publicação" },
-  { id: "d5", task: "Artes e criativos da semana", responsible: "Designer", responsibleIcon: "palette", dueDay: "4ª-feira de cada semana", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Tráfego sem criativos para anúncios" },
-  { id: "d6", task: "Criativos de anúncios para aprovação", responsible: "Designer", responsibleIcon: "palette", dueDay: "3ª-feira de cada semana", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Campanhas sem atualização de criativos" },
-  { id: "d7", task: "Relatório semanal de performance", responsible: "Gestor de Tráfego", responsibleIcon: "radio", dueDay: "6ª-feira (até 18h)", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Estrategista sem dados para decisões" },
-  { id: "d8", task: "Aprovação de peças pela estrategista", responsible: "Estrategista", responsibleIcon: "brain", dueDay: "Dentro de 24h após receber", frequency: "Contínuo", priority: "critical", status: "on_track", consequence: "Bloqueio total do fluxo de produção" },
-  { id: "d9", task: "Relatório mensal consolidado", responsible: "Gestor de Tráfego", responsibleIcon: "radio", dueDay: "Até dia 5 do mês seguinte", frequency: "Mensal", priority: "high", status: "on_track", consequence: "Reunião de resultados sem dados" },
-  { id: "d10", task: "Peças antecipadas para semana 1 do próximo mês", responsible: "Designer + Copywriter", responsibleIcon: "users", dueDay: "Dia 28 de cada mês", frequency: "Mensal", priority: "medium", status: "on_track", consequence: "1ª semana sem conteúdo pronto" },
-  { id: "d11", task: "Reunião semanal de alinhamento", responsible: "Toda a equipe", responsibleIcon: "users", dueDay: "2ª-feira (30min, 09h)", frequency: "Semanal", priority: "medium", status: "on_track", consequence: "Equipe desalinhada" },
-  { id: "d12", task: "Configuração campanhas próximo mês", responsible: "Gestor de Tráfego", responsibleIcon: "radio", dueDay: "Até dia 28 de cada mês", frequency: "Mensal", priority: "high", status: "on_track", consequence: "1ª semana sem campanhas ativas" },
+  { id: "d1", task: "Briefing mensal entregue", responsible: "Estrategista", dueDay: "Dia 25 (mês anterior)", frequency: "Mensal", priority: "critical", status: "on_track", consequence: "Equipe sem direção" },
+  { id: "d2", task: "Calendário editorial publicado", responsible: "Estrategista", dueDay: "Dia 27 (mês anterior)", frequency: "Mensal", priority: "critical", status: "on_track", consequence: "Produção desorganizada" },
+  { id: "d3", task: "Copies de anúncios da semana", responsible: "Copywriter", dueDay: "3ª-feira", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Atraso nas artes" },
+  { id: "d4", task: "Legendas de posts da semana", responsible: "Copywriter", dueDay: "2ª-feira", frequency: "Semanal", priority: "high", status: "at_risk", consequence: "Posts sem texto" },
+  { id: "d5", task: "Artes e criativos da semana", responsible: "Designer", dueDay: "4ª-feira", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Tráfego sem criativos" },
+  { id: "d6", task: "Criativos de anúncios para aprovação", responsible: "Designer", dueDay: "3ª-feira", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Campanhas sem atualização" },
+  { id: "d7", task: "Relatório semanal de performance", responsible: "Gestor de Tráfego", dueDay: "6ª-feira (18h)", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Sem dados para decisões" },
+  { id: "d8", task: "Aprovação de peças", responsible: "Estrategista", dueDay: "Dentro de 24h", frequency: "Contínuo", priority: "critical", status: "on_track", consequence: "Bloqueio do fluxo" },
+  { id: "d9", task: "Relatório mensal consolidado", responsible: "Gestor de Tráfego", dueDay: "Até dia 5", frequency: "Mensal", priority: "high", status: "on_track", consequence: "Reunião sem dados" },
+  { id: "d10", task: "Peças antecipadas semana 1", responsible: "Designer + Copy", dueDay: "Dia 28", frequency: "Mensal", priority: "medium", status: "on_track", consequence: "1ª semana sem conteúdo" },
+  { id: "d11", task: "Reunião semanal de alinhamento", responsible: "Toda equipe", dueDay: "2ª-feira (09h)", frequency: "Semanal", priority: "medium", status: "on_track", consequence: "Equipe desalinhada" },
+  { id: "d12", task: "Configuração campanhas próximo mês", responsible: "Gestor de Tráfego", dueDay: "Até dia 28", frequency: "Mensal", priority: "high", status: "on_track", consequence: "Sem campanhas ativas" },
 ];
 
 const crisisScenarios = [
-  { scenario: "Membro da equipe adoece ou fica indisponível", Icon: AlertOctagon, color: "#DC2626", impact: "Alto", steps: ["Comunicar imediatamente à estrategista via WhatsApp", "Estrategista avalia redistribuição de tarefas urgentes", "Priorizar entregáveis críticos", "Se necessário, contratar freelancer emergencial em até 24h", "Documentar impacto e ajustar prazos do mês"] },
-  { scenario: "Campanha com performance abaixo do esperado", Icon: AlertTriangle, color: "#EA580C", impact: "Médio", steps: ["Gestor de tráfego alerta a estrategista em até 2h", "Análise de causa raiz: criativo, público, LP ou oferta", "Teste imediato de 2 criativos alternativos em 24h", "Se CPL > 2x a meta por 3 dias: pausa e revisão", "Reunião emergencial para replanejar"] },
-  { scenario: "Cliente / diretoria solicita mudança urgente", Icon: Phone, color: "#1E6FD9", impact: "Variável", steps: ["Estrategista recebe e avalia urgência (1h para responder)", "Briefing simplificado enviado em até 4h", "Definir o que pode ser adiado", "Entregável urgente com prazo máximo de 48h", "Comunicar ETA realista ao cliente"] },
-  { scenario: "Conta de anúncios suspensa ou banida", Icon: XCircle, color: "#7C3AED", impact: "Crítico", steps: ["Gestor alerta estrategista imediatamente (ligação)", "Abertura de recurso em até 2h", "Migração para conta backup", "Comunicar à diretoria sobre possível queda de leads", "Resolver recurso + medidas preventivas"] },
-  { scenario: "Erro de comunicação ou publicação equivocada", Icon: Zap, color: "#059669", impact: "Alto", steps: ["Apagar/pausar o conteúdo imediatamente", "Notificar estrategista e diretoria em até 15 minutos", "Avaliar necessidade de nota de correção", "Identificar falha no processo de aprovação", "Corrigir o processo para não repetir"] },
-  { scenario: "Prazo crítico em risco de não ser cumprido", Icon: Timer, color: "#F59E0B", impact: "Médio", steps: ["Comunicar atraso com 24h de antecedência (mínimo)", "Apresentar nova previsão realista", "Identificar causa e resolver o bloqueio", "Priorizar itens mais impactantes", "Documentar e criar plano para não repetir"] },
+  { scenario: "Membro da equipe indisponível", Icon: AlertOctagon, color: "#FF3B30", impact: "Alto", steps: ["Comunicar à estrategista via WhatsApp", "Avaliar redistribuição de tarefas", "Priorizar entregáveis críticos", "Freelancer emergencial em até 24h", "Documentar impacto"] },
+  { scenario: "Campanha com baixa performance", Icon: AlertTriangle, color: "#FF9500", impact: "Médio", steps: ["Alerta à estrategista em até 2h", "Análise de causa raiz", "2 criativos alternativos em 24h", "CPL > 2x por 3 dias: pausa e revisão", "Reunião emergencial"] },
+  { scenario: "Mudança urgente do cliente", Icon: Phone, color: "#007AFF", impact: "Variável", steps: ["Avaliar urgência (1h)", "Briefing simplificado em 4h", "Definir o que adiar", "Entregável urgente em até 48h", "ETA realista ao cliente"] },
+  { scenario: "Conta de anúncios suspensa", Icon: XCircle, color: "#AF52DE", impact: "Crítico", steps: ["Alerta imediato (ligação)", "Recurso em até 2h", "Migração para conta backup", "Comunicar sobre queda de leads", "Medidas preventivas"] },
+  { scenario: "Publicação equivocada", Icon: Zap, color: "#30D158", impact: "Alto", steps: ["Apagar/pausar imediatamente", "Notificar em até 15 minutos", "Avaliar nota de correção", "Identificar falha no processo", "Corrigir para não repetir"] },
+  { scenario: "Prazo crítico em risco", Icon: Timer, color: "#FF9500", impact: "Médio", steps: ["Comunicar com 24h de antecedência", "Nova previsão realista", "Resolver bloqueio", "Priorizar itens impactantes", "Documentar e prevenir"] },
 ];
 
 const priorityConfig = {
-  critical: { label: "Crítico", bg: "#FFF1F2", color: "#DC2626", border: "#FECDD3" },
-  high: { label: "Alto", bg: "#FFF7ED", color: "#EA580C", border: "#FED7AA" },
-  medium: { label: "Médio", bg: "#FFFBEB", color: "#D97706", border: "#FDE68A" },
-  low: { label: "Baixo", bg: "#F0FDF4", color: "#059669", border: "#A7F3D0" },
+  critical: { label: "Crítico", color: "#FF3B30", bg: "rgba(255,59,48,0.08)" },
+  high: { label: "Alto", color: "#FF9500", bg: "rgba(255,149,0,0.08)" },
+  medium: { label: "Médio", color: "#FF9500", bg: "rgba(255,149,0,0.06)" },
+  low: { label: "Baixo", color: "#30D158", bg: "rgba(48,209,88,0.08)" },
 };
 
 const statusConfig = {
-  on_track: { label: "No prazo", bg: "#ECFDF5", color: "#059669", border: "#A7F3D0", Icon: CheckCircle },
-  at_risk: { label: "Em risco", bg: "#FFFBEB", color: "#D97706", border: "#FDE68A", Icon: AlertTriangle },
-  overdue: { label: "Atrasado", bg: "#FFF1F2", color: "#DC2626", border: "#FECDD3", Icon: XCircle },
-  done: { label: "Concluído", bg: "#EFF6FF", color: "#1E6FD9", border: "#BFDBFE", Icon: CheckCircle },
+  on_track: { label: "No prazo", color: "#30D158", bg: "rgba(48,209,88,0.08)", Icon: CheckCircle },
+  at_risk: { label: "Em risco", color: "#FF9500", bg: "rgba(255,149,0,0.08)", Icon: AlertTriangle },
+  overdue: { label: "Atrasado", color: "#FF3B30", bg: "rgba(255,59,48,0.08)", Icon: XCircle },
+  done: { label: "Concluído", color: "#007AFF", bg: "rgba(0,122,255,0.08)", Icon: CheckCircle },
 };
 
 export default function DeadlineManagement() {
@@ -67,124 +67,126 @@ export default function DeadlineManagement() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold" style={{ color: "#0A1628" }}>Gestão de Prazos & Crises</h2>
-        <p className="text-sm text-slate-500">Controle de deadlines críticos e playbook de resposta a emergências</p>
+        <h2 className="text-xl font-bold" style={{ color: "hsl(220,30%,10%)" }}>Gestão de Prazos & Crises</h2>
+        <p className="text-sm" style={{ color: "hsl(220,10%,50%)" }}>Controle de deadlines e playbook de emergências</p>
       </div>
 
+      {/* Status cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {(Object.entries(countByStatus) as [DeadlineStatus, number][]).map(([status, count]) => {
+        {(Object.entries(countByStatus) as [DeadlineStatus, number][]).map(([status, count], i) => {
           const st = statusConfig[status];
           const SIcon = st.Icon;
           return (
-            <div key={status} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 text-center">
-              <SIcon size={20} style={{ color: st.color }} className="mx-auto mb-1" />
+            <motion.div key={status} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.05 }} className="ios-card p-4 text-center">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: st.bg }}>
+                <SIcon size={18} style={{ color: st.color }} />
+              </div>
               <div className="text-2xl font-bold" style={{ color: st.color }}>{count}</div>
-              <div className="text-xs text-slate-500">{st.label}</div>
-            </div>
+              <div className="text-xs" style={{ color: "hsl(220,10%,50%)" }}>{st.label}</div>
+            </motion.div>
           );
         })}
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-6 border-b border-slate-100">
-          <h3 className="text-lg font-bold mb-3" style={{ color: "#0A1628" }}>Tabela de Prazos Críticos</h3>
-          <div className="flex gap-2">
+      {/* Deadlines table */}
+      <div className="ios-card overflow-hidden">
+        <div className="p-6" style={{ borderBottom: "1px solid rgba(120,120,128,0.1)" }}>
+          <h3 className="text-lg font-bold mb-3" style={{ color: "hsl(220,30%,10%)" }}>Tabela de Prazos Críticos</h3>
+          {/* iOS segmented filter */}
+          <div className="p-1 rounded-xl inline-flex" style={{ background: "rgba(120,120,128,0.08)" }}>
             {["Todos", "Semanal", "Mensal", "Contínuo"].map((f) => (
-              <button key={f} onClick={() => setFilterFreq(f)} className="text-xs px-3 py-1.5 rounded-lg font-semibold transition-colors"
-                style={{ backgroundColor: filterFreq === f ? "#0A1628" : "#F1F5F9", color: filterFreq === f ? "#FFFFFF" : "#64748B" }}
-              >{f}</button>
+              <button key={f} onClick={() => setFilterFreq(f)} className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
+                style={{
+                  background: filterFreq === f ? "white" : "transparent",
+                  color: filterFreq === f ? "hsl(220,30%,10%)" : "hsl(220,10%,45%)",
+                  boxShadow: filterFreq === f ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
+                }}>
+                {f}
+              </button>
             ))}
           </div>
         </div>
 
-        <div className="hidden md:grid grid-cols-6 gap-2 px-6 py-3 bg-slate-50 text-[10px] font-bold text-slate-400 tracking-wider">
-          <div className="col-span-2">TAREFA / DEADLINE</div>
-          <div>RESPONSÁVEL</div>
-          <div>PRAZO</div>
-          <div>PRIORIDADE</div>
-          <div>STATUS</div>
-        </div>
-
-        <div className="divide-y divide-slate-50">
-          {filtered.map((d) => {
+        <div className="divide-y" style={{ borderColor: "rgba(120,120,128,0.06)" }}>
+          {filtered.map((d, i) => {
             const pr = priorityConfig[d.priority];
             const st = statusConfig[d.status];
             const SIcon = st.Icon;
             return (
-              <div key={d.id} className="grid md:grid-cols-6 gap-2 px-6 py-3 items-center hover:bg-slate-50 transition-colors">
-                <div className="col-span-2 flex items-start gap-2">
-                  <Zap size={12} className="text-slate-400 mt-0.5 shrink-0" />
-                  <div>
-                    <div className="text-xs font-semibold text-slate-800">{d.task}</div>
-                    <div className="text-[10px] text-slate-400">{d.consequence}</div>
-                  </div>
+              <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+                className="px-6 py-3.5 flex flex-wrap md:flex-nowrap items-center gap-3 transition-colors"
+                style={{ background: "transparent" }}>
+                <div className="flex-1 min-w-0">
+                  <div className="text-xs font-semibold" style={{ color: "hsl(220,30%,10%)" }}>{d.task}</div>
+                  <div className="text-[10px]" style={{ color: "hsl(220,10%,55%)" }}>{d.responsible} · {d.dueDay}</div>
                 </div>
-                <div className="text-xs text-slate-600">{d.responsible}</div>
-                <div className="text-xs text-slate-600">{d.dueDay}</div>
-                <div>
-                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: pr.bg, color: pr.color, border: `1px solid ${pr.border}` }}>{pr.label}</span>
-                </div>
-                <div>
-                  <button onClick={() => cycleStatus(d.id)}
-                    className="text-xs px-2.5 py-1 rounded-full font-semibold transition-all cursor-pointer flex items-center gap-1"
-                    style={{ backgroundColor: st.bg, color: st.color, border: `1px solid ${st.border}` }}
-                    title="Clique para alterar status"
-                  >
-                    <SIcon size={10} /> {st.label}
-                  </button>
-                </div>
-              </div>
+                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: pr.bg, color: pr.color }}>{pr.label}</span>
+                <motion.button whileTap={{ scale: 0.95 }} onClick={() => cycleStatus(d.id)}
+                  className="text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 transition-all"
+                  style={{ background: st.bg, color: st.color }}>
+                  <SIcon size={10} /> {st.label}
+                </motion.button>
+              </motion.div>
             );
           })}
         </div>
-        <div className="px-6 py-3 text-[10px] text-slate-400 text-center border-t border-slate-50">Clique no status para alterá-lo</div>
+        <div className="px-6 py-3 text-[10px] text-center" style={{ color: "hsl(220,10%,55%)", borderTop: "1px solid rgba(120,120,128,0.06)" }}>
+          Clique no status para alterá-lo
+        </div>
       </div>
 
+      {/* Crisis playbook */}
       <div>
-        <h3 className="text-lg font-bold mb-4" style={{ color: "#0A1628" }}>Playbook de Crises · Guia Rápido de Conduta</h3>
-        <div className="grid md:grid-cols-2 gap-4">
+        <h3 className="text-lg font-bold mb-4" style={{ color: "hsl(220,30%,10%)" }}>Playbook de Crises</h3>
+        <div className="grid md:grid-cols-2 gap-3">
           {crisisScenarios.map((crisis, i) => {
             const CIcon = crisis.Icon;
             return (
-              <div key={i} className="bg-white rounded-2xl shadow-sm border border-slate-100 p-5" style={{ borderLeft: `4px solid ${crisis.color}` }}>
+              <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="ios-card p-5" style={{ borderLeft: `3px solid ${crisis.color}` }}>
                 <div className="flex items-center gap-2 mb-3">
-                  <CIcon size={20} style={{ color: crisis.color }} />
+                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${crisis.color}12` }}>
+                    <CIcon size={16} style={{ color: crisis.color }} />
+                  </div>
                   <div className="flex-1">
-                    <div className="text-sm font-bold text-slate-800">{crisis.scenario}</div>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full" style={{ backgroundColor: `${crisis.color}15`, color: crisis.color }}>Impacto: {crisis.impact}</span>
+                    <div className="text-sm font-semibold" style={{ color: "hsl(220,30%,10%)" }}>{crisis.scenario}</div>
+                    <span className="text-[10px] font-medium" style={{ color: crisis.color }}>Impacto: {crisis.impact}</span>
                   </div>
                 </div>
-                <div className="text-[10px] font-bold text-slate-400 tracking-wider mb-2">PASSOS DE RESPOSTA:</div>
                 <div className="space-y-1.5">
                   {crisis.steps.map((step, si) => (
                     <div key={si} className="flex items-start gap-2">
-                      <span className="text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: `${crisis.color}15`, color: crisis.color }}>{si + 1}</span>
-                      <span className="text-xs text-slate-600">{step}</span>
+                      <span className="text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{ background: `${crisis.color}10`, color: crisis.color }}>{si + 1}</span>
+                      <span className="text-xs" style={{ color: "hsl(220,15%,35%)" }}>{step}</span>
                     </div>
                   ))}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-        <h3 className="text-lg font-bold mb-4" style={{ color: "#0A1628" }}>Protocolo de Comunicação Interna</h3>
+      {/* Communication protocol */}
+      <div className="ios-card p-6">
+        <h3 className="text-lg font-bold mb-4" style={{ color: "hsl(220,30%,10%)" }}>Protocolo de Comunicação</h3>
         <div className="space-y-3">
           {[
-            { channel: "WhatsApp Equipe", use: "Comunicações do dia a dia, alinhamentos rápidos, aprovações urgentes", sla: "Resposta em até 4h (horário comercial)", color: "#25D366" },
-            { channel: "Google Drive / Notion", use: "Briefings, calendário editorial, arquivos de aprovação, relatórios", sla: "Atualização em tempo real, sem prazo fixo", color: "#4285F4" },
-            { channel: "Reunião Semanal (Meet)", use: "Alinhamento semanal, feedback de performance, ajustes de rota", sla: "Segunda-feira 09h, 30 minutos, obrigatória", color: "#FF3E00" },
+            { channel: "WhatsApp Equipe", use: "Alinhamentos rápidos, aprovações urgentes", sla: "Resposta em até 4h", color: "#25D366" },
+            { channel: "Google Drive / Notion", use: "Briefings, calendário, arquivos, relatórios", sla: "Atualização em tempo real", color: "#4285F4" },
+            { channel: "Reunião Semanal", use: "Alinhamento semanal, feedback, ajustes", sla: "Segunda-feira 09h, 30min", color: "#FF3B30" },
           ].map((c, i) => (
-            <div key={i} className="flex items-start gap-4 p-4 rounded-xl bg-slate-50">
+            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
+              className="flex items-start gap-4 p-4 rounded-2xl" style={{ background: "rgba(120,120,128,0.04)" }}>
               <div className="w-1 rounded-full shrink-0" style={{ backgroundColor: c.color, minHeight: "3rem" }} />
               <div>
-                <div className="text-sm font-bold text-slate-800">{c.channel}</div>
-                <div className="text-xs text-slate-500 mt-0.5">{c.use}</div>
-                <div className="text-[10px] font-semibold mt-1 flex items-center gap-1" style={{ color: c.color }}><Clock size={10} /> {c.sla}</div>
+                <div className="text-sm font-semibold" style={{ color: "hsl(220,30%,10%)" }}>{c.channel}</div>
+                <div className="text-xs mt-0.5" style={{ color: "hsl(220,10%,50%)" }}>{c.use}</div>
+                <div className="text-[10px] font-medium mt-1 flex items-center gap-1" style={{ color: c.color }}><Clock size={10} /> {c.sla}</div>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
