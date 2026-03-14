@@ -5,20 +5,20 @@ import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
 
 const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
 
-/* ── iOS 26 animation presets ── */
-// Abertura de Diafragma — circular expansion bloom
+/* ── Optimized iOS 26 animation presets ── */
+// Diaphragm — fast bloom with less oscillation
 const diaphragm = {
-  initial: { opacity: 0, scale: 0.6, borderRadius: "50%" },
-  animate: { opacity: 1, scale: 1, borderRadius: "var(--ios-radius-lg)" },
-  transition: { type: "spring", damping: 18, stiffness: 200, mass: 0.8 },
+  initial: { opacity: 0, scale: 0.85 },
+  animate: { opacity: 1, scale: 1 },
+  transition: { type: "spring", damping: 26, stiffness: 340, mass: 0.5 },
 };
 
-// Bouncy Motion — elastic overshoot
+// Bouncy — snappy elastic with quick settle
 const bouncy = {
   type: "spring" as const,
-  damping: 12,
-  stiffness: 280,
-  mass: 0.6,
+  damping: 20,
+  stiffness: 380,
+  mass: 0.45,
 };
 
 export default function TeamDashboard() {
