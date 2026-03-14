@@ -1,15 +1,16 @@
 import { useState } from "react";
+import { Brain, Radio, PenTool, Palette } from "lucide-react";
 
 interface CheckItem { id: string; task: string; done: boolean; critical: boolean; }
 
 interface RoleMatrix {
-  role: string; icon: string; color: string; colorLight: string; colorBorder: string;
+  role: string; Icon: typeof Brain; color: string; colorLight: string; colorBorder: string;
   description: string; weekly: CheckItem[]; monthly: CheckItem[]; quality: CheckItem[];
 }
 
 const initialMatrix: RoleMatrix[] = [
   {
-    role: "Estrategista", icon: "🧠", color: "#059669", colorLight: "#ECFDF5", colorBorder: "#A7F3D0",
+    role: "Estrategista", Icon: Brain, color: "#059669", colorLight: "#ECFDF5", colorBorder: "#A7F3D0",
     description: "Guardião da estratégia, calendário editorial e aprovação final de todos os entregáveis",
     weekly: [
       { id: "es1", task: "Briefing semanal entregue para toda a equipe (até 2ª-feira)", done: false, critical: true },
@@ -32,7 +33,7 @@ const initialMatrix: RoleMatrix[] = [
     ],
   },
   {
-    role: "Gestor de Tráfego", icon: "📡", color: "#1E6FD9", colorLight: "#EFF6FF", colorBorder: "#BFDBFE",
+    role: "Gestor de Tráfego", Icon: Radio, color: "#1E6FD9", colorLight: "#EFF6FF", colorBorder: "#BFDBFE",
     description: "Responsável pela performance das campanhas pagas, otimização diária e geração de leads qualificados",
     weekly: [
       { id: "ts1", task: "Otimização de campanhas ativas (5x por semana, mínimo)", done: false, critical: true },
@@ -55,8 +56,8 @@ const initialMatrix: RoleMatrix[] = [
     ],
   },
   {
-    role: "Copywriter", icon: "✍️", color: "#7C3AED", colorLight: "#F5F3FF", colorBorder: "#DDD6FE",
-    description: "Responsável por toda a comunicação escrita da clínica, desde anúncios até automações de relacionamento",
+    role: "Copywriter", Icon: PenTool, color: "#7C3AED", colorLight: "#F5F3FF", colorBorder: "#DDD6FE",
+    description: "Responsável por toda a comunicação escrita da clínica",
     weekly: [
       { id: "cs1", task: "4 copies de anúncios entregues até 3ª-feira (para review)", done: false, critical: true },
       { id: "cs2", task: "Legendas de todos os posts da semana prontas até 2ª-feira", done: false, critical: true },
@@ -77,8 +78,8 @@ const initialMatrix: RoleMatrix[] = [
     ],
   },
   {
-    role: "Designer", icon: "🎨", color: "#DC2626", colorLight: "#FFF1F2", colorBorder: "#FECDD3",
-    description: "Responsável por toda a identidade visual, criativos de anúncios e materiais gráficos da clínica",
+    role: "Designer", Icon: Palette, color: "#DC2626", colorLight: "#FFF1F2", colorBorder: "#FECDD3",
+    description: "Responsável por toda a identidade visual, criativos de anúncios e materiais gráficos",
     weekly: [
       { id: "ds1", task: "12 peças (feed + stories) entregues até 4ª-feira", done: false, critical: true },
       { id: "ds2", task: "Criativos de anúncios entregues para aprovação até 3ª-feira", done: false, critical: true },
@@ -93,8 +94,8 @@ const initialMatrix: RoleMatrix[] = [
       { id: "dm4", task: "4 peças antecipadas para a 1ª semana do mês seguinte", done: false, critical: true },
     ],
     quality: [
-      { id: "dq1", task: "Todas as peças seguem o Guia de Marca Endocenter (cores, fontes, logo)", done: false, critical: true },
-      { id: "dq2", task: "Mínimo de 300 DPI para materiais impressos; 72 DPI para digital", done: false, critical: true },
+      { id: "dq1", task: "Todas as peças seguem o Guia de Marca Endocenter", done: false, critical: true },
+      { id: "dq2", task: "Mínimo de 300 DPI para impressos; 72 DPI para digital", done: false, critical: true },
       { id: "dq3", task: "Textos nas artes revisados com o copywriter antes da entrega", done: false, critical: true },
       { id: "dq4", task: "Nenhuma arte enviada ao tráfego sem aprovação da estrategista", done: false, critical: true },
     ],
@@ -107,13 +108,7 @@ export default function ResponsibilityMatrix() {
   const [activeTab, setActiveTab] = useState<"weekly" | "monthly" | "quality">("weekly");
 
   const toggleItem = (roleIdx: number, list: "weekly" | "monthly" | "quality", itemId: string) => {
-    setMatrix((prev) =>
-      prev.map((r, ri) =>
-        ri === roleIdx
-          ? { ...r, [list]: r[list].map((item) => item.id === itemId ? { ...item, done: !item.done } : item) }
-          : r
-      )
-    );
+    setMatrix((prev) => prev.map((r, ri) => ri === roleIdx ? { ...r, [list]: r[list].map((item) => item.id === itemId ? { ...item, done: !item.done } : item) } : r));
   };
 
   const getCompletion = (role: RoleMatrix, list: "weekly" | "monthly" | "quality") => {
@@ -129,24 +124,20 @@ export default function ResponsibilityMatrix() {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold" style={{ color: "#0A1628" }}>Matriz de Responsabilidades</h2>
-        <p className="text-sm text-slate-500">Definition of Done — checklist interativo para garantir padrão de qualidade por função</p>
+        <p className="text-sm text-slate-500">Definition of Done — checklist interativo por função</p>
       </div>
 
-      {/* Role Selector */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {matrix.map((r, i) => {
           const avgPct = Math.round((getCompletion(r, "weekly") + getCompletion(r, "monthly") + getCompletion(r, "quality")) / 3);
           const isActive = activeRole === i;
+          const RI = r.Icon;
           return (
             <button key={i} onClick={() => setActiveRole(i)} className="p-4 rounded-2xl text-left transition-all duration-200"
-              style={{
-                backgroundColor: isActive ? r.color : "#FFFFFF",
-                border: `2px solid ${isActive ? r.color : "#E2E8F0"}`,
-                boxShadow: isActive ? `0 4px 14px ${r.color}35` : "0 1px 3px rgba(0,0,0,0.06)",
-              }}
+              style={{ backgroundColor: isActive ? r.color : "#FFFFFF", border: `2px solid ${isActive ? r.color : "#E2E8F0"}`, boxShadow: isActive ? `0 4px 14px ${r.color}35` : "0 1px 3px rgba(0,0,0,0.06)" }}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xl">{r.icon}</span>
+                <RI size={20} style={{ color: isActive ? "#FFFFFF" : r.color }} />
                 <span className="text-xs font-bold" style={{ color: isActive ? "rgba(255,255,255,0.9)" : r.color }}>{avgPct}%</span>
               </div>
               <div className="text-sm font-bold mt-1" style={{ color: isActive ? "#FFFFFF" : "#0A1628" }}>{r.role}</div>
@@ -155,12 +146,12 @@ export default function ResponsibilityMatrix() {
         })}
       </div>
 
-      {/* Checklist Area */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
-        {/* Header */}
         <div className="p-6 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-3xl">{role.icon}</span>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: role.colorLight }}>
+              <role.Icon size={20} style={{ color: role.color }} />
+            </div>
             <div>
               <h3 className="text-lg font-bold" style={{ color: "#0A1628" }}>{role.role}</h3>
               <p className="text-xs text-slate-500">{role.description}</p>
@@ -172,25 +163,16 @@ export default function ResponsibilityMatrix() {
           </div>
         </div>
 
-        {/* Tab Selector */}
         <div className="flex border-b border-slate-100">
-          {(["weekly", "monthly", "quality"] as const).map((tab) => {
-            const pct = getCompletion(role, tab);
-            return (
-              <button key={tab} onClick={() => setActiveTab(tab)} className="flex-1 px-4 py-3 text-sm font-semibold transition-all"
-                style={{
-                  color: activeTab === tab ? role.color : "#94A3B8",
-                  borderBottom: `2px solid ${activeTab === tab ? role.color : "transparent"}`,
-                }}
-              >
-                {tabLabels[tab]}
-                <span className="ml-1 text-xs opacity-60">{pct}%</span>
-              </button>
-            );
-          })}
+          {(["weekly", "monthly", "quality"] as const).map((tab) => (
+            <button key={tab} onClick={() => setActiveTab(tab)} className="flex-1 px-4 py-3 text-sm font-semibold transition-all"
+              style={{ color: activeTab === tab ? role.color : "#94A3B8", borderBottom: `2px solid ${activeTab === tab ? role.color : "transparent"}` }}
+            >
+              {tabLabels[tab]} <span className="ml-1 text-xs opacity-60">{getCompletion(role, tab)}%</span>
+            </button>
+          ))}
         </div>
 
-        {/* Checklist Items */}
         <div className="p-6 space-y-2">
           {currentList.map((item) => (
             <div key={item.id} onClick={() => toggleItem(activeRole, activeTab, item.id)}
@@ -202,32 +184,22 @@ export default function ResponsibilityMatrix() {
               >
                 {item.done && <span className="text-white text-xs">✓</span>}
               </div>
-              <div className="flex-1">
-                <span className="text-sm text-slate-700" style={{ textDecoration: item.done ? "line-through" : "none" }}>{item.task}</span>
-              </div>
-              {item.critical && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 shrink-0">
-                  Crítico
-                </span>
-              )}
+              <span className="text-sm text-slate-700 flex-1" style={{ textDecoration: item.done ? "line-through" : "none" }}>{item.task}</span>
+              {item.critical && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-500 border border-red-200 shrink-0">Crítico</span>}
             </div>
           ))}
         </div>
 
-        {/* Summary Footer */}
         <div className="px-6 pb-6 flex items-center justify-between">
           <div>
             <span className="text-xs text-slate-400">{currentList.filter((i) => i.done).length} de {currentList.length} itens marcados</span>
             {currentList.filter((i) => i.critical && !i.done).length > 0 && (
-              <span className="text-xs text-red-500 ml-2">
-                ⚠️ {currentList.filter((i) => i.critical && !i.done).length} item(s) crítico(s) pendente(s)
-              </span>
+              <span className="text-xs text-red-500 ml-2">⚠️ {currentList.filter((i) => i.critical && !i.done).length} crítico(s) pendente(s)</span>
             )}
           </div>
           <button
             onClick={() => setMatrix((prev) => prev.map((r, ri) => ri === activeRole ? { ...r, [activeTab]: r[activeTab].map((i) => ({ ...i, done: false })) } : r))}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
-            style={{ color: "#94A3B8", border: "1px solid #E2E8F0" }}
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg" style={{ color: "#94A3B8", border: "1px solid #E2E8F0" }}
           >
             Resetar checklist
           </button>
