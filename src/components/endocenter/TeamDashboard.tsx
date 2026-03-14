@@ -147,7 +147,7 @@ export default function TeamDashboard() {
       {/* Team members — even grid (2 cols) */}
       <div>
         <h3 className="text-xl font-bold text-foreground mb-4">Composição da equipe</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           {team.map((member, i) => (
             <MemberCard
               key={member.id}
