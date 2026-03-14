@@ -5,10 +5,10 @@ import { supabase } from "../supabase/client";
 let lovableAuth: any = null;
 
 try {
-  const { createLovableAuth } = require("@lovable.dev/cloud-auth-js");
-  lovableAuth = createLovableAuth();
+  const mod = await import("@lovable.dev/cloud-auth-js");
+  lovableAuth = mod.createLovableAuth();
 } catch {
-  // Cloud auth not available
+  // Cloud auth not available — social login will be disabled
 }
 
 type SignInOptions = {
@@ -30,13 +30,8 @@ export const lovable = {
         },
       });
 
-      if (result.redirected) {
-        return result;
-      }
-
-      if (result.error) {
-        return result;
-      }
+      if (result.redirected) return result;
+      if (result.error) return result;
 
       try {
         await supabase.auth.setSession(result.tokens);
