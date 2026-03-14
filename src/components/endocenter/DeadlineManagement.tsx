@@ -1,192 +1,290 @@
-import { useState } from "react";
-import { CheckCircle, AlertTriangle, XCircle, Clock, Phone, Zap, AlertOctagon, Timer } from "lucide-react";
+import { useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle, Plus, Trash2, XCircle } from "lucide-react";
 import { motion } from "framer-motion";
+import { useEndocenter, type DeadlinePriority, type DeadlineStatus } from "@/store/endocenterStore";
 
-type Priority = "critical" | "high" | "medium" | "low";
-type DeadlineStatus = "on_track" | "at_risk" | "overdue" | "done";
-
-interface Deadline {
-  id: string; task: string; responsible: string; dueDay: string; frequency: string; priority: Priority; status: DeadlineStatus; consequence: string;
-}
-
-const deadlines: Deadline[] = [
-  { id: "d1", task: "Briefing mensal entregue", responsible: "Estrategista", dueDay: "Dia 25 (mês anterior)", frequency: "Mensal", priority: "critical", status: "on_track", consequence: "Equipe sem direção" },
-  { id: "d2", task: "Calendário editorial publicado", responsible: "Estrategista", dueDay: "Dia 27 (mês anterior)", frequency: "Mensal", priority: "critical", status: "on_track", consequence: "Produção desorganizada" },
-  { id: "d3", task: "Copies de anúncios da semana", responsible: "Copywriter", dueDay: "3ª-feira", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Atraso nas artes" },
-  { id: "d4", task: "Legendas de posts da semana", responsible: "Copywriter", dueDay: "2ª-feira", frequency: "Semanal", priority: "high", status: "at_risk", consequence: "Posts sem texto" },
-  { id: "d5", task: "Artes e criativos da semana", responsible: "Designer", dueDay: "4ª-feira", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Tráfego sem criativos" },
-  { id: "d6", task: "Criativos de anúncios para aprovação", responsible: "Designer", dueDay: "3ª-feira", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Campanhas sem atualização" },
-  { id: "d7", task: "Relatório semanal de performance", responsible: "Gestor de Tráfego", dueDay: "6ª-feira (18h)", frequency: "Semanal", priority: "high", status: "on_track", consequence: "Sem dados para decisões" },
-  { id: "d8", task: "Aprovação de peças", responsible: "Estrategista", dueDay: "Dentro de 24h", frequency: "Contínuo", priority: "critical", status: "on_track", consequence: "Bloqueio do fluxo" },
-  { id: "d9", task: "Relatório mensal consolidado", responsible: "Gestor de Tráfego", dueDay: "Até dia 5", frequency: "Mensal", priority: "high", status: "on_track", consequence: "Reunião sem dados" },
-  { id: "d10", task: "Peças antecipadas semana 1", responsible: "Designer + Copy", dueDay: "Dia 28", frequency: "Mensal", priority: "medium", status: "on_track", consequence: "1ª semana sem conteúdo" },
-  { id: "d11", task: "Reunião semanal de alinhamento", responsible: "Toda equipe", dueDay: "2ª-feira (09h)", frequency: "Semanal", priority: "medium", status: "on_track", consequence: "Equipe desalinhada" },
-  { id: "d12", task: "Configuração campanhas próximo mês", responsible: "Gestor de Tráfego", dueDay: "Até dia 28", frequency: "Mensal", priority: "high", status: "on_track", consequence: "Sem campanhas ativas" },
-];
-
-const crisisScenarios = [
-  { scenario: "Membro da equipe indisponível", Icon: AlertOctagon, color: "#FF3B30", impact: "Alto", steps: ["Comunicar à estrategista via WhatsApp", "Avaliar redistribuição de tarefas", "Priorizar entregáveis críticos", "Freelancer emergencial em até 24h", "Documentar impacto"] },
-  { scenario: "Campanha com baixa performance", Icon: AlertTriangle, color: "#FF9500", impact: "Médio", steps: ["Alerta à estrategista em até 2h", "Análise de causa raiz", "2 criativos alternativos em 24h", "CPL > 2x por 3 dias: pausa e revisão", "Reunião emergencial"] },
-  { scenario: "Mudança urgente do cliente", Icon: Phone, color: "#007AFF", impact: "Variável", steps: ["Avaliar urgência (1h)", "Briefing simplificado em 4h", "Definir o que adiar", "Entregável urgente em até 48h", "ETA realista ao cliente"] },
-  { scenario: "Conta de anúncios suspensa", Icon: XCircle, color: "#AF52DE", impact: "Crítico", steps: ["Alerta imediato (ligação)", "Recurso em até 2h", "Migração para conta backup", "Comunicar sobre queda de leads", "Medidas preventivas"] },
-  { scenario: "Publicação equivocada", Icon: Zap, color: "#30D158", impact: "Alto", steps: ["Apagar/pausar imediatamente", "Notificar em até 15 minutos", "Avaliar nota de correção", "Identificar falha no processo", "Corrigir para não repetir"] },
-  { scenario: "Prazo crítico em risco", Icon: Timer, color: "#FF9500", impact: "Médio", steps: ["Comunicar com 24h de antecedência", "Nova previsão realista", "Resolver bloqueio", "Priorizar itens impactantes", "Documentar e prevenir"] },
-];
-
-const priorityConfig = {
-  critical: { label: "Crítico", color: "#FF3B30", bg: "rgba(255,59,48,0.08)" },
-  high: { label: "Alto", color: "#FF9500", bg: "rgba(255,149,0,0.08)" },
-  medium: { label: "Médio", color: "#FF9500", bg: "rgba(255,149,0,0.06)" },
-  low: { label: "Baixo", color: "#30D158", bg: "rgba(48,209,88,0.08)" },
+const priorityConfig: Record<DeadlinePriority, { label: string; className: string }> = {
+  critical: { label: "Crítico", className: "bg-destructive/10 text-destructive" },
+  high: { label: "Alto", className: "bg-amber-100 text-amber-700" },
+  medium: { label: "Médio", className: "bg-yellow-100 text-yellow-700" },
+  low: { label: "Baixo", className: "bg-emerald-100 text-emerald-700" },
 };
 
-const statusConfig = {
-  on_track: { label: "No prazo", color: "#30D158", bg: "rgba(48,209,88,0.08)", Icon: CheckCircle },
-  at_risk: { label: "Em risco", color: "#FF9500", bg: "rgba(255,149,0,0.08)", Icon: AlertTriangle },
-  overdue: { label: "Atrasado", color: "#FF3B30", bg: "rgba(255,59,48,0.08)", Icon: XCircle },
-  done: { label: "Concluído", color: "#007AFF", bg: "rgba(0,122,255,0.08)", Icon: CheckCircle },
+const statusConfig: Record<DeadlineStatus, { label: string; className: string }> = {
+  on_track: { label: "No prazo", className: "bg-emerald-100 text-emerald-700" },
+  at_risk: { label: "Em risco", className: "bg-amber-100 text-amber-700" },
+  overdue: { label: "Atrasado", className: "bg-destructive/10 text-destructive" },
+  done: { label: "Concluído", className: "bg-primary/10 text-primary" },
 };
+
+const allStatuses = Object.keys(statusConfig) as DeadlineStatus[];
+const allPriorities = Object.keys(priorityConfig) as DeadlinePriority[];
 
 export default function DeadlineManagement() {
-  const [deadlineList, setDeadlineList] = useState<Deadline[]>(deadlines);
-  const [filterFreq, setFilterFreq] = useState("Todos");
+  const {
+    deadlines,
+    updateDeadline,
+    addDeadline,
+    removeDeadline,
+    crisisScenarios,
+    updateCrisisScenario,
+    addCrisisScenario,
+    removeCrisisScenario,
+  } = useEndocenter();
 
-  const cycleStatus = (id: string) => {
-    const cycle: DeadlineStatus[] = ["on_track", "at_risk", "overdue", "done"];
-    setDeadlineList((prev) => prev.map((d) => d.id === id ? { ...d, status: cycle[(cycle.indexOf(d.status) + 1) % cycle.length] } : d));
-  };
+  const [filter, setFilter] = useState("Todos");
+  const [editMode, setEditMode] = useState(false);
 
-  const filtered = filterFreq === "Todos" ? deadlineList : deadlineList.filter((d) => d.frequency === filterFreq);
-  const countByStatus = {
-    on_track: deadlineList.filter((d) => d.status === "on_track").length,
-    at_risk: deadlineList.filter((d) => d.status === "at_risk").length,
-    overdue: deadlineList.filter((d) => d.status === "overdue").length,
-    done: deadlineList.filter((d) => d.status === "done").length,
-  };
+  const filteredDeadlines = useMemo(
+    () => (filter === "Todos" ? deadlines : deadlines.filter((deadline) => deadline.frequency === filter)),
+    [deadlines, filter]
+  );
+
+  const countByStatus = useMemo(
+    () => ({
+      on_track: deadlines.filter((deadline) => deadline.status === "on_track").length,
+      at_risk: deadlines.filter((deadline) => deadline.status === "at_risk").length,
+      overdue: deadlines.filter((deadline) => deadline.status === "overdue").length,
+      done: deadlines.filter((deadline) => deadline.status === "done").length,
+    }),
+    [deadlines]
+  );
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold" style={{ color: "hsl(220,30%,10%)" }}>Gestão de Prazos & Crises</h2>
-        <p className="text-sm" style={{ color: "hsl(220,10%,50%)" }}>Controle de deadlines e playbook de emergências</p>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <h2 className="text-xl font-bold text-foreground">Prazos e crises</h2>
+          <p className="text-sm text-muted-foreground">Status selecionável por tarefa e edição completa de registros</p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={addDeadline}
+            className="inline-flex items-center gap-1 rounded-xl bg-primary/10 text-primary px-3 py-1.5 text-xs font-medium"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Prazo
+          </button>
+          <button
+            onClick={() => setEditMode((current) => !current)}
+            className={`rounded-xl px-3 py-1.5 text-xs font-medium ${
+              editMode ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+            }`}
+          >
+            {editMode ? "Finalizar edição" : "Editar registros"}
+          </button>
+        </div>
       </div>
 
-      {/* Status cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {(Object.entries(countByStatus) as [DeadlineStatus, number][]).map(([status, count], i) => {
-          const st = statusConfig[status];
-          const SIcon = st.Icon;
-          return (
-            <motion.div key={status} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05 }} className="ios-card p-4 text-center">
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center mx-auto mb-2" style={{ background: st.bg }}>
-                <SIcon size={18} style={{ color: st.color }} />
-              </div>
-              <div className="text-2xl font-bold" style={{ color: st.color }}>{count}</div>
-              <div className="text-xs" style={{ color: "hsl(220,10%,50%)" }}>{st.label}</div>
-            </motion.div>
-          );
-        })}
+        {([
+          ["on_track", "No prazo", CheckCircle],
+          ["at_risk", "Em risco", AlertTriangle],
+          ["overdue", "Atrasados", XCircle],
+          ["done", "Concluídos", CheckCircle],
+        ] as const).map(([key, label, Icon]) => (
+          <div key={key} className="ios-card p-4 text-center">
+            <div className="w-9 h-9 rounded-xl bg-secondary mx-auto flex items-center justify-center mb-2">
+              <Icon className="h-4 w-4 text-primary" />
+            </div>
+            <div className="text-2xl font-bold text-foreground">{countByStatus[key]}</div>
+            <div className="text-xs text-muted-foreground">{label}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Deadlines table */}
       <div className="ios-card overflow-hidden">
-        <div className="p-6" style={{ borderBottom: "1px solid rgba(120,120,128,0.1)" }}>
-          <h3 className="text-lg font-bold mb-3" style={{ color: "hsl(220,30%,10%)" }}>Tabela de Prazos Críticos</h3>
-          {/* iOS segmented filter */}
-          <div className="p-1 rounded-xl inline-flex" style={{ background: "rgba(120,120,128,0.08)" }}>
-            {["Todos", "Semanal", "Mensal", "Contínuo"].map((f) => (
-              <button key={f} onClick={() => setFilterFreq(f)} className="text-xs px-3 py-1.5 rounded-lg font-medium transition-all duration-200"
-                style={{
-                  background: filterFreq === f ? "white" : "transparent",
-                  color: filterFreq === f ? "hsl(220,30%,10%)" : "hsl(220,10%,45%)",
-                  boxShadow: filterFreq === f ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
-                }}>
-                {f}
+        <div className="p-4 border-b border-border/60 flex items-center justify-between gap-3 flex-wrap">
+          <h3 className="text-base font-semibold text-foreground">Tabela de prazos críticos</h3>
+          <div className="p-1 rounded-xl bg-secondary/70 flex gap-1">
+            {["Todos", "Semanal", "Mensal", "Contínuo"].map((option) => (
+              <button
+                key={option}
+                onClick={() => setFilter(option)}
+                className={`px-2.5 py-1 rounded-lg text-xs transition-colors ${
+                  filter === option ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                {option}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="divide-y" style={{ borderColor: "rgba(120,120,128,0.06)" }}>
-          {filtered.map((d, i) => {
-            const pr = priorityConfig[d.priority];
-            const st = statusConfig[d.status];
-            const SIcon = st.Icon;
-            return (
-              <motion.div key={d.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
-                className="px-6 py-3.5 flex flex-wrap md:flex-nowrap items-center gap-3 transition-colors"
-                style={{ background: "transparent" }}>
-                <div className="flex-1 min-w-0">
-                  <div className="text-xs font-semibold" style={{ color: "hsl(220,30%,10%)" }}>{d.task}</div>
-                  <div className="text-[10px]" style={{ color: "hsl(220,10%,55%)" }}>{d.responsible} · {d.dueDay}</div>
-                </div>
-                <span className="text-[10px] font-medium px-2 py-0.5 rounded-full" style={{ background: pr.bg, color: pr.color }}>{pr.label}</span>
-                <motion.button whileTap={{ scale: 0.95 }} onClick={() => cycleStatus(d.id)}
-                  className="text-xs px-2.5 py-1 rounded-full font-medium flex items-center gap-1 transition-all"
-                  style={{ background: st.bg, color: st.color }}>
-                  <SIcon size={10} /> {st.label}
-                </motion.button>
-              </motion.div>
-            );
-          })}
-        </div>
-        <div className="px-6 py-3 text-[10px] text-center" style={{ color: "hsl(220,10%,55%)", borderTop: "1px solid rgba(120,120,128,0.06)" }}>
-          Clique no status para alterá-lo
-        </div>
-      </div>
-
-      {/* Crisis playbook */}
-      <div>
-        <h3 className="text-lg font-bold mb-4" style={{ color: "hsl(220,30%,10%)" }}>Playbook de Crises</h3>
-        <div className="grid md:grid-cols-2 gap-3">
-          {crisisScenarios.map((crisis, i) => {
-            const CIcon = crisis.Icon;
-            return (
-              <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="ios-card p-5" style={{ borderLeft: `3px solid ${crisis.color}` }}>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${crisis.color}12` }}>
-                    <CIcon size={16} style={{ color: crisis.color }} />
+        <div className="divide-y divide-border/50">
+          {filteredDeadlines.map((deadline, index) => (
+            <motion.div
+              key={deadline.id}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: index * 0.02 }}
+              className="p-4 space-y-2"
+            >
+              {editMode ? (
+                <>
+                  <div className="grid md:grid-cols-[1fr_1fr_120px_130px_28px] gap-1.5">
+                    <input
+                      className="ios-input px-3 py-2 text-xs"
+                      value={deadline.task}
+                      onChange={(event) => updateDeadline(deadline.id, { task: event.target.value })}
+                    />
+                    <input
+                      className="ios-input px-3 py-2 text-xs"
+                      value={deadline.responsible}
+                      onChange={(event) => updateDeadline(deadline.id, { responsible: event.target.value })}
+                    />
+                    <select
+                      className="ios-input px-2 py-2 text-xs"
+                      value={deadline.frequency}
+                      onChange={(event) => updateDeadline(deadline.id, { frequency: event.target.value })}
+                    >
+                      <option>Semanal</option>
+                      <option>Mensal</option>
+                      <option>Contínuo</option>
+                    </select>
+                    <select
+                      className="ios-input px-2 py-2 text-xs"
+                      value={deadline.priority}
+                      onChange={(event) =>
+                        updateDeadline(deadline.id, {
+                          priority: event.target.value as DeadlinePriority,
+                        })
+                      }
+                    >
+                      {allPriorities.map((priority) => (
+                        <option key={priority} value={priority}>
+                          {priorityConfig[priority].label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={() => removeDeadline(deadline.id)}
+                      className="rounded-md p-1 text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
                   </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold" style={{ color: "hsl(220,30%,10%)" }}>{crisis.scenario}</div>
-                    <span className="text-[10px] font-medium" style={{ color: crisis.color }}>Impacto: {crisis.impact}</span>
+                  <div className="grid md:grid-cols-2 gap-1.5">
+                    <input
+                      className="ios-input px-3 py-2 text-xs"
+                      value={deadline.dueDay}
+                      onChange={(event) => updateDeadline(deadline.id, { dueDay: event.target.value })}
+                      placeholder="Vencimento"
+                    />
+                    <input
+                      className="ios-input px-3 py-2 text-xs"
+                      value={deadline.consequence}
+                      onChange={(event) => updateDeadline(deadline.id, { consequence: event.target.value })}
+                      placeholder="Impacto"
+                    />
                   </div>
-                </div>
-                <div className="space-y-1.5">
-                  {crisis.steps.map((step, si) => (
-                    <div key={si} className="flex items-start gap-2">
-                      <span className="text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shrink-0" style={{ background: `${crisis.color}10`, color: crisis.color }}>{si + 1}</span>
-                      <span className="text-xs" style={{ color: "hsl(220,15%,35%)" }}>{step}</span>
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <div>
+                      <div className="text-sm font-semibold text-foreground">{deadline.task}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {deadline.responsible} · {deadline.dueDay}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </div>
 
-      {/* Communication protocol */}
-      <div className="ios-card p-6">
-        <h3 className="text-lg font-bold mb-4" style={{ color: "hsl(220,30%,10%)" }}>Protocolo de Comunicação</h3>
-        <div className="space-y-3">
-          {[
-            { channel: "WhatsApp Equipe", use: "Alinhamentos rápidos, aprovações urgentes", sla: "Resposta em até 4h", color: "#25D366" },
-            { channel: "Google Drive / Notion", use: "Briefings, calendário, arquivos, relatórios", sla: "Atualização em tempo real", color: "#4285F4" },
-            { channel: "Reunião Semanal", use: "Alinhamento semanal, feedback, ajustes", sla: "Segunda-feira 09h, 30min", color: "#FF3B30" },
-          ].map((c, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-              className="flex items-start gap-4 p-4 rounded-2xl" style={{ background: "rgba(120,120,128,0.04)" }}>
-              <div className="w-1 rounded-full shrink-0" style={{ backgroundColor: c.color, minHeight: "3rem" }} />
-              <div>
-                <div className="text-sm font-semibold" style={{ color: "hsl(220,30%,10%)" }}>{c.channel}</div>
-                <div className="text-xs mt-0.5" style={{ color: "hsl(220,10%,50%)" }}>{c.use}</div>
-                <div className="text-[10px] font-medium mt-1 flex items-center gap-1" style={{ color: c.color }}><Clock size={10} /> {c.sla}</div>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-[10px] px-2 py-0.5 rounded-full ${priorityConfig[deadline.priority].className}`}>
+                        {priorityConfig[deadline.priority].label}
+                      </span>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground">
+                        {deadline.frequency}
+                      </span>
+                    </div>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Consequência: {deadline.consequence}</p>
+                </>
+              )}
+
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] text-muted-foreground">Status da tarefa</span>
+                <select
+                  className={`rounded-lg border border-border px-2 py-1 text-xs ${statusConfig[deadline.status].className}`}
+                  value={deadline.status}
+                  onChange={(event) => updateDeadline(deadline.id, { status: event.target.value as DeadlineStatus })}
+                >
+                  {allStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {statusConfig[status].label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </motion.div>
+          ))}
+        </div>
+      </div>
+
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <h3 className="text-base font-semibold text-foreground">Playbook de crises</h3>
+          <button
+            onClick={addCrisisScenario}
+            className="inline-flex items-center gap-1 rounded-xl bg-primary/10 text-primary px-3 py-1.5 text-xs font-medium"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Cenário
+          </button>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-3">
+          {crisisScenarios.map((crisis) => (
+            <div key={crisis.id} className="ios-card p-4 space-y-2" style={{ borderLeft: `3px solid ${crisis.color}` }}>
+              {editMode ? (
+                <>
+                  <div className="grid grid-cols-[1fr_80px_28px] gap-1.5">
+                    <input
+                      className="ios-input px-3 py-2 text-xs"
+                      value={crisis.scenario}
+                      onChange={(event) => updateCrisisScenario(crisis.id, { scenario: event.target.value })}
+                    />
+                    <input
+                      className="ios-input px-2 py-2 text-xs"
+                      value={crisis.impact}
+                      onChange={(event) => updateCrisisScenario(crisis.id, { impact: event.target.value })}
+                    />
+                    <button
+                      onClick={() => removeCrisisScenario(crisis.id)}
+                      className="rounded-md p-1 text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <textarea
+                    className="ios-input min-h-24 w-full px-3 py-2 text-xs"
+                    value={crisis.steps.join("\n")}
+                    onChange={(event) =>
+                      updateCrisisScenario(crisis.id, {
+                        steps: event.target.value.split("\n").map((item) => item.trim()).filter(Boolean),
+                      })
+                    }
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between gap-2">
+                    <h4 className="text-sm font-semibold text-foreground">{crisis.scenario}</h4>
+                    <span className="text-[11px] rounded-full px-2 py-0.5 bg-secondary text-secondary-foreground">
+                      {crisis.impact}
+                    </span>
+                  </div>
+                  <ul className="space-y-1">
+                    {crisis.steps.map((step, index) => (
+                      <li key={`${crisis.id}-step-${index}`} className="text-xs text-muted-foreground">
+                        {index + 1}. {step}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
           ))}
         </div>
       </div>

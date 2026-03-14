@@ -1,192 +1,245 @@
-import { useState } from "react";
-import { DollarSign, Clock, TrendingUp, Users, ChevronUp, ChevronDown, User } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { useEndocenter } from "@/store/endocenterStore";
+import { useMemo, useState } from "react";
+import { BarChart3, Clock3, DollarSign, Target, TrendingUp, User } from "lucide-react";
+import { motion } from "framer-motion";
+import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
+
+const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
 
 export default function TeamDashboard() {
-  const { team, company } = useEndocenter();
-  const [expandedCard, setExpandedCard] = useState<number | null>(null);
+  const { team, company, metricEntries } = useEndocenter();
+  const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
+  const [periodFilter, setPeriodFilter] = useState<MetricPeriod | "Todas">("Todas");
 
-  const totalRemuneration = team.reduce((sum, m) => sum + m.remuneration, 0);
-  const totalHours = team.reduce((sum, m) => sum + m.hours, 0);
+  const totalRemuneration = useMemo(() => team.reduce((sum, member) => sum + member.remuneration, 0), [team]);
+  const totalHours = useMemo(() => team.reduce((sum, member) => sum + member.hours, 0), [team]);
 
-  const metrics = [
-    { label: "Investimento Mensal", value: `R$ ${totalRemuneration.toLocaleString("pt-BR")}`, sub: "Folha + Freelancers", Icon: DollarSign, color: "#007AFF" },
-    { label: "Horas Totais / Mês", value: `${totalHours}h`, sub: "Capacidade operacional", Icon: Clock, color: "#AF52DE" },
-    { label: "Custo Médio / Hora", value: `R$ ${totalHours > 0 ? (totalRemuneration / totalHours).toFixed(2).replace(".", ",") : "0"}`, sub: "Eficiência da equipe", Icon: TrendingUp, color: "#30D158" },
-    { label: "Profissionais Ativos", value: String(team.filter(m => m.status === "Ativo").length), sub: "Operacionais", Icon: Users, color: "#FF3B30" },
+  const filteredMetrics = useMemo(
+    () => metricEntries.filter((metric) => periodFilter === "Todas" || metric.period === periodFilter),
+    [metricEntries, periodFilter]
+  );
+
+  const summaryCards = [
+    {
+      label: "Investimento mensal",
+      value: `R$ ${totalRemuneration.toLocaleString("pt-BR")}`,
+      helper: "Folha total da equipe",
+      icon: DollarSign,
+      className: "text-primary",
+      badgeClass: "bg-primary/10",
+    },
+    {
+      label: "Horas / mês",
+      value: `${totalHours}h`,
+      helper: "Capacidade operacional",
+      icon: Clock3,
+      className: "text-foreground",
+      badgeClass: "bg-secondary",
+    },
+    {
+      label: "Valor médio / hora",
+      value: `R$ ${totalHours > 0 ? (totalRemuneration / totalHours).toFixed(2).replace(".", ",") : "0,00"}`,
+      helper: "Remuneração ÷ horas",
+      icon: TrendingUp,
+      className: "text-emerald-600",
+      badgeClass: "bg-emerald-100",
+    },
+    {
+      label: "Profissionais ativos",
+      value: String(team.filter((member) => member.status === "Ativo").length),
+      helper: "Status atual",
+      icon: BarChart3,
+      className: "text-orange-600",
+      badgeClass: "bg-orange-100",
+    },
   ];
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold" style={{ color: "hsl(220,30%,10%)" }}>Dashboard da Equipe</h2>
-          <p className="text-sm" style={{ color: "hsl(220,10%,50%)" }}>Visão geral dos profissionais e capacidade operacional</p>
+          <h2 className="text-xl font-bold text-foreground">Dashboard da equipe</h2>
+          <p className="text-sm text-muted-foreground">Resumo financeiro, cases e métricas por período</p>
         </div>
-        <span className="text-xs font-semibold px-3 py-1.5 rounded-full" style={{ background: "hsl(215 90% 55% / 0.1)", color: "hsl(215,90%,55%)" }}>
-          {company.month}
-        </span>
+        <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary">{company.month}</span>
       </div>
 
-      {/* Metrics grid with iOS card style */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {metrics.map((m, i) => {
-          const MIcon = m.Icon;
+        {summaryCards.map((card) => {
+          const Icon = card.icon;
           return (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.05, type: "spring", damping: 20 }}
-              className="ios-card p-5"
-            >
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3" style={{ background: `${m.color}12` }}>
-                <MIcon size={18} style={{ color: m.color }} />
+            <div key={card.label} className="ios-card p-4">
+              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${card.badgeClass}`}>
+                <Icon className={`h-4 w-4 ${card.className}`} />
               </div>
-              <div className="text-2xl font-bold tracking-tight" style={{ color: m.color }}>{m.value}</div>
-              <div className="text-sm font-medium mt-1" style={{ color: "hsl(220,20%,25%)" }}>{m.label}</div>
-              <div className="text-xs mt-0.5" style={{ color: "hsl(220,10%,55%)" }}>{m.sub}</div>
-            </motion.div>
+              <div className={`text-xl font-bold ${card.className}`}>{card.value}</div>
+              <div className="text-xs font-medium mt-1 text-foreground">{card.label}</div>
+              <div className="text-[11px] text-muted-foreground">{card.helper}</div>
+            </div>
           );
         })}
       </div>
 
-      {/* Team members */}
-      <div>
-        <h3 className="text-lg font-bold mb-4" style={{ color: "hsl(220,30%,10%)" }}>Composição da Equipe</h3>
-        <div className="grid md:grid-cols-2 gap-3">
-          {team.map((member, i) => {
-            const hourlyRate = member.hours > 0 ? (member.remuneration / member.hours).toFixed(2).replace(".", ",") : "0";
-            const isExpanded = expandedCard === i;
-            return (
-              <motion.div
-                key={member.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05, type: "spring", damping: 20 }}
-                className="ios-card overflow-hidden"
+      <div className="ios-card p-4 space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h3 className="text-sm font-semibold text-foreground">Métricas registradas (diária/semanal/mensal/anual)</h3>
+          <div className="p-1 rounded-xl bg-secondary/70 flex gap-1">
+            {periodFilters.map((period) => (
+              <button
+                key={period}
+                onClick={() => setPeriodFilter(period)}
+                className={`px-2.5 py-1 text-[11px] rounded-lg transition-colors ${
+                  periodFilter === period ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                }`}
               >
-                <div className="p-5 flex items-center gap-4" style={{ borderLeft: `3px solid ${member.color}` }}>
-                  {member.photoUrl ? (
-                    <img src={member.photoUrl} alt={member.name} className="w-11 h-11 rounded-2xl object-cover" style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }} />
-                  ) : (
-                    <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: `${member.color}10` }}>
-                      <User size={20} style={{ color: member.color }} />
-                    </div>
-                  )}
-                  <div className="flex-1">
-                    <div className="font-semibold" style={{ color: "hsl(220,30%,10%)" }}>{member.name}</div>
-                    <div className="text-sm" style={{ color: member.color }}>{member.role}</div>
-                  </div>
-                  <span className="text-[11px] font-medium px-2.5 py-1 rounded-full" style={{
-                    background: member.status === "Ativo" ? "rgba(48,209,88,0.1)" : "rgba(255,59,48,0.1)",
-                    color: member.status === "Ativo" ? "#30D158" : "#FF3B30"
-                  }}>
-                    {member.status}
-                  </span>
-                </div>
+                {period}
+              </button>
+            ))}
+          </div>
+        </div>
 
-                <div className="px-5 pb-4 grid grid-cols-3 gap-2">
-                  {[
-                    { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}`, sub: "/ mês" },
-                    { label: "Carga Horária", value: `${member.hours}h`, sub: "/ mês" },
-                    { label: "Valor / Hora", value: `R$ ${hourlyRate}`, sub: "calculado" },
-                  ].map((stat, si) => (
-                    <div key={si} className="rounded-xl p-3 text-center" style={{ background: "rgba(120,120,128,0.06)" }}>
-                      <div className="text-[10px] font-medium" style={{ color: "hsl(220,10%,55%)" }}>{stat.label}</div>
-                      <div className="text-sm font-bold" style={{ color: "hsl(220,30%,15%)" }}>{stat.value}</div>
-                      <div className="text-[9px]" style={{ color: "hsl(220,10%,60%)" }}>{stat.sub}</div>
-                    </div>
-                  ))}
+        <div className="grid md:grid-cols-2 gap-2">
+          {filteredMetrics.map((metric) => {
+            const progress = metric.target > 0 ? Math.min(100, Math.round((metric.value / metric.target) * 100)) : 0;
+            return (
+              <div key={metric.id} className="rounded-2xl border border-border/60 p-3 bg-background/30">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="text-sm font-semibold text-foreground">{metric.name}</div>
+                  <span className="text-[10px] rounded-full px-2 py-0.5 bg-primary/10 text-primary">{metric.period}</span>
                 </div>
-
-                <div className="px-5 pb-5">
-                  <motion.button
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setExpandedCard(isExpanded ? null : i)}
-                    className="w-full text-left text-xs font-semibold flex items-center justify-between py-2.5 px-4 rounded-xl transition-all duration-200"
-                    style={{ color: member.color, background: `${member.color}08`, border: `1px solid ${member.color}15` }}
-                  >
-                    Ver responsabilidades e KPIs
-                    {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                  </motion.button>
-
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                        className="overflow-hidden"
-                      >
-                        <div className="mt-3 space-y-3">
-                          <div>
-                            <div className="text-[10px] font-bold tracking-wider mb-1.5" style={{ color: "hsl(220,10%,55%)" }}>PRINCIPAIS TAREFAS</div>
-                            {member.tasks.map((t, ti) => (
-                              <div key={ti} className="flex items-center gap-2 py-1">
-                                <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: member.color }} />
-                                <span className="text-xs" style={{ color: "hsl(220,15%,35%)" }}>{t}</span>
-                              </div>
-                            ))}
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-bold tracking-wider mb-1.5" style={{ color: "hsl(220,10%,55%)" }}>KPIs DE ACOMPANHAMENTO</div>
-                            {member.kpis.map((k, ki) => (
-                              <div key={ki} className="flex items-center gap-2 py-1">
-                                <TrendingUp size={10} style={{ color: member.color }} />
-                                <span className="text-xs" style={{ color: "hsl(220,15%,35%)" }}>{k}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
+                <div className="text-xs text-muted-foreground mt-1">
+                  Atual: {metric.value.toLocaleString("pt-BR")} · Meta: {metric.target.toLocaleString("pt-BR")}
                 </div>
-              </motion.div>
+                <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
+                </div>
+                {metric.notes && <p className="text-[11px] text-muted-foreground mt-2">{metric.notes}</p>}
+              </div>
             );
           })}
         </div>
       </div>
 
-      {/* Financial summary */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="ios-card p-6"
-      >
-        <h3 className="text-lg font-bold mb-4" style={{ color: "hsl(220,30%,10%)" }}>Resumo de Investimento Mensal</h3>
-        <div className="text-xs font-semibold mb-3" style={{ color: "hsl(220,10%,55%)" }}>Orçamento Aprovado</div>
-        <div className="space-y-2">
-          {team.map((m) => (
-            <div key={m.id} className="flex items-center justify-between py-2.5 px-3.5 rounded-xl" style={{ background: "rgba(120,120,128,0.05)" }}>
-              <div className="flex items-center gap-2.5">
-                {m.photoUrl ? (
-                  <img src={m.photoUrl} alt="" className="w-5 h-5 rounded-full object-cover" />
-                ) : (
-                  <User size={14} style={{ color: m.color }} />
+      <div>
+        <h3 className="text-lg font-bold mb-3 text-foreground">Composição da equipe</h3>
+        <div className="grid md:grid-cols-2 gap-3">
+          {team.map((member, index) => {
+            const hourlyRate = member.hours > 0 ? member.remuneration / member.hours : 0;
+            const isExpanded = expandedMemberId === member.id;
+
+            return (
+              <motion.div
+                key={member.id}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.03, type: "spring", damping: 24, stiffness: 280 }}
+                className="ios-card overflow-hidden"
+              >
+                <div className="p-4" style={{ borderLeft: `3px solid ${member.color}` }}>
+                  <div className="flex items-center gap-3">
+                    {member.photoUrl ? (
+                      <img src={member.photoUrl} alt={member.name} className="h-12 w-12 rounded-2xl object-cover" />
+                    ) : (
+                      <div className="h-12 w-12 rounded-2xl bg-secondary flex items-center justify-center">
+                        <User className="h-5 w-5 text-muted-foreground" />
+                      </div>
+                    )}
+
+                    <div className="flex-1 min-w-0">
+                      <div className="text-base font-semibold text-foreground truncate">{member.name}</div>
+                      <div className="text-sm truncate" style={{ color: member.color }}>
+                        {member.role}
+                      </div>
+                    </div>
+
+                    <span
+                      className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
+                        member.status === "Ativo"
+                          ? "bg-emerald-100 text-emerald-600"
+                          : member.status === "Férias"
+                          ? "bg-amber-100 text-amber-600"
+                          : "bg-destructive/10 text-destructive"
+                      }`}
+                    >
+                      {member.status}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-2 mt-3">
+                    <div className="rounded-xl bg-secondary/60 p-2.5 text-center">
+                      <div className="text-[10px] text-muted-foreground">Remuneração</div>
+                      <div className="text-sm font-bold text-foreground">R$ {member.remuneration.toLocaleString("pt-BR")}</div>
+                      <div className="text-[10px] text-muted-foreground">/ mês</div>
+                    </div>
+                    <div className="rounded-xl bg-secondary/60 p-2.5 text-center">
+                      <div className="text-[10px] text-muted-foreground">Carga Horária</div>
+                      <div className="text-sm font-bold text-foreground">{member.hours}h</div>
+                      <div className="text-[10px] text-muted-foreground">/ mês</div>
+                    </div>
+                    <div className="rounded-xl bg-secondary/60 p-2.5 text-center">
+                      <div className="text-[10px] text-muted-foreground">Valor / hora</div>
+                      <div className="text-sm font-bold text-foreground">R$ {hourlyRate.toFixed(2).replace(".", ",")}</div>
+                      <div className="text-[10px] text-muted-foreground">calculado</div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => setExpandedMemberId(isExpanded ? null : member.id)}
+                    className="w-full mt-3 rounded-xl border px-3 py-2 text-xs font-medium text-left"
+                    style={{ borderColor: member.color, color: member.color }}
+                  >
+                    {isExpanded ? "Ocultar detalhes do case" : "Ver responsabilidades e case"}
+                  </button>
+                </div>
+
+                {isExpanded && (
+                  <div className="px-4 pb-4 pt-1 border-t border-border/60 space-y-3 animate-fade-in">
+                    <div>
+                      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Especialidade</div>
+                      <p className="text-sm text-foreground mt-1">{member.specialty || "Sem especialidade cadastrada"}</p>
+                    </div>
+
+                    <div>
+                      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Principais tarefas</div>
+                      <ul className="mt-1 space-y-1">
+                        {member.tasks.map((task, taskIndex) => (
+                          <li key={`${member.id}-task-${taskIndex}`} className="text-sm text-foreground flex items-start gap-2">
+                            <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ backgroundColor: member.color }} />
+                            {task}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div>
+                      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">KPIs</div>
+                      <ul className="mt-1 space-y-1">
+                        {member.kpis.map((kpi, kpiIndex) => (
+                          <li key={`${member.id}-kpi-${kpiIndex}`} className="text-sm text-foreground flex items-center gap-2">
+                            <Target className="h-3.5 w-3.5" style={{ color: member.color }} />
+                            {kpi}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="rounded-xl border border-border/60 p-3 bg-background/40">
+                      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Case do membro</div>
+                      <p className="text-sm text-foreground mt-1">
+                        {member.caseNotes || "Sem case registrado ainda. Você pode editar no Lobby de Gestão."}
+                      </p>
+                    </div>
+
+                    <p className="text-[11px] text-muted-foreground">
+                      Cálculo: remuneração mensal (R$ {member.remuneration.toLocaleString("pt-BR")}) ÷ horas/mês ({member.hours}h) =
+                      R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora.
+                    </p>
+                  </div>
                 )}
-                <span className="text-sm font-medium" style={{ color: "hsl(220,20%,25%)" }}>{m.role}</span>
-              </div>
-              <div className="text-right">
-                <span className="text-sm font-bold" style={{ color: m.color }}>R$ {m.remuneration.toLocaleString("pt-BR")}</span>
-                <span className="text-xs ml-2" style={{ color: "hsl(220,10%,55%)" }}>{m.hours}h · R$ {m.hours > 0 ? (m.remuneration / m.hours).toFixed(2) : "0"}/h</span>
-              </div>
-            </div>
-          ))}
+              </motion.div>
+            );
+          })}
         </div>
-        <div className="mt-4 pt-4 flex items-center justify-between" style={{ borderTop: "1px solid rgba(120,120,128,0.1)" }}>
-          <span className="font-bold" style={{ color: "hsl(220,20%,25%)" }}>Total Mensal (Equipe Fixa)</span>
-          <span className="text-xl font-bold" style={{ color: "#007AFF" }}>R$ {totalRemuneration.toLocaleString("pt-BR")}</span>
-        </div>
-        <div className="flex items-center justify-between mt-2">
-          <span className="text-sm" style={{ color: "hsl(220,10%,50%)" }}>+ Projetos Pontuais</span>
-          <span className="text-sm font-semibold" style={{ color: "hsl(220,10%,50%)" }}>R$ 8.600 est.</span>
-        </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
