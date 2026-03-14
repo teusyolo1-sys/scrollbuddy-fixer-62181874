@@ -120,7 +120,7 @@ export default function DeadlineManagement() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: index * 0.02 }}
-              className="p-4 space-y-2"
+              className={`p-4 space-y-2 relative ${openStatusDeadlineId === deadline.id ? "z-40" : "z-0"}`}
             >
               {editMode ? (
                 <>
