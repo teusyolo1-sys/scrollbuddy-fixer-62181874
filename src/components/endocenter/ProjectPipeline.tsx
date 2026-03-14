@@ -255,9 +255,21 @@ export default function ProjectPipeline() {
                         <>
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-medium text-foreground">{task.name}</p>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full ${statusConfig[task.status].className}`}>
-                              {statusConfig[task.status].label}
-                            </span>
+                            <select
+                              className={`text-[10px] px-2 py-0.5 rounded-full border-none outline-none cursor-pointer appearance-none text-center font-semibold ${statusConfig[task.status].className}`}
+                              value={task.status}
+                              onChange={(e) =>
+                                updatePipelineTask(project.id, task.id, {
+                                  status: e.target.value as TaskStatus,
+                                })
+                              }
+                            >
+                              {allStatus.map((s) => (
+                                <option key={s} value={s}>
+                                  {statusConfig[s].label}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                           <p className="text-[11px] text-muted-foreground">
                             {task.responsible} · {task.hours}h · R$ {task.remuneration.toLocaleString("pt-BR")}
