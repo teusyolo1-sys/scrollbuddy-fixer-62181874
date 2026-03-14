@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { BarChart3, Clock3, DollarSign, Target, TrendingUp, User } from "lucide-react";
-import { motion } from "framer-motion";
+import { BarChart3, ChevronDown, ChevronUp, Clock3, DollarSign, Target, TrendingUp, User } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
 
 const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
@@ -10,107 +10,88 @@ export default function TeamDashboard() {
   const [expandedMemberId, setExpandedMemberId] = useState<string | null>(null);
   const [periodFilter, setPeriodFilter] = useState<MetricPeriod | "Todas">("Todas");
 
-  const totalRemuneration = useMemo(() => team.reduce((sum, member) => sum + member.remuneration, 0), [team]);
-  const totalHours = useMemo(() => team.reduce((sum, member) => sum + member.hours, 0), [team]);
+  const totalRemuneration = useMemo(() => team.reduce((sum, m) => sum + m.remuneration, 0), [team]);
+  const totalHours = useMemo(() => team.reduce((sum, m) => sum + m.hours, 0), [team]);
 
   const filteredMetrics = useMemo(
-    () => metricEntries.filter((metric) => periodFilter === "Todas" || metric.period === periodFilter),
+    () => metricEntries.filter((m) => periodFilter === "Todas" || m.period === periodFilter),
     [metricEntries, periodFilter]
   );
 
   const summaryCards = [
-    {
-      label: "Investimento mensal",
-      value: `R$ ${totalRemuneration.toLocaleString("pt-BR")}`,
-      helper: "Folha total da equipe",
-      icon: DollarSign,
-      className: "text-primary",
-      badgeClass: "bg-primary/10",
-    },
-    {
-      label: "Horas / mês",
-      value: `${totalHours}h`,
-      helper: "Capacidade operacional",
-      icon: Clock3,
-      className: "text-foreground",
-      badgeClass: "bg-secondary",
-    },
-    {
-      label: "Valor médio / hora",
-      value: `R$ ${totalHours > 0 ? (totalRemuneration / totalHours).toFixed(2).replace(".", ",") : "0,00"}`,
-      helper: "Remuneração ÷ horas",
-      icon: TrendingUp,
-      className: "text-emerald-600",
-      badgeClass: "bg-emerald-100",
-    },
-    {
-      label: "Profissionais ativos",
-      value: String(team.filter((member) => member.status === "Ativo").length),
-      helper: "Status atual",
-      icon: BarChart3,
-      className: "text-orange-600",
-      badgeClass: "bg-orange-100",
-    },
+    { label: "Investimento mensal", value: `R$ ${totalRemuneration.toLocaleString("pt-BR")}`, sub: "Folha total", icon: DollarSign, color: "hsl(var(--ios-blue))" },
+    { label: "Horas / mês", value: `${totalHours}h`, sub: "Capacidade", icon: Clock3, color: "hsl(var(--ios-purple))" },
+    { label: "Valor médio / hora", value: `R$ ${totalHours > 0 ? (totalRemuneration / totalHours).toFixed(2).replace(".", ",") : "0,00"}`, sub: "Rem ÷ Horas", icon: TrendingUp, color: "hsl(var(--ios-green))" },
+    { label: "Profissionais ativos", value: String(team.filter((m) => m.status === "Ativo").length), sub: "Operacionais", icon: BarChart3, color: "hsl(var(--ios-orange))" },
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
+      {/* Header */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <h2 className="text-xl font-bold text-foreground">Dashboard da equipe</h2>
-          <p className="text-sm text-muted-foreground">Resumo financeiro, cases e métricas por período</p>
+          <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Dashboard da equipe</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Resumo financeiro, cases e métricas</p>
         </div>
-        <span className="text-xs font-semibold px-3 py-1.5 rounded-full bg-primary/10 text-primary">{company.month}</span>
+        <span className="ios-badge ios-status-info">{company.month}</span>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {summaryCards.map((card) => {
+      {/* Summary metrics */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {summaryCards.map((card, i) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="ios-card p-4">
-              <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${card.badgeClass}`}>
-                <Icon className={`h-4 w-4 ${card.className}`} />
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.06, type: "spring", damping: 22 }}
+              className="ios-card p-5"
+            >
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center mb-3" style={{ background: `${card.color}15` }}>
+                <Icon className="h-5 w-5" style={{ color: card.color }} />
               </div>
-              <div className={`text-xl font-bold ${card.className}`}>{card.value}</div>
-              <div className="text-xs font-medium mt-1 text-foreground">{card.label}</div>
-              <div className="text-[11px] text-muted-foreground">{card.helper}</div>
-            </div>
+              <div className="text-2xl font-extrabold tracking-tight" style={{ color: card.color }}>{card.value}</div>
+              <div className="text-xs font-semibold mt-1 text-foreground">{card.label}</div>
+              <div className="text-[11px] text-muted-foreground">{card.sub}</div>
+            </motion.div>
           );
         })}
       </div>
 
-      <div className="ios-card p-4 space-y-3">
+      {/* Metrics */}
+      <div className="ios-card p-5 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="text-sm font-semibold text-foreground">Métricas registradas (diária/semanal/mensal/anual)</h3>
-          <div className="p-1 rounded-xl bg-secondary/70 flex gap-1">
-            {periodFilters.map((period) => (
-              <button
-                key={period}
-                onClick={() => setPeriodFilter(period)}
-                className={`px-2.5 py-1 text-[11px] rounded-lg transition-colors ${
-                  periodFilter === period ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                }`}
-              >
-                {period}
+          <h3 className="text-base font-bold text-foreground">Métricas registradas</h3>
+          <div className="ios-segmented flex">
+            {periodFilters.map((p) => (
+              <button key={p} onClick={() => setPeriodFilter(p)} className="ios-segmented-item" data-active={periodFilter === p}>
+                {p}
               </button>
             ))}
           </div>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-2">
+        <div className="grid md:grid-cols-2 gap-3">
           {filteredMetrics.map((metric) => {
-            const progress = metric.target > 0 ? Math.min(100, Math.round((metric.value / metric.target) * 100)) : 0;
+            const pct = metric.target > 0 ? Math.min(100, Math.round((metric.value / metric.target) * 100)) : 0;
             return (
-              <div key={metric.id} className="rounded-2xl border border-border/60 p-3 bg-background/30">
+              <div key={metric.id} className="p-4" style={{ borderRadius: "var(--ios-radius)", background: "rgba(120,120,128,0.04)", border: "1px solid rgba(120,120,128,0.06)" }}>
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-sm font-semibold text-foreground">{metric.name}</div>
-                  <span className="text-[10px] rounded-full px-2 py-0.5 bg-primary/10 text-primary">{metric.period}</span>
+                  <span className="text-sm font-semibold text-foreground">{metric.name}</span>
+                  <span className="ios-badge ios-status-info">{metric.period}</span>
                 </div>
                 <div className="text-xs text-muted-foreground mt-1">
                   Atual: {metric.value.toLocaleString("pt-BR")} · Meta: {metric.target.toLocaleString("pt-BR")}
                 </div>
-                <div className="mt-2 h-1.5 rounded-full bg-secondary overflow-hidden">
-                  <div className="h-full bg-primary rounded-full" style={{ width: `${progress}%` }} />
+                <div className="mt-2 h-[6px] rounded-full overflow-hidden" style={{ background: "hsl(var(--secondary))" }}>
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ background: "hsl(var(--ios-blue))" }}
+                    initial={{ width: 0 }}
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                  />
                 </div>
                 {metric.notes && <p className="text-[11px] text-muted-foreground mt-2">{metric.notes}</p>}
               </div>
@@ -119,122 +100,127 @@ export default function TeamDashboard() {
         </div>
       </div>
 
+      {/* Team members */}
       <div>
-        <h3 className="text-lg font-bold mb-3 text-foreground">Composição da equipe</h3>
-        <div className="grid md:grid-cols-2 gap-3">
-          {team.map((member, index) => {
+        <h3 className="text-xl font-bold text-foreground mb-4">Composição da equipe</h3>
+        <div className="grid md:grid-cols-2 gap-4">
+          {team.map((member, i) => {
             const hourlyRate = member.hours > 0 ? member.remuneration / member.hours : 0;
             const isExpanded = expandedMemberId === member.id;
 
             return (
               <motion.div
                 key={member.id}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.03, type: "spring", damping: 24, stiffness: 280 }}
+                transition={{ delay: i * 0.04, type: "spring", damping: 22 }}
                 className="ios-card overflow-hidden"
               >
-                <div className="p-4" style={{ borderLeft: `3px solid ${member.color}` }}>
-                  <div className="flex items-center gap-3">
+                {/* Header with colored accent */}
+                <div className="p-5" style={{ borderLeft: `4px solid ${member.color}` }}>
+                  <div className="flex items-center gap-3.5">
                     {member.photoUrl ? (
-                      <img src={member.photoUrl} alt={member.name} className="h-12 w-12 rounded-2xl object-cover" />
+                      <img src={member.photoUrl} alt={member.name} className="h-12 w-12 object-cover" style={{ borderRadius: "var(--ios-radius)" }} />
                     ) : (
-                      <div className="h-12 w-12 rounded-2xl bg-secondary flex items-center justify-center">
-                        <User className="h-5 w-5 text-muted-foreground" />
+                      <div className="h-12 w-12 flex items-center justify-center" style={{ borderRadius: "var(--ios-radius)", background: `${member.color}12` }}>
+                        <User className="h-5 w-5" style={{ color: member.color }} />
                       </div>
                     )}
-
                     <div className="flex-1 min-w-0">
-                      <div className="text-base font-semibold text-foreground truncate">{member.name}</div>
-                      <div className="text-sm truncate" style={{ color: member.color }}>
-                        {member.role}
-                      </div>
+                      <div className="text-base font-bold text-foreground truncate">{member.name}</div>
+                      <div className="text-sm font-medium" style={{ color: member.color }}>{member.role}</div>
                     </div>
-
-                    <span
-                      className={`text-[11px] font-medium px-2.5 py-1 rounded-full ${
-                        member.status === "Ativo"
-                          ? "bg-emerald-100 text-emerald-600"
-                          : member.status === "Férias"
-                          ? "bg-amber-100 text-amber-600"
-                          : "bg-destructive/10 text-destructive"
-                      }`}
-                    >
+                    <span className={`ios-badge ${member.status === "Ativo" ? "ios-status-active" : member.status === "Férias" ? "ios-status-warning" : "ios-status-danger"}`}>
                       {member.status}
                     </span>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 mt-3">
-                    <div className="rounded-xl bg-secondary/60 p-2.5 text-center">
-                      <div className="text-[10px] text-muted-foreground">Remuneração</div>
-                      <div className="text-sm font-bold text-foreground">R$ {member.remuneration.toLocaleString("pt-BR")}</div>
-                      <div className="text-[10px] text-muted-foreground">/ mês</div>
-                    </div>
-                    <div className="rounded-xl bg-secondary/60 p-2.5 text-center">
-                      <div className="text-[10px] text-muted-foreground">Carga Horária</div>
-                      <div className="text-sm font-bold text-foreground">{member.hours}h</div>
-                      <div className="text-[10px] text-muted-foreground">/ mês</div>
-                    </div>
-                    <div className="rounded-xl bg-secondary/60 p-2.5 text-center">
-                      <div className="text-[10px] text-muted-foreground">Valor / hora</div>
-                      <div className="text-sm font-bold text-foreground">R$ {hourlyRate.toFixed(2).replace(".", ",")}</div>
-                      <div className="text-[10px] text-muted-foreground">calculado</div>
-                    </div>
+                  {/* Stats row */}
+                  <div className="grid grid-cols-3 gap-2.5 mt-4">
+                    {[
+                      { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}`, sub: "/ mês" },
+                      { label: "Carga Horária", value: `${member.hours}h`, sub: "/ mês" },
+                      { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}`, sub: "calculado" },
+                    ].map((stat) => (
+                      <div key={stat.label} className="p-3 text-center" style={{ borderRadius: "var(--ios-radius-sm)", background: "rgba(120,120,128,0.05)" }}>
+                        <div className="text-[10px] font-medium text-muted-foreground">{stat.label}</div>
+                        <div className="text-sm font-bold text-foreground mt-0.5">{stat.value}</div>
+                        <div className="text-[10px] text-muted-foreground">{stat.sub}</div>
+                      </div>
+                    ))}
                   </div>
 
-                  <button
+                  {/* Expand button */}
+                  <motion.button
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setExpandedMemberId(isExpanded ? null : member.id)}
-                    className="w-full mt-3 rounded-xl border px-3 py-2 text-xs font-medium text-left"
-                    style={{ borderColor: member.color, color: member.color }}
+                    className="w-full mt-4 py-2.5 px-4 text-xs font-semibold flex items-center justify-between"
+                    style={{
+                      borderRadius: "var(--ios-radius-sm)",
+                      color: member.color,
+                      border: `1.5px solid ${member.color}30`,
+                      background: `${member.color}06`,
+                    }}
                   >
-                    {isExpanded ? "Ocultar detalhes do case" : "Ver responsabilidades e case"}
-                  </button>
+                    {isExpanded ? "Ocultar detalhes do case" : "Ver responsabilidades e KPIs"}
+                    {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
+                  </motion.button>
                 </div>
 
-                {isExpanded && (
-                  <div className="px-4 pb-4 pt-1 border-t border-border/60 space-y-3 animate-fade-in">
-                    <div>
-                      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Especialidade</div>
-                      <p className="text-sm text-foreground mt-1">{member.specialty || "Sem especialidade cadastrada"}</p>
-                    </div>
+                {/* Expandable detail — case section */}
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ type: "spring", damping: 26, stiffness: 300 }}
+                      className="overflow-hidden"
+                    >
+                      <div className="px-5 pb-5 pt-2 space-y-4" style={{ borderTop: "1px solid rgba(120,120,128,0.06)" }}>
+                        <div>
+                          <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Especialidade</div>
+                          <p className="text-sm text-foreground mt-1">{member.specialty || member.role}</p>
+                        </div>
 
-                    <div>
-                      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Principais tarefas</div>
-                      <ul className="mt-1 space-y-1">
-                        {member.tasks.map((task, taskIndex) => (
-                          <li key={`${member.id}-task-${taskIndex}`} className="text-sm text-foreground flex items-start gap-2">
-                            <span className="mt-1 h-1.5 w-1.5 rounded-full" style={{ backgroundColor: member.color }} />
-                            {task}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                        <div>
+                          <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Principais tarefas</div>
+                          <ul className="mt-1.5 space-y-1.5">
+                            {member.tasks.map((task, ti) => (
+                              <li key={`${member.id}-task-${ti}`} className="text-sm text-foreground flex items-start gap-2">
+                                <span className="mt-1.5 h-[6px] w-[6px] rounded-full shrink-0" style={{ backgroundColor: member.color }} />
+                                {task}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
 
-                    <div>
-                      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">KPIs</div>
-                      <ul className="mt-1 space-y-1">
-                        {member.kpis.map((kpi, kpiIndex) => (
-                          <li key={`${member.id}-kpi-${kpiIndex}`} className="text-sm text-foreground flex items-center gap-2">
-                            <Target className="h-3.5 w-3.5" style={{ color: member.color }} />
-                            {kpi}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                        <div>
+                          <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">KPIs</div>
+                          <ul className="mt-1.5 space-y-1.5">
+                            {member.kpis.map((kpi, ki) => (
+                              <li key={`${member.id}-kpi-${ki}`} className="text-sm text-foreground flex items-center gap-2">
+                                <Target className="h-3.5 w-3.5 shrink-0" style={{ color: member.color }} />
+                                {kpi}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
 
-                    <div className="rounded-xl border border-border/60 p-3 bg-background/40">
-                      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Case do membro</div>
-                      <p className="text-sm text-foreground mt-1">
-                        {member.caseNotes || "Sem case registrado ainda. Você pode editar no Lobby de Gestão."}
-                      </p>
-                    </div>
+                        <div className="p-4" style={{ borderRadius: "var(--ios-radius-sm)", background: "rgba(120,120,128,0.04)", border: "1px solid rgba(120,120,128,0.06)" }}>
+                          <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Case do membro</div>
+                          <p className="text-sm text-foreground mt-1">
+                            {member.caseNotes || "Sem case registrado. Edite no Lobby de Gestão (⚙)."}
+                          </p>
+                        </div>
 
-                    <p className="text-[11px] text-muted-foreground">
-                      Cálculo: remuneração mensal (R$ {member.remuneration.toLocaleString("pt-BR")}) ÷ horas/mês ({member.hours}h) =
-                      R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora.
-                    </p>
-                  </div>
-                )}
+                        <p className="text-[11px] text-muted-foreground">
+                          Cálculo: R$ {member.remuneration.toLocaleString("pt-BR")} ÷ {member.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.div>
             );
           })}

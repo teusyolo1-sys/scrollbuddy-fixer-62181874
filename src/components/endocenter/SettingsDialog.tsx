@@ -15,8 +15,8 @@ type TabId = "company" | "team" | "records" | "metrics";
 
 const tabs: { id: TabId; label: string; icon: typeof Settings }[] = [
   { id: "company", label: "Empresa", icon: Building2 },
-  { id: "team", label: "Funcionários", icon: Users },
-  { id: "records", label: "Lobby", icon: Settings },
+  { id: "team", label: "Equipe", icon: Users },
+  { id: "records", label: "Registros", icon: Settings },
   { id: "metrics", label: "Métricas", icon: BarChart3 },
 ];
 
@@ -30,63 +30,80 @@ export default function SettingsDialog({ open, onClose }: Props) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[100] bg-background/55 backdrop-blur-xl flex items-end sm:items-center justify-center"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) onClose();
-          }}
+          transition={{ duration: 0.2 }}
+          className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center"
+          style={{ background: "rgba(0,0,0,0.25)", backdropFilter: "blur(12px)" }}
+          onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
         >
           <motion.div
-            initial={{ y: 40, opacity: 0, scale: 0.98 }}
+            initial={{ y: 50, opacity: 0, scale: 0.97 }}
             animate={{ y: 0, opacity: 1, scale: 1 }}
-            exit={{ y: 24, opacity: 0, scale: 0.98 }}
+            exit={{ y: 30, opacity: 0, scale: 0.97 }}
             transition={{ type: "spring", damping: 28, stiffness: 320 }}
-            className="w-full sm:max-w-3xl max-h-[92vh] overflow-hidden ios-glass-ultra border border-white/60 rounded-t-3xl sm:rounded-3xl flex flex-col"
-            onClick={(event) => event.stopPropagation()}
+            className="w-full sm:max-w-2xl max-h-[92vh] overflow-hidden flex flex-col"
+            style={{
+              borderRadius: "var(--ios-radius-2xl) var(--ios-radius-2xl) 0 0",
+              background: "var(--ios-glass-ultra)",
+              backdropFilter: "blur(80px) saturate(200%)",
+              boxShadow: "var(--ios-shadow-float)",
+              border: "1px solid rgba(255,255,255,0.5)",
+            }}
+            onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex justify-center pt-2 sm:hidden">
-              <div className="h-1 w-10 rounded-full bg-foreground/15" />
+            {/* Grab handle */}
+            <div className="flex justify-center pt-2.5 sm:hidden">
+              <div className="w-10 h-1 rounded-full bg-foreground/12" />
             </div>
 
-            <div className="flex items-center justify-between px-5 py-4 border-b border-border/60">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4">
               <div>
-                <h2 className="text-base font-semibold text-foreground">Lobby de Gestão</h2>
-                <p className="text-xs text-muted-foreground">Cadastre empresa, equipe, métricas e registros de todas as abas.</p>
+                <h2 className="text-lg font-bold text-foreground">Lobby de Gestão</h2>
+                <p className="text-xs text-muted-foreground">Empresa, equipe, registros e métricas</p>
               </div>
               <button
                 onClick={onClose}
-                className="h-8 w-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center"
-                aria-label="Fechar"
+                className="w-8 h-8 flex items-center justify-center"
+                style={{ borderRadius: "var(--ios-radius-sm)", background: "rgba(120,120,128,0.1)" }}
               >
-                <X className="h-4 w-4" />
+                <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
 
-            <div className="px-5 py-3 border-b border-border/50">
-              <div className="p-1 rounded-xl bg-secondary/70 grid grid-cols-4 gap-1">
-                {tabs.map((item) => {
-                  const Icon = item.icon;
-                  const active = tab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setTab(item.id)}
-                      className={`inline-flex items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium transition-all ${
-                        active ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
-                      }`}
-                    >
-                      <Icon className="h-3.5 w-3.5" />
-                      {item.label}
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Segmented control */}
+            <div className="mx-6 mb-4 ios-segmented grid grid-cols-4 gap-0">
+              {tabs.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => setTab(item.id)}
+                    className="ios-segmented-item flex items-center justify-center gap-1.5"
+                    data-active={tab === item.id}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">{item.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
-            <div className="flex-1 overflow-y-auto px-5 py-4">
-              {tab === "company" && <CompanySettingsTab />}
-              {tab === "team" && <TeamSettingsTab />}
-              {tab === "records" && <RecordsSettingsTab />}
-              {tab === "metrics" && <MetricsSettingsTab />}
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto px-6 pb-6">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={tab}
+                  initial={{ opacity: 0, x: 16 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -16 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  {tab === "company" && <CompanySettingsTab />}
+                  {tab === "team" && <TeamSettingsTab />}
+                  {tab === "records" && <RecordsSettingsTab />}
+                  {tab === "metrics" && <MetricsSettingsTab />}
+                </motion.div>
+              </AnimatePresence>
             </div>
           </motion.div>
         </motion.div>

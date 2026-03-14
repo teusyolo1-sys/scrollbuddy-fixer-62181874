@@ -2,124 +2,251 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 30% 10%;
+    --background: 240 10% 96%;
+    --foreground: 230 25% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 220 30% 10%;
+    --card-foreground: 230 25% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 10%;
-    --primary: 215 90% 55%;
+    --popover-foreground: 230 25% 12%;
+    --primary: 215 100% 50%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 220 15% 93%;
-    --secondary-foreground: 220 30% 25%;
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 45%;
-    --accent: 215 90% 55%;
+    --secondary: 230 12% 92%;
+    --secondary-foreground: 230 20% 30%;
+    --muted: 230 14% 94%;
+    --muted-foreground: 230 8% 52%;
+    --accent: 215 100% 50%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 75% 55%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 220 15% 90%;
-    --input: 220 15% 90%;
-    --ring: 215 90% 55%;
-    --radius: 1rem;
+    --border: 230 12% 90%;
+    --input: 230 12% 90%;
+    --ring: 215 100% 50%;
+    --radius: 1.5rem;
 
-    /* iOS 26 custom tokens */
-    --ios-glass: rgba(255, 255, 255, 0.72);
-    --ios-glass-heavy: rgba(255, 255, 255, 0.88);
-    --ios-glass-ultra: rgba(255, 255, 255, 0.95);
+    /* ── iOS 26 Design Tokens ── */
+
+    /* Squircle radii — the signature iOS 26 organic shape */
+    --ios-radius-sm: 14px;
+    --ios-radius: 22px;
+    --ios-radius-lg: 28px;
+    --ios-radius-xl: 36px;
+    --ios-radius-2xl: 44px;
+
+    /* Glass surfaces — layered translucency */
+    --ios-glass-tint: rgba(255, 255, 255, 0.65);
+    --ios-glass: rgba(255, 255, 255, 0.78);
+    --ios-glass-heavy: rgba(255, 255, 255, 0.92);
+    --ios-glass-ultra: rgba(255, 255, 255, 0.97);
+
+    /* Blur intensities */
+    --ios-blur-subtle: 20px;
     --ios-blur: 40px;
-    --ios-blur-heavy: 60px;
-    --ios-shadow: 0 2px 20px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.08);
-    --ios-shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.06);
-    --ios-shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
-    --ios-radius: 1.25rem;
-    --ios-radius-lg: 1.75rem;
-    --ios-radius-xl: 2.25rem;
+    --ios-blur-heavy: 80px;
+
+    /* Shadows — soft, diffused, multi-layer */
+    --ios-shadow-subtle: 
+      0 1px 3px rgba(0, 0, 0, 0.04),
+      0 0 1px rgba(0, 0, 0, 0.06);
+    --ios-shadow: 
+      0 4px 24px rgba(0, 0, 0, 0.06),
+      0 1px 4px rgba(0, 0, 0, 0.04),
+      0 0 1px rgba(0, 0, 0, 0.08);
+    --ios-shadow-lg: 
+      0 8px 40px rgba(0, 0, 0, 0.08),
+      0 2px 8px rgba(0, 0, 0, 0.04),
+      0 0 1px rgba(0, 0, 0, 0.06);
+    --ios-shadow-xl:
+      0 20px 60px rgba(0, 0, 0, 0.1),
+      0 4px 16px rgba(0, 0, 0, 0.06),
+      0 0 1px rgba(0, 0, 0, 0.08);
+    --ios-shadow-float:
+      0 24px 80px rgba(0, 0, 0, 0.12),
+      0 8px 24px rgba(0, 0, 0, 0.06);
+
+    /* Gradients */
+    --ios-gradient-warm: linear-gradient(145deg, rgba(255,255,255,0.9), rgba(245,243,255,0.7));
+    --ios-gradient-cool: linear-gradient(145deg, rgba(240,248,255,0.9), rgba(245,245,255,0.7));
+    --ios-gradient-surface: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,249,252,0.9) 100%);
+
+    /* Accent palette for variety */
+    --ios-blue: 215 100% 50%;
+    --ios-green: 152 69% 38%;
+    --ios-red: 0 72% 51%;
+    --ios-orange: 28 90% 55%;
+    --ios-purple: 265 60% 55%;
+    --ios-teal: 175 70% 40%;
+    --ios-pink: 340 75% 55%;
   }
 }
 
 @layer base {
-  * { @apply border-border; }
+  * {
+    @apply border-border;
+  }
+
   body {
     @apply bg-background text-foreground;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    letter-spacing: -0.01em;
   }
 
-  /* iOS-style scrollbar */
+  /* iOS-style thin scrollbar */
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(0,0,0,0.15) transparent;
+    scrollbar-color: rgba(0,0,0,0.1) transparent;
   }
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: rgba(0,0,0,0.15);
-    border-radius: 9999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,0,0,0.25);
-  }
+  ::-webkit-scrollbar { width: 5px; height: 5px; background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
 }
 
 @layer utilities {
-  /* iOS Glass surfaces */
+  /* ── Glass Surfaces ── */
   .ios-glass {
     background: var(--ios-glass);
-    backdrop-filter: blur(var(--ios-blur));
-    -webkit-backdrop-filter: blur(var(--ios-blur));
+    backdrop-filter: blur(var(--ios-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(180%);
   }
+
   .ios-glass-heavy {
     background: var(--ios-glass-heavy);
-    backdrop-filter: blur(var(--ios-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--ios-blur-heavy));
+    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(180%);
   }
+
   .ios-glass-ultra {
     background: var(--ios-glass-ultra);
-    backdrop-filter: blur(var(--ios-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--ios-blur-heavy));
+    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(200%);
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(200%);
   }
+
   .ios-glass-dark {
-    background: rgba(20, 25, 40, 0.82);
-    backdrop-filter: blur(var(--ios-blur-heavy));
-    -webkit-backdrop-filter: blur(var(--ios-blur-heavy));
+    background: rgba(18, 20, 32, 0.78);
+    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(200%);
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(200%);
   }
-  .ios-shadow {
-    box-shadow: var(--ios-shadow);
-  }
-  .ios-shadow-lg {
-    box-shadow: var(--ios-shadow-lg);
-  }
-  .ios-shadow-xl {
-    box-shadow: var(--ios-shadow-xl);
-  }
+
+  /* ── Card — the core iOS 26 squircle surface ── */
   .ios-card {
     background: var(--ios-glass-heavy);
-    backdrop-filter: blur(var(--ios-blur));
-    -webkit-backdrop-filter: blur(var(--ios-blur));
+    backdrop-filter: blur(var(--ios-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(180%);
     box-shadow: var(--ios-shadow);
-    border: 1px solid rgba(255,255,255,0.5);
+    border: 1px solid rgba(255, 255, 255, 0.55);
     border-radius: var(--ios-radius-lg);
+    transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                box-shadow 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
+
+  .ios-card:hover {
+    box-shadow: var(--ios-shadow-lg);
+  }
+
+  .ios-card-interactive {
+    background: var(--ios-glass-heavy);
+    backdrop-filter: blur(var(--ios-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(180%);
+    box-shadow: var(--ios-shadow);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: var(--ios-radius-lg);
+    transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+                box-shadow 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    cursor: pointer;
+  }
+
+  .ios-card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--ios-shadow-xl);
+  }
+
+  .ios-card-interactive:active {
+    transform: scale(0.98);
+    box-shadow: var(--ios-shadow-subtle);
+  }
+
+  /* ── Squircle cards — icon-shaped cards like iOS app icons ── */
+  .ios-squircle {
+    background: var(--ios-gradient-surface);
+    box-shadow: var(--ios-shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    border-radius: var(--ios-radius-2xl);
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
+                box-shadow 0.3s ease;
+  }
+
+  .ios-squircle:hover {
+    transform: scale(1.03) translateY(-4px);
+    box-shadow: var(--ios-shadow-float);
+  }
+
+  .ios-squircle:active {
+    transform: scale(0.97);
+    box-shadow: var(--ios-shadow);
+  }
+
+  /* ── Input — soft, inset feel ── */
   .ios-input {
-    background: rgba(120, 120, 128, 0.08);
-    border: none;
-    border-radius: 12px;
+    background: rgba(120, 120, 128, 0.06);
+    border: 1px solid rgba(120, 120, 128, 0.08);
+    border-radius: var(--ios-radius-sm);
     transition: all 0.2s ease;
+    outline: none;
   }
+
   .ios-input:focus {
-    background: rgba(120, 120, 128, 0.12);
-    box-shadow: 0 0 0 3px hsl(215 90% 55% / 0.2);
+    background: rgba(120, 120, 128, 0.1);
+    border-color: hsl(var(--ios-blue) / 0.35);
+    box-shadow: 0 0 0 4px hsl(var(--ios-blue) / 0.1);
   }
+
+  /* ── Segmented control ── */
+  .ios-segmented {
+    background: rgba(120, 120, 128, 0.08);
+    border-radius: var(--ios-radius);
+    padding: 3px;
+  }
+
+  .ios-segmented-item {
+    border-radius: calc(var(--ios-radius) - 3px);
+    padding: 7px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.22s ease;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .ios-segmented-item[data-active="true"] {
+    background: white;
+    color: hsl(var(--foreground));
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  /* ── Badge pill ── */
+  .ios-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+
+  /* ── Shadows ── */
+  .ios-shadow { box-shadow: var(--ios-shadow); }
+  .ios-shadow-lg { box-shadow: var(--ios-shadow-lg); }
+  .ios-shadow-xl { box-shadow: var(--ios-shadow-xl); }
+  .ios-shadow-float { box-shadow: var(--ios-shadow-float); }
+
+  /* ── Status colors ── */
+  .ios-status-active { background: hsl(var(--ios-green) / 0.1); color: hsl(var(--ios-green)); }
+  .ios-status-warning { background: hsl(var(--ios-orange) / 0.1); color: hsl(var(--ios-orange)); }
+  .ios-status-danger { background: hsl(var(--ios-red) / 0.1); color: hsl(var(--ios-red)); }
+  .ios-status-info { background: hsl(var(--ios-blue) / 0.1); color: hsl(var(--ios-blue)); }
 }
