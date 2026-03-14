@@ -144,20 +144,47 @@ export default function TeamDashboard() {
         </div>
       </div>
 
-      {/* Team members — even grid (2 cols) */}
+      {/* Team members — dynamic layout based on expanded count */}
       <div>
         <h3 className="text-xl font-bold text-foreground mb-4">Composição da equipe</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          {team.map((member, i) => (
-            <MemberCard
-              key={member.id}
-              member={member}
-              index={i}
-              isExpanded={expandedIds.includes(member.id)}
-              onToggle={toggleExpand}
-            />
-          ))}
-        </div>
+
+        {/* Expanded cards row */}
+        {expandedIds.length > 0 && (
+          <div className={`grid gap-4 mb-4 ${expandedIds.length === 2 ? "md:grid-cols-2" : "grid-cols-1"} items-start`}>
+            {team
+              .filter((m) => expandedIds.includes(m.id))
+              .map((member, i) => (
+                <MemberCard
+                  key={member.id}
+                  member={member}
+                  index={i}
+                  isExpanded
+                  onToggle={toggleExpand}
+                />
+              ))}
+          </div>
+        )}
+
+        {/* Collapsed cards row */}
+        {(() => {
+          const collapsed = team.filter((m) => !expandedIds.includes(m.id));
+          if (collapsed.length === 0) return null;
+          // 0 expanded → 2 cols, 1 expanded → 3 cols for remaining 3, 2 expanded → 2 cols for remaining 2
+          const cols = expandedIds.length === 1 ? "md:grid-cols-3" : "md:grid-cols-2";
+          return (
+            <div className={`grid grid-cols-1 ${cols} gap-4 items-start`}>
+              {collapsed.map((member, i) => (
+                <MemberCard
+                  key={member.id}
+                  member={member}
+                  index={i}
+                  isExpanded={false}
+                  onToggle={toggleExpand}
+                />
+              ))}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
