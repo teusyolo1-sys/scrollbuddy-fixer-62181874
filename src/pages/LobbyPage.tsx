@@ -1,7 +1,8 @@
 import { useState, useMemo } from "react";
-import { Plus, Building2, Users, ArrowRight } from "lucide-react";
+import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, User } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 interface CompanyCard {
   id: string;
