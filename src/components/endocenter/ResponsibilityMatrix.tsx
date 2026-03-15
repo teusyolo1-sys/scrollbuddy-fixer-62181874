@@ -212,7 +212,23 @@ export default function ResponsibilityMatrix() {
   );
 }
 
-/* ── Kanban View with Drag & Drop ── */
+/* ── Column config type ── */
+interface KanbanColumn {
+  key: string;
+  label: string;
+  color: string;
+  filter: (i: ResponsibilityItem) => boolean;
+  /** What happens when a card is dropped here */
+  applyTo: "todo" | "urgent" | "done" | "custom";
+}
+
+const defaultColumns: KanbanColumn[] = [
+  { key: "todo", label: "A fazer", color: "hsl(var(--primary))", filter: (i) => !i.done && i.priority !== "urgent" && !i.critical, applyTo: "todo" },
+  { key: "urgent", label: "Urgente", color: "#DC2626", filter: (i) => !i.done && (i.priority === "urgent" || i.critical), applyTo: "urgent" },
+  { key: "done", label: "Concluído", color: "#059669", filter: (i) => i.done, applyTo: "done" },
+];
+
+/* ── Kanban View with Drag & Drop + Column Management ── */
 function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveItem }: {
   items: ResponsibilityItem[];
   roleColor: string;
@@ -222,16 +238,74 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
   onMoveItem: (itemId: string, target: "todo" | "urgent" | "done") => void;
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
+  const [editingCol, setEditingCol] = useState<string | null>(null);
+  const [editLabel, setEditLabel] = useState("");
+  const [menuCol, setMenuCol] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
 
-  const columns: Array<{ key: "todo" | "urgent" | "done"; label: string; items: ResponsibilityItem[]; color: string }> = [
-    { key: "todo", label: "A fazer", items: items.filter((i) => !i.done && i.priority !== "urgent" && !i.critical), color: "hsl(var(--primary))" },
-    { key: "urgent", label: "Urgente", items: items.filter((i) => !i.done && (i.priority === "urgent" || i.critical)), color: "#DC2626" },
-    { key: "done", label: "Concluído", items: items.filter((i) => i.done), color: "#059669" },
-  ];
+  useEffect(() => {
+    if (!menuCol) return;
+    const close = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuCol(null);
+    };
+    window.addEventListener("mousedown", close);
+    return () => window.removeEventListener("mousedown", close);
+  }, [menuCol]);
 
-  // Dedupe
-  const urgentIds = new Set(columns[1].items.map((i) => i.id));
-  columns[0].items = columns[0].items.filter((i) => !urgentIds.has(i.id));
+  // Distribute items into columns (with dedup for urgent)
+  const columnData = useMemo(() => {
+    const urgentItems = items.filter((i) => !i.done && (i.priority === "urgent" || i.critical));
+    const urgentIds = new Set(urgentItems.map((i) => i.id));
+
+    return columns.map((col) => {
+      let colItems: ResponsibilityItem[];
+      if (col.key === "todo") {
+        colItems = items.filter((i) => col.filter(i) && !urgentIds.has(i.id));
+      } else {
+        colItems = items.filter(col.filter);
+      }
+      return { ...col, items: colItems };
+    });
+  }, [columns, items]);
+
+  const moveColumn = (index: number, direction: -1 | 1) => {
+    const newCols = [...columns];
+    const target = index + direction;
+    if (target < 0 || target >= newCols.length) return;
+    [newCols[index], newCols[target]] = [newCols[target], newCols[index]];
+    setColumns(newCols);
+  };
+
+  const addColumn = () => {
+    const id = `custom_${Math.random().toString(36).slice(2, 6)}`;
+    setColumns([...columns, {
+      key: id,
+      label: "Nova coluna",
+      color: "hsl(var(--muted-foreground))",
+      filter: () => false,
+      applyTo: "todo",
+    }]);
+  };
+
+  const removeColumn = (key: string) => {
+    if (["todo", "urgent", "done"].includes(key)) return;
+    setColumns(columns.filter((c) => c.key !== key));
+  };
+
+  const startRename = (key: string) => {
+    const col = columns.find((c) => c.key === key);
+    setEditingCol(key);
+    setEditLabel(col?.label || "");
+    setMenuCol(null);
+  };
+
+  const finishRename = () => {
+    if (editingCol && editLabel.trim()) {
+      setColumns(columns.map((c) => c.key === editingCol ? { ...c, label: editLabel.trim() } : c));
+    }
+    setEditingCol(null);
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -246,44 +320,139 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     const overId = String(over.id);
     const itemId = String(active.id);
 
-    // Determine target column
     let targetCol: "todo" | "urgent" | "done" | null = null;
     if (["todo", "urgent", "done"].includes(overId)) {
       targetCol = overId as "todo" | "urgent" | "done";
     } else {
-      // Dropped on another card — find which column it belongs to
-      for (const col of columns) {
-        if (col.items.some((i) => i.id === overId)) {
-          targetCol = col.key;
-          break;
-        }
+      for (const col of columnData) {
+        if (col.key === overId) { targetCol = col.applyTo === "custom" ? "todo" : col.applyTo; break; }
+        if (col.items.some((i) => i.id === overId)) { targetCol = col.applyTo === "custom" ? "todo" : col.applyTo; break; }
       }
     }
 
     if (targetCol) {
-      // Check if item is already in this column
-      const sourceCol = columns.find((c) => c.items.some((i) => i.id === itemId));
-      if (sourceCol?.key !== targetCol) {
+      const sourceCol = columnData.find((c) => c.items.some((i) => i.id === itemId));
+      if (sourceCol && sourceCol.applyTo !== targetCol) {
         onMoveItem(itemId, targetCol);
       }
     }
   };
 
+  const gridCols = columns.length <= 3 ? "md:grid-cols-3" : columns.length === 4 ? "md:grid-cols-4" : "md:grid-cols-5";
+
   return (
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActiveId(String(e.active.id))} onDragEnd={handleDragEnd}>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[200px]">
-        {columns.map((col) => (
-          <DroppableColumn key={col.key} id={col.key} color={col.color} label={col.label} count={col.items.length} showAdd={col.key === "todo"} onAdd={onAdd} isOver={false}>
-            <SortableContext items={col.items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-              {col.items.map((item) => (
-                <SortableTaskCard key={item.id} item={item} roleColor={roleColor} onClick={() => onSelect(item)} onToggleDone={() => onToggleDone(item.id)} />
-              ))}
-            </SortableContext>
-            {col.items.length === 0 && !activeId && (
-              <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/50">Sem itens</div>
-            )}
-          </DroppableColumn>
+      <div className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px]`}>
+        {columnData.map((col, index) => (
+          <div key={col.key} className="space-y-2">
+            {/* ── Gutenberg-style Column Toolbar ── */}
+            <div className="flex items-center gap-0.5">
+              {/* Move buttons */}
+              <div className="flex items-center rounded-xl border border-border/50 bg-card overflow-hidden"
+                style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
+                <button
+                  onClick={() => moveColumn(index, -1)}
+                  disabled={index === 0}
+                  className="p-1.5 hover:bg-secondary transition-colors disabled:opacity-30"
+                  title="Mover para esquerda"
+                >
+                  <ChevronLeft className="h-3 w-3 text-muted-foreground" />
+                </button>
+                <div className="w-px h-4 bg-border/50" />
+                <span className="px-1">
+                  <GripVertical className="h-3 w-3 text-muted-foreground/50" />
+                </span>
+                <div className="w-px h-4 bg-border/50" />
+                <button
+                  onClick={() => moveColumn(index, 1)}
+                  disabled={index === columns.length - 1}
+                  className="p-1.5 hover:bg-secondary transition-colors disabled:opacity-30"
+                  title="Mover para direita"
+                >
+                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                </button>
+              </div>
+
+              {/* Column label */}
+              <div className="flex items-center gap-1.5 flex-1 min-w-0 ml-1.5">
+                <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: col.color }} />
+                {editingCol === col.key ? (
+                  <input
+                    autoFocus
+                    value={editLabel}
+                    onChange={(e) => setEditLabel(e.target.value)}
+                    onBlur={finishRename}
+                    onKeyDown={(e) => e.key === "Enter" && finishRename()}
+                    className="ios-input px-2 py-0.5 text-xs font-semibold w-full"
+                  />
+                ) : (
+                  <span className="text-xs font-semibold text-foreground truncate">{col.label}</span>
+                )}
+                <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md shrink-0">{col.items.length}</span>
+              </div>
+
+              {/* Actions menu */}
+              <div className="relative" ref={menuCol === col.key ? menuRef : undefined}>
+                <button
+                  onClick={() => setMenuCol(menuCol === col.key ? null : col.key)}
+                  className="p-1.5 rounded-lg hover:bg-secondary transition-colors"
+                >
+                  <MoreVertical className="h-3 w-3 text-muted-foreground" />
+                </button>
+                <AnimatePresence>
+                  {menuCol === col.key && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9, y: -4 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -4 }}
+                      className="absolute right-0 top-8 z-50 w-36 rounded-xl border border-border/60 bg-card p-1 space-y-0.5"
+                      style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}
+                    >
+                      {col.key === "todo" && (
+                        <button onClick={() => { onAdd(); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
+                          <Plus className="h-3 w-3" /> Nova tarefa
+                        </button>
+                      )}
+                      <button onClick={() => startRename(col.key)} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
+                        <Pencil className="h-3 w-3" /> Renomear
+                      </button>
+                      {!["todo", "urgent", "done"].includes(col.key) && (
+                        <button onClick={() => { removeColumn(col.key); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-destructive/10 transition-colors text-destructive">
+                          <Trash2 className="h-3 w-3" /> Remover
+                        </button>
+                      )}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            </div>
+
+            {/* Column drop area */}
+            <DroppableColumn id={col.key} isOver={false}>
+              <SortableContext items={col.items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
+                {col.items.map((item) => (
+                  <SortableTaskCard key={item.id} item={item} roleColor={roleColor} onClick={() => onSelect(item)} onToggleDone={() => onToggleDone(item.id)} />
+                ))}
+              </SortableContext>
+              {col.items.length === 0 && !activeId && (
+                <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/50">Sem itens</div>
+              )}
+            </DroppableColumn>
+          </div>
         ))}
+
+        {/* Add column button */}
+        <div className="flex items-center justify-center">
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={addColumn}
+            className="flex flex-col items-center gap-2 p-6 rounded-2xl border-2 border-dashed border-border/50 hover:border-primary/40 hover:bg-primary/5 transition-colors text-muted-foreground hover:text-primary"
+          >
+            <Plus className="h-5 w-5" />
+            <span className="text-xs font-medium">Nova coluna</span>
+          </motion.button>
+        </div>
       </div>
       <DragOverlay>
         {activeItem && <TaskCard item={activeItem} roleColor={roleColor} onClick={() => {}} onToggleDone={() => {}} />}
@@ -292,34 +461,17 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
   );
 }
 
-/* ── Droppable Column ── */
-function DroppableColumn({ id, color, label, count, showAdd, onAdd, children }: {
-  id: string; color: string; label: string; count: number; showAdd: boolean; onAdd: () => void; isOver: boolean; children: React.ReactNode;
-}) {
+/* ── Droppable Column (simplified) ── */
+function DroppableColumn({ id, children, isOver: _ }: { id: string; children: React.ReactNode; isOver: boolean }) {
   const { setNodeRef, isOver } = useDroppable({ id });
-
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
-          <span className="text-xs font-semibold text-foreground">{label}</span>
-          <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md">{count}</span>
-        </div>
-        {showAdd && (
-          <button onClick={onAdd} className="text-primary hover:bg-primary/10 rounded-lg p-1 transition-colors">
-            <Plus className="h-3.5 w-3.5" />
-          </button>
-        )}
-      </div>
-      <div
-        ref={setNodeRef}
-        className={`space-y-2 min-h-[100px] rounded-2xl p-2 border transition-colors ${
-          isOver ? "bg-primary/10 border-primary/40" : "bg-secondary/30 border-border/30"
-        }`}
-      >
-        {children}
-      </div>
+    <div
+      ref={setNodeRef}
+      className={`space-y-2 min-h-[100px] rounded-2xl p-2 border transition-colors ${
+        isOver ? "bg-primary/10 border-primary/40" : "bg-secondary/30 border-border/30"
+      }`}
+    >
+      {children}
     </div>
   );
 }
