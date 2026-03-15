@@ -113,7 +113,7 @@ export default function ResponsibilityMatrix() {
       </div>
 
       {/* Content area */}
-      <motion.div className="ios-card overflow-visible" layout>
+      <div className="ios-card overflow-visible">
         {/* Tabs + search */}
         <div className="p-4 border-b border-border/50 space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
@@ -147,7 +147,7 @@ export default function ResponsibilityMatrix() {
         {/* Board area */}
         <div className="p-4">
           <AnimatePresence mode="wait">
-            <motion.div key={`${activeRoleId}-${activeTab}-${viewMode}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            <motion.div key={`${activeRoleId}-${activeTab}-${viewMode}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
               {viewMode === "kanban" ? (
                 <KanbanView
                   items={currentItems}
@@ -168,7 +168,7 @@ export default function ResponsibilityMatrix() {
             </motion.div>
           </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
 
       {/* Detail Modal */}
       {selectedItem && (

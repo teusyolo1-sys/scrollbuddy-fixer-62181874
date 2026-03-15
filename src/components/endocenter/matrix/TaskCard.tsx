@@ -33,15 +33,14 @@ export default function TaskCard({ item, roleColor, onClick, onToggleDone }: Tas
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.95 }}
-      whileHover={{ y: -2 }}
-      transition={{ type: "spring", damping: 25, stiffness: 350 }}
+      whileHover={{ y: -2, transition: { duration: 0.15 } }}
+      transition={{ duration: 0.2, ease: "easeOut" }}
       onClick={onClick}
-      className="group cursor-pointer rounded-2xl border border-border/60 bg-card hover:border-border transition-all overflow-hidden"
-      style={{ boxShadow: "var(--ios-shadow-subtle)" }}
+      className="group cursor-pointer rounded-2xl border border-border/60 bg-card hover:border-border transition-[border-color] overflow-hidden"
+      style={{ boxShadow: "var(--ios-shadow-subtle)", willChange: "transform, opacity" }}
     >
       {/* Cover image */}
       {item.cover && (
@@ -86,9 +85,10 @@ export default function TaskCard({ item, roleColor, onClick, onToggleDone }: Tas
         </div>
 
         {/* Description preview */}
-        {item.description && !item.done && (
-          <p className="text-xs text-muted-foreground line-clamp-2 pl-7">{item.description}</p>
-        )}
+        {item.description && !item.done && (() => {
+          const text = item.description.replace(/<[^>]*>/g, "").trim();
+          return text ? <p className="text-xs text-muted-foreground line-clamp-2 pl-7">{text}</p> : null;
+        })()}
 
         {/* Meta row */}
         <div className="flex items-center gap-2 flex-wrap pl-7">
