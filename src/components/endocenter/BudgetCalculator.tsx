@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import {
   Plus, Trash2, ChevronDown, Loader2,
   ArrowUpRight, ArrowDownRight, TrendingUp,
-  BarChart3, PieChart, FileText
+  BarChart3, PieChart, FileText, CalendarDays,
+  ChevronLeft, ChevronRight, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -330,6 +331,154 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
   );
 }
 
+/* ── Budget Calendar ── */
+function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: boolean; onClose: () => void }) {
+  const [viewMonth, setViewMonth] = useState(() => new Date());
+
+  const year = viewMonth.getFullYear();
+  const month = viewMonth.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthName = viewMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+
+  const entriesByDate = useMemo(() => {
+    const map: Record<string, { total: number; items: any[] }> = {};
+    entries.forEach(e => {
+      if (!map[e.date]) map[e.date] = { total: 0, items: [] };
+      map[e.date].total += e.amount;
+      map[e.date].items.push(e);
+    });
+    return map;
+  }, [entries]);
+
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  const selectedEntries = selectedDate ? entriesByDate[selectedDate]?.items || [] : [];
+
+  const days: (number | null)[] = [];
+  for (let i = 0; i < firstDay; i++) days.push(null);
+  for (let d = 1; d <= daysInMonth; d++) days.push(d);
+
+  const prev = () => setViewMonth(new Date(year, month - 1, 1));
+  const next = () => setViewMonth(new Date(year, month + 1, 1));
+
+  return (
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 12 }}
+          transition={{ type: "spring", damping: 22 }}
+          className={`${gc} overflow-hidden`}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 border-b border-border/40">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10">
+                <CalendarDays className="h-4 w-4 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-foreground">Economias</p>
+                <p className="text-[11px] text-muted-foreground">Acompanhe todos os registros por data</p>
+              </div>
+            </div>
+            <motion.button whileTap={{ scale: 0.9 }} onClick={onClose}
+              className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-accent/30 transition-colors">
+              <X className="h-3.5 w-3.5 text-muted-foreground" />
+            </motion.button>
+          </div>
+
+          {/* Month navigation */}
+          <div className="flex items-center justify-between px-4 pt-3 pb-1">
+            <motion.button whileTap={{ scale: 0.9 }} onClick={prev} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-accent/30 transition-colors">
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+            </motion.button>
+            <span className="text-xs font-bold text-foreground capitalize">{monthName}</span>
+            <motion.button whileTap={{ scale: 0.9 }} onClick={next} className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-accent/30 transition-colors">
+              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            </motion.button>
+          </div>
+
+          {/* Weekday headers */}
+          <div className="grid grid-cols-7 gap-0.5 px-4 pt-2">
+            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].map(d => (
+              <div key={d} className="text-center text-[9px] font-semibold text-muted-foreground/60 uppercase pb-1">{d}</div>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-0.5 px-4 pb-3">
+            {days.map((day, i) => {
+              if (day === null) return <div key={`e-${i}`} />;
+              const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+              const data = entriesByDate[dateStr];
+              const isSelected = selectedDate === dateStr;
+              const isToday = dateStr === new Date().toISOString().slice(0, 10);
+
+              return (
+                <motion.button
+                  key={dateStr}
+                  whileTap={{ scale: 0.92 }}
+                  onClick={() => setSelectedDate(isSelected ? null : dateStr)}
+                  className={`relative flex flex-col items-center justify-center py-1.5 rounded-lg transition-all text-[11px]
+                    ${isSelected ? "bg-primary text-primary-foreground font-bold" : isToday ? "bg-accent/40 text-foreground font-semibold" : "hover:bg-accent/20 text-foreground/70"}`}
+                >
+                  {day}
+                  {data && (
+                    <div className={`w-1.5 h-1.5 rounded-full mt-0.5 ${isSelected ? "bg-primary-foreground/70" : data.total > 0 ? "bg-emerald-500" : "bg-destructive"}`} />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Selected date details */}
+          <AnimatePresence>
+            {selectedDate && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                className="overflow-hidden border-t border-border/40"
+              >
+                <div className="p-4 space-y-2">
+                  <p className="text-[11px] font-bold text-muted-foreground">
+                    {new Date(selectedDate + "T12:00:00").toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
+                  </p>
+                  {selectedEntries.length === 0 ? (
+                    <p className="text-[11px] text-muted-foreground/50 text-center py-3">Nenhum registro nesta data.</p>
+                  ) : (
+                    <div className="space-y-1.5">
+                      {selectedEntries.map((entry: any) => {
+                        const cfg = categoryConfig[entry.category as BudgetCategory];
+                        return (
+                          <div key={entry.id} className="flex items-center justify-between py-1.5 px-2.5 rounded-lg bg-muted/30">
+                            <div className="flex items-center gap-2">
+                              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cfg.color }} />
+                              <span className="text-[11px] text-foreground/80 truncate max-w-[140px]">{entry.description || cfg.label}</span>
+                              <span className="text-[9px] text-muted-foreground px-1.5 py-0.5 rounded bg-muted/50">{cfg.label}</span>
+                            </div>
+                            <span className="text-[11px] font-bold" style={{ color: cfg.color }}>{formatCurrency(entry.amount)}</span>
+                          </div>
+                        );
+                      })}
+                      <div className="flex justify-between pt-1.5 border-t border-border/30">
+                        <span className="text-[10px] font-bold text-muted-foreground">Total do dia</span>
+                        <span className="text-[11px] font-extrabold text-foreground">{formatCurrency(entriesByDate[selectedDate]?.total || 0)}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 /* ══════════════════════════════════════════
    ██  MAIN COMPONENT
    ══════════════════════════════════════════ */
@@ -337,6 +486,7 @@ export default function BudgetCalculator() {
   const { user } = useAuth();
   const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries();
   const [expandedCategory, setExpandedCategory] = useState<BudgetCategory | null>("faturamento");
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const totals = useMemo(() => {
     return categories.reduce((acc, cat) => {
@@ -364,6 +514,24 @@ export default function BudgetCalculator() {
 
   return (
     <div className="space-y-4">
+
+      {/* Calendar toggle button */}
+      <div className="flex justify-end">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setCalendarOpen(!calendarOpen)}
+          className={`${gc} px-4 py-2.5 flex items-center gap-2.5 hover:bg-accent/20 transition-colors`}
+        >
+          <CalendarDays className="h-4 w-4 text-primary" />
+          <span className="text-xs font-bold text-foreground">Economias</span>
+          <motion.div animate={{ rotate: calendarOpen ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          </motion.div>
+        </motion.button>
+      </div>
+
+      {/* Budget Calendar */}
+      <BudgetCalendar entries={entries} open={calendarOpen} onClose={() => setCalendarOpen(false)} />
 
       {/* Row 1: Investimentos (full width) */}
       <CategoryCard {...catProps("investimento")} delay={0} />
