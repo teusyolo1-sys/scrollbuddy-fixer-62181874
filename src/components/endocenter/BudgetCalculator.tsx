@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import {
   Plus, Trash2, ChevronDown, Loader2,
   ArrowUpRight, ArrowDownRight, TrendingUp,
@@ -8,8 +8,12 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart, Bar, ResponsiveContainer, CartesianGrid,
-  PieChart as RPieChart, Pie, Cell
+  PieChart as RPieChart, Pie, Cell,
+  AreaChart, Area, LineChart, Line,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  ComposedChart, XAxis, YAxis, Tooltip
 } from "recharts";
+import { CHART_STYLES, type ChartStyle, ChartStyleMenuItem } from "./ChartStylePicker";
 import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
 import { useAuth } from "@/hooks/useAuth";
 
