@@ -637,9 +637,8 @@ export default function AnalyticsCharts() {
   };
 
   const applyFunnelPalette = (palette: ColorPalette) => {
-    const funnelTypes: MetricType[] = ["alcance", "seguidores", "leads", "vendas", "faturamento"];
     const newOverrides: Record<string, string> = { ...colorOverrides };
-    funnelTypes.forEach((t, i) => {
+    METRIC_TYPES.forEach((t, i) => {
       newOverrides[t] = palette.colors[i % palette.colors.length];
     });
     setColorOverrides(newOverrides);
