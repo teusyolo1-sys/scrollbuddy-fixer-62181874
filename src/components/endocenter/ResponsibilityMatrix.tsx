@@ -238,6 +238,7 @@ export default function ResponsibilityMatrix() {
                 <KanbanView
                   items={currentItems}
                   roleColor={role.color}
+                  isAdmin={isAdmin}
                   onSelect={(item) => setSelectedItem({ roleId: role.id, tab: activeTab, item })}
                   onToggleDone={(id) => handleUpdateItem(id, { done: !currentItems.find((i) => i.id === id)?.done })}
                   onAdd={() => addResponsibilityRoleItem(role.id, activeTab)}
