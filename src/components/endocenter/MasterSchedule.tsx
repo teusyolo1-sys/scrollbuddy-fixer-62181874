@@ -247,9 +247,14 @@ export default function MasterSchedule() {
                               </>
                             ) : (
                               <div className="flex items-center justify-between gap-2">
-                                <p className="text-sm text-foreground">{task.task}</p>
+                                <div className="flex items-center gap-2">
+                                  {(task as any).fromResponsibility && (
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary shrink-0">RESP</span>
+                                  )}
+                                  <p className="text-sm text-foreground">{task.task}</p>
+                                </div>
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                  {task.type} · {task.hours}h
+                                  {task.type}{task.hours > 0 ? ` · ${task.hours}h` : ""}
                                 </span>
                               </div>
                             )}
