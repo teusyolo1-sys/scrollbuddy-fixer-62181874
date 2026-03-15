@@ -340,7 +340,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               }}
             >
               <div
-                className="h-full overflow-y-auto overflow-x-hidden pointer-events-auto"
+                className="h-full overflow-y-auto overflow-x-hidden pointer-events-auto overflow-hidden"
                 style={{
                   width: 300,
                   background: "var(--ios-glass)",
@@ -351,9 +351,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                   border: "1px solid hsl(var(--border) / 0.25)",
                 }}
               >
-                <div className="py-2">
+                <div className="py-2 [&>*:last-child]:overflow-hidden">
                     {/* Priority */}
-                    <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
+                    <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen={!!item.priority}>
                       <div className="flex gap-2">
                         {priorityOptions.map((p) => {
                           const isActive = item.priority === p.value;
@@ -374,12 +374,12 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Due Date */}
-                    <SideSection icon={Calendar} label="Data de entrega" defaultOpen>
+                    <SideSection icon={Calendar} label="Data de entrega" defaultOpen={!!item.dueDate}>
                       <input type="date" value={item.dueDate} onChange={(e) => onUpdate({ dueDate: e.target.value })} className="ios-input px-3 py-1.5 text-xs w-full" />
                     </SideSection>
 
                     {/* Assignees */}
-                    <SideSection icon={Users} label="Responsáveis">
+                    <SideSection icon={Users} label="Responsáveis" defaultOpen={item.assignees.length > 0}>
                       <div className="flex flex-wrap gap-1.5">
                         {item.assignees.map((name) => (
                           <span key={name} onClick={() => handleRemoveAssignee(name)} className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full bg-primary/10 text-primary cursor-pointer hover:bg-primary/20">
@@ -402,7 +402,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Labels */}
-                    <SideSection icon={Tag} label="Etiquetas">
+                    <SideSection icon={Tag} label="Etiquetas" defaultOpen={item.labels.length > 0}>
                       <div className="flex flex-wrap gap-1">
                         {item.labels.map((l) => (
                           <span key={l.id} className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full text-white cursor-pointer hover:opacity-80" style={{ backgroundColor: l.color }} onClick={() => handleRemoveLabel(l.id)}>
@@ -426,7 +426,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Timer */}
-                    <SideSection icon={Timer} label="Temporizador">
+                    <SideSection icon={Timer} label="Temporizador" defaultOpen={item.timerSeconds > 0 || item.timerRunning}>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-base font-bold text-foreground tabular-nums">{formatTimer(timerSeconds)}</span>
                         <button onClick={() => setTimerRunning(!timerRunning)}
@@ -442,7 +442,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Checklist */}
-                    <SideSection icon={CheckSquare} label={`Checklist${checkTotal > 0 ? ` (${checkPct}%)` : ""}`}>
+                    <SideSection icon={CheckSquare} label={`Checklist${checkTotal > 0 ? ` (${checkPct}%)` : ""}`} defaultOpen={checkTotal > 0}>
                       {checkTotal > 0 && (
                         <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
                           <motion.div className="h-full rounded-full" style={{ backgroundColor: roleColor }} animate={{ width: `${checkPct}%` }} transition={{ type: "spring", damping: 20 }} />
@@ -470,7 +470,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Attachments */}
-                    <SideSection icon={Paperclip} label={`Anexos${item.attachments.length > 0 ? ` (${item.attachments.length})` : ""}`}>
+                    <SideSection icon={Paperclip} label={`Anexos${item.attachments.length > 0 ? ` (${item.attachments.length})` : ""}`} defaultOpen={item.attachments.length > 0}>
                       {item.attachments.length > 0 && (
                         <div className="space-y-1.5">
                           {item.attachments.map((att) => (
