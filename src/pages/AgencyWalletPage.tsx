@@ -455,7 +455,8 @@ export default function AgencyWalletPage() {
         {/* Bottom: Invoices, Expenses & Revenues */}
         <div className="space-y-4 mt-4 pb-16">
           {/* Contas a Receber */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32, type: "spring", damping: 22 }}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01, y: -2 }}
+            transition={{ delay: 0.32, type: "spring", damping: 22 }}
             className={`${gc} overflow-hidden`}>
             <button onClick={() => setInvoicesOpen(!invoicesOpen)}
               className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
