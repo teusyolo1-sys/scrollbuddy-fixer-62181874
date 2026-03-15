@@ -507,9 +507,10 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
         {columnData.map((col, index) => (
           <motion.div
             key={col.key}
-            layout
-            transition={{ type: "spring", stiffness: 300, damping: 28 }}
+            layout="position"
+            transition={{ type: "spring", stiffness: 320, damping: 26 }}
             ref={(el) => { colRefs.current[index] = el; }}
+            style={draggingColIdx === index ? { x: columnDragOffsetX, zIndex: 40 } : { x: 0 }}
             className={`space-y-2 group/col transition-colors duration-200 ${
               draggingColIdx === index ? "opacity-40 scale-95" : ""
             } ${dragOverColIdx === index && draggingColIdx !== index ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5" : ""}`}
