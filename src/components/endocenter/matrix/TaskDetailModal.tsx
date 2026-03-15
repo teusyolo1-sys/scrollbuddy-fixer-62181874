@@ -44,8 +44,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [timerRunning, setTimerRunning] = useState(item.timerRunning);
   const [timerSeconds, setTimerSeconds] = useState(item.timerSeconds);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
+  const [chatBalloonOpen, setChatBalloonOpen] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<RichTextEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
@@ -193,12 +194,13 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
         style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(10px)" }}
         onClick={onClose}
       >
+        {/* Main modal + chat balloon wrapper */}
+        <div className="flex items-center justify-center gap-3" onClick={(e) => e.stopPropagation()}>
         <motion.div
           initial={{ opacity: 0, y: 20, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.97 }}
           transition={{ type: "spring", damping: 30, stiffness: 400 }}
-          onClick={(e) => e.stopPropagation()}
           className="rounded-3xl bg-card border border-border/50 overflow-hidden flex flex-col transition-[max-width,height] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
           style={{ 
             boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
@@ -295,13 +297,23 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 </span>
                 <h2 className="text-sm font-bold text-foreground truncate">{item.task}</h2>
               </div>
-              <motion.button onClick={onClose}
-                whileHover={{ scale: 1.12, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                transition={{ type: "spring", stiffness: 400, damping: 14 }}
-                className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
-                <X className="h-3.5 w-3.5" />
-              </motion.button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <motion.button onClick={() => setChatBalloonOpen(!chatBalloonOpen)}
+                  whileHover={{ scale: 1.12 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${chatBalloonOpen ? "bg-primary/15 text-primary" : "bg-secondary/60 text-muted-foreground hover:text-foreground"}`}
+                  title="Chat">
+                  <MessageCircle className="h-3.5 w-3.5" />
+                </motion.button>
+                <motion.button onClick={onClose}
+                  whileHover={{ scale: 1.12, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                  className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                  <X className="h-3.5 w-3.5" />
+                </motion.button>
+              </div>
             </div>
           )}
 
@@ -580,6 +592,41 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             </div>{/* absolute outer */}
               </div>{/* flex */}
         </motion.div>
+
+        {/* Floating Chat Balloon — compact mode only */}
+        <AnimatePresence>
+          {!editingDescription && chatBalloonOpen && (
+            <motion.div
+              initial={{ opacity: 0, x: -20, scale: 0.95 }}
+              animate={{ opacity: 1, x: 0, scale: 1 }}
+              exit={{ opacity: 0, x: -20, scale: 0.95 }}
+              transition={{ type: "spring", damping: 25, stiffness: 400 }}
+              className="rounded-2xl overflow-hidden flex flex-col shrink-0"
+              style={{
+                width: 320,
+                height: "60vh",
+                maxHeight: "75vh",
+                background: "var(--ios-glass, hsl(var(--card)))",
+                backdropFilter: "blur(40px) saturate(1.8)",
+                WebkitBackdropFilter: "blur(40px) saturate(1.8)",
+                boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
+                border: "1px solid hsl(var(--border) / 0.3)",
+              }}
+            >
+              <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 shrink-0">
+                <MessageCircle className="h-4 w-4 text-primary" />
+                <span className="text-xs font-bold text-foreground flex-1">Chat</span>
+                <button onClick={() => setChatBalloonOpen(false)} className="w-6 h-6 rounded-lg bg-secondary/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto p-3">
+                <TaskChat taskId={item.id} taskName={item.task} />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        </div>{/* wrapper div */}
       </motion.div>
     </AnimatePresence>,
     document.body
