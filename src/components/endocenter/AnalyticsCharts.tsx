@@ -442,7 +442,7 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay, type: "spring", damping: 22 }}
-          className="ios-card p-5 min-h-[280px] cursor-context-menu"
+          className="ios-card p-5 h-[300px] cursor-context-menu flex flex-col"
           style={{ overflow: "visible" }}
         >
           <div className="flex items-center justify-between mb-1">
