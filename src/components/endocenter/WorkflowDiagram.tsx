@@ -61,6 +61,8 @@ export default function WorkflowDiagram() {
   const removeTask = (stepId: string, taskId: string) => {
     const step = workflowSteps.find((s) => s.id === stepId);
     if (!step) return;
+    const task = (step.tasks || []).find((t) => t.id === taskId);
+    addNotification({ title: "Fluxo: tarefa removida", description: `${task?.name || "Tarefa"} — ${step.title}`, icon: "delete" });
     updateWorkflowStep(stepId, { tasks: (step.tasks || []).filter((t) => t.id !== taskId) });
   };
 
