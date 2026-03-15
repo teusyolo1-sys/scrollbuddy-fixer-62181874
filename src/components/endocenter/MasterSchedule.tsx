@@ -15,9 +15,11 @@ const typeOptions = ["entregável", "operação", "revisão", "análise", "plane
 
 export default function MasterSchedule() {
   const { scheduleWeeks, updateScheduleWeek, addScheduleTask, updateScheduleTask, removeScheduleTask, responsibilityRoles } = useEndocenter();
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [activeWeekId, setActiveWeekId] = useState<string>(scheduleWeeks[0]?.id ?? "");
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [prevWeekId, setPrevWeekId] = useState(activeWeekId);
 
   const week = scheduleWeeks.find((item) => item.id === activeWeekId) ?? scheduleWeeks[0];
 
