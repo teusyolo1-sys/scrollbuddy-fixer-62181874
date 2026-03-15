@@ -13,6 +13,9 @@ export interface BudgetEntry {
   notes: string;
   created_by: string;
   participants: string[]; // user_ids
+  agency_fee: number;
+  agency_fee_type: 'fixed' | 'percent';
+  company_id: string | null;
 }
 
 export interface UserProfile {
@@ -60,6 +63,9 @@ export const useBudgetEntries = () => {
       notes: e.notes,
       created_by: e.created_by,
       participants: participantMap[e.id] || [],
+      agency_fee: Number((e as any).agency_fee || 0),
+      agency_fee_type: ((e as any).agency_fee_type || 'fixed') as 'fixed' | 'percent',
+      company_id: (e as any).company_id || null,
     })));
 
     setLoading(false);
@@ -85,11 +91,12 @@ export const useBudgetEntries = () => {
         id: data.id, description: data.description, category: data.category as BudgetCategory,
         amount: Number(data.amount), date: data.date, notes: data.notes,
         created_by: data.created_by, participants: [],
+        agency_fee: 0, agency_fee_type: 'fixed', company_id: null,
       }, ...prev]);
     }
   };
 
-  const updateEntry = async (id: string, updates: Partial<Pick<BudgetEntry, 'description' | 'amount' | 'date' | 'notes'>>) => {
+  const updateEntry = async (id: string, updates: Partial<Pick<BudgetEntry, 'description' | 'amount' | 'date' | 'notes' | 'agency_fee' | 'agency_fee_type' | 'company_id'>>) => {
     await supabase.from('budget_entries').update(updates).eq('id', id);
     setEntries(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
   };
