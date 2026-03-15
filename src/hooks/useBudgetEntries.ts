@@ -63,6 +63,9 @@ export const useBudgetEntries = () => {
       notes: e.notes,
       created_by: e.created_by,
       participants: participantMap[e.id] || [],
+      agency_fee: Number((e as any).agency_fee || 0),
+      agency_fee_type: ((e as any).agency_fee_type || 'fixed') as 'fixed' | 'percent',
+      company_id: (e as any).company_id || null,
     })));
 
     setLoading(false);
