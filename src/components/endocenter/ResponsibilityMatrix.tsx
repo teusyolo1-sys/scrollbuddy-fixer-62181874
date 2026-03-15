@@ -509,10 +509,10 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
             layout="position"
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
             ref={(el) => { colRefs.current[index] = el; }}
-            style={draggingColIdx === index ? { x: columnDragOffsetX, zIndex: 40 } : { x: 0 }}
+            style={draggingColKey === col.key ? { x: columnDragOffsetX, zIndex: 40 } : { x: 0 }}
             className={`space-y-2 group/col transition-colors duration-200 ${
-              draggingColIdx === index ? "opacity-40 scale-95" : ""
-            } ${dragOverColIdx === index && draggingColIdx !== index ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5" : ""}`}
+              draggingColKey === col.key ? "opacity-40 scale-95" : ""
+            } ${dragOverColIdx === index && draggingColKey !== col.key ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5" : ""}`}
           >
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
