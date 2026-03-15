@@ -276,7 +276,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           )}
 
           {/* Main content area: Editor (75%) + Sidebar (25%) */}
-          <div className="flex flex-1 min-h-0 overflow-hidden">
+          <div className="relative flex flex-1 min-h-0 overflow-hidden">
             {/* Editor / Read-only view — 75% */}
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
               {editingDescription ? (
