@@ -132,6 +132,68 @@ function MonthYearPicker() {
   );
 }
 
+/* ── iOS 26 Status Dropdown ── */
+function StatusDropdown({ value, onChange, options }: { value: string; onChange: (v: string) => void; options: string[] }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("mousedown", close);
+    return () => window.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const statusColors: Record<string, string> = {
+    "Ativo": "hsl(var(--ios-green, 142 71% 45%))",
+    "Inativo": "hsl(var(--destructive))",
+    "Férias": "hsl(var(--warning, 38 92% 50%))",
+  };
+
+  return (
+    <div ref={ref} className="relative w-full">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2"
+      >
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusColors[value] || "hsl(var(--muted-foreground))" }} />
+          <span className="text-foreground">{value}</span>
+        </div>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+        </motion.span>
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.96 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.96 }}
+            transition={{ type: "spring", damping: 24, stiffness: 400 }}
+            className="absolute z-50 top-full mt-1.5 left-0 right-0 bg-card border border-border/60 shadow-lg p-1"
+            style={{ borderRadius: "var(--ios-radius)", boxShadow: "var(--ios-shadow-float)" }}
+          >
+            {options.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => { onChange(opt); setOpen(false); }}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl hover:bg-secondary/60 transition-colors"
+              >
+                <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: statusColors[opt] || "hsl(var(--muted-foreground))" }} />
+                <span className="flex-1 text-left text-foreground">{opt}</span>
+                {value === opt && <Check className="h-3.5 w-3.5 text-primary" />}
+              </button>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 export default function TeamDashboard() {
   const { team, company, metricEntries } = useEndocenter();
