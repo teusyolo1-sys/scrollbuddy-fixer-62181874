@@ -5,7 +5,7 @@ import {
   Minus, Link2, Image, Undo2, Redo2, ChevronDown,
   Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2,
   RectangleHorizontal, Square, Maximize, PanelLeft, PanelRight, Columns2,
-  CircleDot, BoxSelect, Trash2
+  CircleDot, BoxSelect, Trash2, Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
