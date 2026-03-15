@@ -208,9 +208,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           {item.cover && (
             <div className="relative h-32 overflow-hidden group shrink-0">
               <img src={item.cover} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => onUpdate({ cover: "" })} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <motion.button onClick={() => onUpdate({ cover: "" })} whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }} transition={{ type: "spring", stiffness: 400, damping: 14 }} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </motion.button>
             </div>
           )}
 

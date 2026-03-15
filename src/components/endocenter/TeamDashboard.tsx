@@ -431,8 +431,9 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
               </div>
             )}
             {editing && (
-              <button onClick={handlePhotoUpload} className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md">
+              <motion.button onClick={handlePhotoUpload} whileHover={{ scale: 1.15, rotate: 15 }} whileTap={{ scale: 0.9 }} transition={{ type: "spring", stiffness: 400, damping: 14 }} className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md">
                 <Upload className="h-3 w-3" />
+              </motion.button>
               </button>
             )}
           </div>
