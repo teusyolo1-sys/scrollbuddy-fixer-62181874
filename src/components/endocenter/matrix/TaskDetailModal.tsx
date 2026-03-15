@@ -166,13 +166,12 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           <span className="flex-1 text-left">{label}</span>
           {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         </button>
-        <AnimatePresence>
-          {open && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }} className="overflow-hidden">
-              <div className="px-3 pb-3 space-y-2">{children}</div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div
+          className="overflow-hidden transition-all duration-150"
+          style={{ maxHeight: open ? "500px" : "0px", opacity: open ? 1 : 0 }}
+        >
+          <div className="px-3 pb-3 space-y-2">{children}</div>
+        </div>
       </div>
     );
   };
@@ -261,16 +260,11 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             </div>
 
             {/* Sidebar — collapsible properties panel */}
-            <AnimatePresence>
-              {sidebarOpen && (
-                <motion.div
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 280, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  transition={{ type: "spring", damping: 28, stiffness: 350 }}
-                  className="border-l border-border/40 bg-secondary/10 overflow-y-auto overflow-x-hidden shrink-0"
-                >
-                  <div className="w-[280px]">
+            <div
+              className="border-l border-border/40 bg-secondary/10 overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
+              style={{ width: sidebarOpen ? 280 : 0, opacity: sidebarOpen ? 1 : 0 }}
+            >
+              <div className="w-[280px]">
                     {/* Priority */}
                     <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
                       <div className="flex flex-wrap gap-1">
@@ -441,12 +435,10 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                       <button onClick={onDelete} className="w-full text-[10px] font-medium px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors flex items-center justify-center gap-1">
                         <Trash2 className="h-3 w-3" /> Excluir tarefa
                       </button>
-                    </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
+                </div>
+              </div>
+            </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
