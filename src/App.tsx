@@ -47,9 +47,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  if (isAdmin && !location.pathname.startsWith('/admin')) {
-    return <Navigate to="/admin" replace />;
-  }
+  // Admin redirect removed — admin uses same lobby but has extra features
 
   return <>{children}</>;
 };
