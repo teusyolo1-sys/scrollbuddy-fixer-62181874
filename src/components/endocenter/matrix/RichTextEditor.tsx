@@ -71,6 +71,20 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
   const [resizing, setResizing] = useState(false);
   const resizeStartRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
 
+  const updateOverlayRect = useCallback((img: HTMLImageElement) => {
+    const wrapperRect = editorWrapperRef.current?.getBoundingClientRect();
+    if (!wrapperRect) return;
+    const rect = img.getBoundingClientRect();
+    const scrollTop = editorRef.current?.scrollTop || 0;
+    const scrollLeft = editorRef.current?.scrollLeft || 0;
+    setHoveredRect({
+      x: rect.left - wrapperRect.left + scrollLeft,
+      y: rect.top - wrapperRect.top + scrollTop,
+      w: rect.width,
+      h: rect.height,
+    });
+  }, []);
+
   useEffect(() => {
     if (editorRef.current && !editorRef.current.innerHTML && value) {
       editorRef.current.innerHTML = value;
