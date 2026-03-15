@@ -15,6 +15,7 @@ import DeadlineManagement from "@/components/endocenter/DeadlineManagement";
 import BudgetCalculator from "@/components/endocenter/BudgetCalculator";
 import SettingsDialog from "@/components/endocenter/SettingsDialog";
 import NotificationCenter from "@/components/endocenter/NotificationCenter";
+import ProjectChat from "@/components/endocenter/ProjectChat";
 
 const tabDefs = [
   { id: "dashboard" as const, icon: BarChart3 },
@@ -204,6 +205,7 @@ function DashboardContent() {
       </footer>
 
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ProjectChat />
     </div>
   );
 }
