@@ -266,7 +266,7 @@ export default function AnalyticsCharts() {
 
       {/* Individual charts per metric — one card each */}
       {activeTypes.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 gap-5">
           {activeTypes.map((type, i) => (
             <MetricChartCard
               key={type}
