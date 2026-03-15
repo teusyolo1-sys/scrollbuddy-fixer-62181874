@@ -465,6 +465,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
               }
               setDraggingColIdx(null);
               setDragOverColIdx(null);
+              clearGlobalDraggingCursor();
             }}
           >
             {/* ── Column Header ── */}
