@@ -153,7 +153,7 @@ export default function ProjectPipeline() {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03, type: "spring", damping: 24, stiffness: 280 }}
-              className="ios-card overflow-hidden"
+              className="ios-card overflow-visible"
               style={{ borderTop: `3px solid ${project.color}` }}
             >
               <div className="p-4 space-y-3">
