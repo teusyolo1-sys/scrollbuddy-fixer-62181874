@@ -262,7 +262,7 @@ export default function AgencyWalletPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/")}
+            <motion.button whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.08 }} onClick={() => navigate("/")}
               className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/50 border border-border hover:bg-secondary transition-colors">
               <ArrowLeft className="h-5 w-5 text-foreground" />
             </motion.button>
@@ -275,6 +275,7 @@ export default function AgencyWalletPage() {
           </div>
           <motion.button
             whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.08, rotate: 15 }}
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/50 border border-border hover:bg-secondary transition-colors"
           >
