@@ -225,7 +225,7 @@ export default function LobbyPage() {
   const openCompany = (company: CompanyCard) => navigate("/endocenter");
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen relative">
       {/* Animated background */}
       <AnimatedBackground />
 
