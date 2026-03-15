@@ -99,7 +99,7 @@ function DashboardContent() {
 
           {/* Navigation tabs — pill style */}
           <nav className="flex gap-1.5 overflow-x-auto pb-3 -mb-px">
-            {tabs.map((tab) => {
+            {tabDefs.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
               return (
@@ -118,7 +118,7 @@ function DashboardContent() {
                   <span className="inline-flex">
                     <Icon className="h-3.5 w-3.5" />
                   </span>
-                  {tab.label}
+                  {tabLabels[tab.id]}
                   {active && (
                     <motion.div
                       layoutId="activeTab"
