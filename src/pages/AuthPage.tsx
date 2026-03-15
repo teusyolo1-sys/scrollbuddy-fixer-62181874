@@ -262,6 +262,43 @@ const AuthPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Invite code field — only on signup */}
+            <AnimatePresence>
+              {!isLogin && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <div className="relative">
+                    <Ticket size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Código de convite"
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value.trim())}
+                      required
+                      className={`w-full pl-10 pr-10 py-3 bg-secondary/50 border rounded-xl text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                        inviteValid === true ? 'border-green-500' : inviteValid === false ? 'border-destructive' : 'border-border'
+                      }`}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {inviteChecking ? (
+                        <Loader2 size={14} className="animate-spin text-muted-foreground" />
+                      ) : inviteValid === true ? (
+                        <ShieldCheck size={14} className="text-green-500" />
+                      ) : inviteValid === false ? (
+                        <ShieldX size={14} className="text-destructive" />
+                      ) : null}
+                    </div>
+                  </div>
+                  {inviteValid === false && (
+                    <p className="text-[11px] text-destructive mt-1 ml-1">Convite inválido ou expirado</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <AnimatePresence>
               {!isLogin && (
                 <motion.div
