@@ -274,8 +274,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
         <ToolBtn onClick={() => exec("formatBlock", "<h2>")} title="Título 2"><Heading2 className="h-3.5 w-3.5" /></ToolBtn>
         <ToolBtn onClick={() => exec("formatBlock", "<h3>")} title="Título 3"><Heading3 className="h-3.5 w-3.5" /></ToolBtn>
         <ToolBtn onClick={() => exec("formatBlock", "<p>")} title="Parágrafo"><Type className="h-3.5 w-3.5" /></ToolBtn>
-        <ToolBtn onClick={() => exec("formatBlock", "<blockquote>")} title="Citação"><Quote className="h-3.5 w-3.5" /></ToolBtn>
-        <ToolBtn onClick={() => exec("formatBlock", "<pre>")} title="Código"><Code className="h-3.5 w-3.5" /></ToolBtn>
+        <ToolBtn onClick={() => toggleBlock("<blockquote>")} title="Citação"><Quote className="h-3.5 w-3.5" /></ToolBtn>
+        <ToolBtn onClick={() => toggleBlock("<pre>")} title="Código"><Code className="h-3.5 w-3.5" /></ToolBtn>
         <Divider />
 
         <ToolBtn onClick={() => exec("justifyLeft")} title="Esquerda"><AlignLeft className="h-3.5 w-3.5" /></ToolBtn>
