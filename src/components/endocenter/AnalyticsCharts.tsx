@@ -179,7 +179,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={data} layout="vertical" barSize={14}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
             <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
