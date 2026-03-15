@@ -442,7 +442,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Checklist */}
-                    <SideSection icon={CheckSquare} label={`Checklist${checkTotal > 0 ? ` (${checkPct}%)` : ""}`}>
+                    <SideSection icon={CheckSquare} label={`Checklist${checkTotal > 0 ? ` (${checkPct}%)` : ""}`} defaultOpen={checkTotal > 0}>
                       {checkTotal > 0 && (
                         <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
                           <motion.div className="h-full rounded-full" style={{ backgroundColor: roleColor }} animate={{ width: `${checkPct}%` }} transition={{ type: "spring", damping: 20 }} />
