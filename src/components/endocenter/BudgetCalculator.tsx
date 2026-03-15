@@ -486,6 +486,7 @@ export default function BudgetCalculator() {
   const { user } = useAuth();
   const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries();
   const [expandedCategory, setExpandedCategory] = useState<BudgetCategory | null>("faturamento");
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const totals = useMemo(() => {
     return categories.reduce((acc, cat) => {
