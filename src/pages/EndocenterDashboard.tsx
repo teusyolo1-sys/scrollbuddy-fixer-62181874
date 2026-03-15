@@ -61,6 +61,7 @@ function DashboardContent() {
             </div>
 
             <div className="flex items-center gap-2">
+              <NotificationCenter />
               <motion.button
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: "spring", stiffness: 500, damping: 15 }}
