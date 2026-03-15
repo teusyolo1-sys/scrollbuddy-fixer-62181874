@@ -484,84 +484,32 @@ const defaultPipelineProjects: PipelineProject[] = [
 
 const defaultResponsibilityRoles: ResponsibilityRole[] = [
   {
-    id: "resp_strategy",
-    role: "Estrategista",
-    color: "#059669",
-    colorLight: "#ECFDF5",
-    colorBorder: "#A7F3D0",
+    id: "resp_strategy", role: "Estrategista", color: "#059669", colorLight: "#ECFDF5", colorBorder: "#A7F3D0",
     description: "Direção estratégica e aprovação final.",
-    weekly: [
-      { id: createId("resp"), task: "Briefing semanal entregue até segunda", done: false, critical: true },
-      { id: createId("resp"), task: "Aprovação de criativos e copies", done: false, critical: true },
-    ],
-    monthly: [
-      { id: createId("resp"), task: "Planejamento mensal até dia 25", done: false, critical: true },
-      { id: createId("resp"), task: "Relatório estratégico mensal", done: false, critical: true },
-    ],
-    quality: [
-      { id: createId("resp"), task: "Nada é publicado sem aprovação", done: false, critical: true },
-      { id: createId("resp"), task: "Checklist de qualidade preenchido", done: false, critical: false },
-    ],
+    weekly: [createRespItem("Briefing semanal entregue até segunda", true), createRespItem("Aprovação de criativos e copies", true)],
+    monthly: [createRespItem("Planejamento mensal até dia 25", true), createRespItem("Relatório estratégico mensal", true)],
+    quality: [createRespItem("Nada é publicado sem aprovação", true), createRespItem("Checklist de qualidade preenchido", false)],
   },
   {
-    id: "resp_traffic",
-    role: "Gestor de Tráfego",
-    color: "#1E6FD9",
-    colorLight: "#EFF6FF",
-    colorBorder: "#BFDBFE",
+    id: "resp_traffic", role: "Gestor de Tráfego", color: "#1E6FD9", colorLight: "#EFF6FF", colorBorder: "#BFDBFE",
     description: "Performance e escala de campanhas.",
-    weekly: [
-      { id: createId("resp"), task: "Otimizações de campanha 3x na semana", done: false, critical: true },
-      { id: createId("resp"), task: "Relatório semanal de mídia", done: false, critical: true },
-    ],
-    monthly: [
-      { id: createId("resp"), task: "Consolidado mensal de desempenho", done: false, critical: true },
-      { id: createId("resp"), task: "Revisão de públicos e verba", done: false, critical: false },
-    ],
-    quality: [
-      { id: createId("resp"), task: "CPL dentro da meta", done: false, critical: true },
-      { id: createId("resp"), task: "Pixels e tags revisados", done: false, critical: true },
-    ],
+    weekly: [createRespItem("Otimizações de campanha 3x na semana", true), createRespItem("Relatório semanal de mídia", true)],
+    monthly: [createRespItem("Consolidado mensal de desempenho", true), createRespItem("Revisão de públicos e verba", false)],
+    quality: [createRespItem("CPL dentro da meta", true), createRespItem("Pixels e tags revisados", true)],
   },
   {
-    id: "resp_copy",
-    role: "Copywriter",
-    color: "#7C3AED",
-    colorLight: "#F5F3FF",
-    colorBorder: "#DDD6FE",
+    id: "resp_copy", role: "Copywriter", color: "#7C3AED", colorLight: "#F5F3FF", colorBorder: "#DDD6FE",
     description: "Mensagens de alto impacto e conversão.",
-    weekly: [
-      { id: createId("resp"), task: "Copies de anúncios até terça", done: false, critical: true },
-      { id: createId("resp"), task: "Legendas da semana prontas", done: false, critical: true },
-    ],
-    monthly: [
-      { id: createId("resp"), task: "Banco de copies atualizado", done: false, critical: false },
-      { id: createId("resp"), task: "4 copies antecipadas", done: false, critical: true },
-    ],
-    quality: [
-      { id: createId("resp"), task: "CTA claro em toda copy", done: false, critical: true },
-      { id: createId("resp"), task: "Tom de voz consistente", done: false, critical: true },
-    ],
+    weekly: [createRespItem("Copies de anúncios até terça", true), createRespItem("Legendas da semana prontas", true)],
+    monthly: [createRespItem("Banco de copies atualizado", false), createRespItem("4 copies antecipadas", true)],
+    quality: [createRespItem("CTA claro em toda copy", true), createRespItem("Tom de voz consistente", true)],
   },
   {
-    id: "resp_design",
-    role: "Designer",
-    color: "#DC2626",
-    colorLight: "#FFF1F2",
-    colorBorder: "#FECDD3",
+    id: "resp_design", role: "Designer", color: "#DC2626", colorLight: "#FFF1F2", colorBorder: "#FECDD3",
     description: "Execução visual com padrão de marca.",
-    weekly: [
-      { id: createId("resp"), task: "Criativos semanais no prazo", done: false, critical: true },
-      { id: createId("resp"), task: "Adaptações em até 24h", done: false, critical: false },
-    ],
-    monthly: [
-      { id: createId("resp"), task: "Pacote visual antecipado", done: false, critical: true },
-      { id: createId("resp"), task: "Organização do acervo", done: false, critical: false },
-    ],
-    quality: [
-      { id: createId("resp"), task: "Uso correto do guia de marca", done: false, critical: true },
-      { id: createId("resp"), task: "Checagem final de peças", done: false, critical: true },
-    ],
+    weekly: [createRespItem("Criativos semanais no prazo", true), createRespItem("Adaptações em até 24h", false)],
+    monthly: [createRespItem("Pacote visual antecipado", true), createRespItem("Organização do acervo", false)],
+    quality: [createRespItem("Uso correto do guia de marca", true), createRespItem("Checagem final de peças", true)],
   },
 ];
 
