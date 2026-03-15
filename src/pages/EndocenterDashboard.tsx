@@ -38,6 +38,8 @@ function DashboardContent() {
             <div className="flex items-center gap-3">
               <motion.button
                 whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.12, x: -3 }}
+                transition={{ type: "spring", stiffness: 400, damping: 14 }}
                 onClick={() => navigate("/")}
                 className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
               >
