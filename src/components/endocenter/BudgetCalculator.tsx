@@ -25,9 +25,9 @@ const categories: BudgetCategory[] = ["investimento", "gasto", "faturamento", "r
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-/* ── Glass card base classes ── */
-const glassCard = "rounded-2xl border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.3)]";
-const glassCardBg = "bg-white/[0.06] backdrop-blur-xl";
+/* ── Glass card base classes (theme-aware) ── */
+const glassCard = "rounded-2xl border border-border shadow-[var(--ios-shadow)]";
+const glassCardBg = "bg-card/80 backdrop-blur-xl";
 
 /* ── Mini Sparkline ── */
 function MiniSparkline({ data, color, type = "area" }: { data: number[]; color: string; type?: "area" | "bar" }) {
