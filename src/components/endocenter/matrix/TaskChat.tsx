@@ -41,7 +41,9 @@ function renderContent(content: string) {
 export default function TaskChat() {
   const { user } = useAuth();
   const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages();
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(""); // display text (shows @Name)
+  const [rawInput, setRawInput] = useState(""); // raw text (stores @[Name](id))
+  const [mentionMap, setMentionMap] = useState<{ displayName: string; fullTag: string }[]>([]);
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);
   const [mentionStart, setMentionStart] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -54,6 +56,14 @@ export default function TaskChat() {
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setInput(val);
+
+    // Sync rawInput: rebuild by replacing display mentions back to full tags
+    let raw = val;
+    for (const m of mentionMap) {
+      raw = raw.replace(`@${m.displayName}`, m.fullTag);
+    }
+    setRawInput(raw);
+
     const cursorPos = e.target.selectionStart || 0;
     const textBefore = val.slice(0, cursorPos);
     const atMatch = textBefore.match(/@(\w*)$/);
@@ -63,7 +73,7 @@ export default function TaskChat() {
     } else {
       setMentionQuery(null);
     }
-  }, []);
+  }, [mentionMap]);
 
   const filteredProfiles = useMemo(() => {
     if (mentionQuery === null) return [];
@@ -78,15 +88,26 @@ export default function TaskChat() {
 
   const handleMentionSelect = useCallback((profile: ChatProfile) => {
     const name = profile.display_name || profile.email?.split("@")[0] || "user";
+    const fullTag = `@[${name}](${profile.id})`;
+    const displayTag = `@${name}`;
+
     const before = input.slice(0, mentionStart);
-    const after = input.slice((inputRef.current?.selectionStart || mentionStart) + (mentionQuery?.length || 0));
-    setInput(before + `@[${name}](${profile.id}) ` + after);
+    const cursorEnd = (inputRef.current?.selectionStart || mentionStart + 1) + (mentionQuery?.length || 0);
+    const after = input.slice(cursorEnd);
+
+    setInput(before + displayTag + " " + after);
+
+    const rawBefore = rawInput.slice(0, mentionStart);
+    const rawAfter = rawInput.slice(cursorEnd);
+    setRawInput(rawBefore + fullTag + " " + rawAfter);
+
+    setMentionMap((prev) => [...prev, { displayName: name, fullTag }]);
     setMentionQuery(null);
     setTimeout(() => inputRef.current?.focus(), 50);
-  }, [input, mentionStart, mentionQuery]);
+  }, [input, rawInput, mentionStart, mentionQuery]);
 
   const handleSend = useCallback(async () => {
-    const trimmed = input.trim();
+    const trimmed = rawInput.trim();
     if (!trimmed) return;
     const mentionRegex = /@\[[^\]]+\]\(([^)]+)\)/g;
     const mentions: string[] = [];
@@ -94,7 +115,9 @@ export default function TaskChat() {
     while ((m = mentionRegex.exec(trimmed)) !== null) mentions.push(m[1]);
     await sendMessage(trimmed, mentions);
     setInput("");
-  }, [input, sendMessage]);
+    setRawInput("");
+    setMentionMap([]);
+  }, [rawInput, sendMessage]);
 
   if (loading) {
     return <p className="text-[10px] text-muted-foreground text-center py-2">Carregando...</p>;
