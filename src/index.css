@@ -372,9 +372,14 @@
   }
 
   .ios-segmented-item[data-active="true"] {
-    background: white;
+    background: hsl(var(--card));
     color: hsl(var(--foreground));
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .ios-segmented-item[data-active="true"] {
+    background: hsl(var(--card) / 0.8);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.05);
   }
 
   /* ── Badge pill ── */
