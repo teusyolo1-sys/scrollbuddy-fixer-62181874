@@ -1123,6 +1123,31 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
     setCrisisScenariosState((prev) => prev.filter((scenario) => scenario.id !== id));
   };
 
+  const addBudgetEntry = (category: BudgetCategory) => {
+    setBudgetEntriesState((prev) => [
+      ...prev,
+      {
+        id: createId("budget"),
+        description: "",
+        category,
+        amount: 0,
+        date: new Date().toISOString().slice(0, 10),
+        participants: [],
+        notes: "",
+      },
+    ]);
+  };
+
+  const updateBudgetEntry = (id: string, updates: Partial<BudgetEntry>) => {
+    setBudgetEntriesState((prev) =>
+      prev.map((entry) => (entry.id === id ? { ...entry, ...updates } : entry))
+    );
+  };
+
+  const removeBudgetEntry = (id: string) => {
+    setBudgetEntriesState((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
   return (
     <EndocenterContext.Provider
       value={{
@@ -1172,6 +1197,10 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
         updateCrisisScenario,
         addCrisisScenario,
         removeCrisisScenario,
+        budgetEntries,
+        addBudgetEntry,
+        updateBudgetEntry,
+        removeBudgetEntry,
       }}
     >
       {children}

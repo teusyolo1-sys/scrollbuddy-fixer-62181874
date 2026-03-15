@@ -150,7 +150,7 @@ function DashboardContent() {
           {activeTab === "matrix" && <ResponsibilityMatrix />}
           {activeTab === "workflow" && <WorkflowDiagram />}
           {activeTab === "deadlines" && <DeadlineManagement />}
-        </motion.div>
+          {activeTab === "budget" && <BudgetCalculator />}
       </main>
 
       <footer className="relative z-0 text-center py-8 text-xs text-muted-foreground">
