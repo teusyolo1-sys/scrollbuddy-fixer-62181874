@@ -4,6 +4,17 @@ export type MetricPeriod = "Diária" | "Semanal" | "Mensal" | "Anual";
 export type TaskStatus = "pending" | "in_progress" | "done" | "blocked";
 export type DeadlinePriority = "critical" | "high" | "medium" | "low";
 export type DeadlineStatus = "on_track" | "at_risk" | "overdue" | "done";
+export type BudgetCategory = "investimento" | "gasto" | "faturamento" | "receita" | "despesa";
+
+export interface BudgetEntry {
+  id: string;
+  description: string;
+  category: BudgetCategory;
+  amount: number;
+  date: string;
+  participants: string[]; // team member ids
+  notes: string;
+}
 
 export interface TeamMember {
   id: string;
