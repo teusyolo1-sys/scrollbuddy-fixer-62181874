@@ -235,7 +235,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                       </div>
                       <div className="w-24">
                         <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-white/25">R$</span>
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/60">R$</span>
                           <input
                             type="number"
                             className="w-full bg-transparent text-sm font-bold text-right outline-none placeholder:text-white/15 border-b border-transparent focus:border-white/10 transition-colors pl-6 pr-1"
