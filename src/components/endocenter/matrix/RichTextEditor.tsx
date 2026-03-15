@@ -3,7 +3,9 @@ import {
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight,
   AlignJustify, List, ListOrdered, Heading1, Heading2, Heading3, Type,
   Minus, Link2, Image, Undo2, Redo2, ChevronDown,
-  Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2
+  Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2,
+  RectangleHorizontal, Square, Maximize, PanelLeft, PanelRight, Columns2,
+  CircleDot, BoxSelect, Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -433,75 +435,208 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
           )}
         </AnimatePresence>
 
-        {/* Resize handles when image is selected */}
+        {/* Image toolbar + resize handles when selected */}
         {selectedImg && (() => {
           const wrapperRect = editorWrapperRef.current?.getBoundingClientRect();
           const imgRect = selectedImg.getBoundingClientRect();
           if (!wrapperRect) return null;
           const x = imgRect.left - wrapperRect.left + (editorRef.current?.scrollLeft || 0);
           const y = imgRect.top - wrapperRect.top + (editorRef.current?.scrollTop || 0);
-          return (
-            <div
-              className="absolute pointer-events-none"
-              style={{ left: x, top: y, width: imgRect.width, height: imgRect.height }}
+
+          const applyImgStyle = (styles: Record<string, string>) => {
+            Object.assign(selectedImg.style, styles);
+            emitChange();
+            setSelectedImg(null);
+            setTimeout(() => setSelectedImg(selectedImg), 0);
+          };
+
+          const setAlignment = (align: string) => {
+            // Reset float and margin
+            selectedImg.style.float = "none";
+            selectedImg.style.marginLeft = "";
+            selectedImg.style.marginRight = "";
+            selectedImg.style.display = "";
+            if (align === "left") {
+              applyImgStyle({ float: "left", marginRight: "12px", marginBottom: "8px", display: "block" });
+            } else if (align === "right") {
+              applyImgStyle({ float: "right", marginLeft: "12px", marginBottom: "8px", display: "block" });
+            } else if (align === "center") {
+              applyImgStyle({ float: "none", display: "block", marginLeft: "auto", marginRight: "auto" });
+            } else {
+              applyImgStyle({ float: "none", display: "inline-block", marginLeft: "0", marginRight: "0" });
+            }
+          };
+
+          const setSizePreset = (pct: string) => {
+            applyImgStyle({ width: pct, height: "auto" });
+          };
+
+          const toggleStyle = (prop: string, valA: string, valB: string) => {
+            const current = selectedImg.style[prop as any];
+            applyImgStyle({ [prop]: current === valA ? valB : valA });
+          };
+
+          const ImgToolBtn = ({ onClick, children, title, active }: { onClick: () => void; children: React.ReactNode; title: string; active?: boolean }) => (
+            <button
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={onClick}
+              title={title}
+              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-colors shrink-0 ${
+                active ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+              }`}
             >
-              {/* Selection border */}
-              <div className="absolute inset-0 border-2 border-primary rounded-xl" />
-              {/* Corner handles */}
-              {(["nw", "ne", "sw", "se"] as const).map((corner) => {
-                const isRight = corner.includes("e");
-                const isBottom = corner.includes("s");
-                const cursor = corner === "nw" || corner === "se" ? "nwse-resize" : "nesw-resize";
-                return (
-                  <div
-                    key={corner}
-                    className="absolute w-3 h-3 bg-primary rounded-sm border-2 border-white shadow pointer-events-auto"
-                    style={{
-                      cursor,
-                      left: isRight ? "calc(100% - 6px)" : "-6px",
-                      top: isBottom ? "calc(100% - 6px)" : "-6px",
-                    }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setResizing(true);
-                      resizeStartRef.current = {
-                        startX: e.clientX,
-                        startY: e.clientY,
-                        startW: selectedImg.offsetWidth,
-                        startH: selectedImg.offsetHeight,
-                      };
-                      const aspect = selectedImg.offsetWidth / selectedImg.offsetHeight;
+              {children}
+            </button>
+          );
 
-                      const onMove = (ev: MouseEvent) => {
-                        if (!resizeStartRef.current) return;
-                        const { startX, startW } = resizeStartRef.current;
-                        let dx = ev.clientX - startX;
-                        if (!isRight) dx = -dx;
-                        const newW = Math.max(50, startW + dx);
-                        const newH = newW / aspect;
-                        selectedImg.style.width = `${newW}px`;
-                        selectedImg.style.height = `${newH}px`;
-                      };
+          const Sep = () => <div className="w-px h-5 bg-border/50 mx-0.5 shrink-0" />;
 
-                      const onUp = () => {
-                        setResizing(false);
-                        resizeStartRef.current = null;
-                        emitChange();
-                        // Force re-render of handles
-                        setSelectedImg(null);
-                        setTimeout(() => setSelectedImg(selectedImg), 0);
-                        document.removeEventListener("mousemove", onMove);
-                        document.removeEventListener("mouseup", onUp);
-                      };
+          return (
+            <>
+              {/* Floating toolbar above image */}
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="absolute z-30 pointer-events-auto"
+                style={{
+                  left: x,
+                  top: Math.max(0, y - 44),
+                  maxWidth: Math.max(imgRect.width, 320),
+                }}
+              >
+                <div className="flex items-center gap-0.5 px-1.5 py-1 rounded-xl bg-card border border-border/60 shadow-lg flex-wrap"
+                  style={{ backdropFilter: "blur(12px)" }}>
+                  {/* Alignment */}
+                  <ImgToolBtn onClick={() => setAlignment("left")} title="Alinhar à esquerda" active={selectedImg.style.float === "left"}>
+                    <PanelLeft className="h-3.5 w-3.5" />
+                  </ImgToolBtn>
+                  <ImgToolBtn onClick={() => setAlignment("center")} title="Centralizar" active={selectedImg.style.marginLeft === "auto"}>
+                    <AlignCenter className="h-3.5 w-3.5" />
+                  </ImgToolBtn>
+                  <ImgToolBtn onClick={() => setAlignment("right")} title="Alinhar à direita" active={selectedImg.style.float === "right"}>
+                    <PanelRight className="h-3.5 w-3.5" />
+                  </ImgToolBtn>
+                  <ImgToolBtn onClick={() => setAlignment("inline")} title="Em linha (lado a lado)" active={selectedImg.style.display === "inline-block"}>
+                    <Columns2 className="h-3.5 w-3.5" />
+                  </ImgToolBtn>
 
-                      document.addEventListener("mousemove", onMove);
-                      document.addEventListener("mouseup", onUp);
-                    }}
-                  />
-                );
-              })}
-            </div>
+                  <Sep />
+
+                  {/* Size presets */}
+                  <ImgToolBtn onClick={() => setSizePreset("25%")} title="25%">
+                    <span className="text-[9px] font-bold">25</span>
+                  </ImgToolBtn>
+                  <ImgToolBtn onClick={() => setSizePreset("50%")} title="50%">
+                    <span className="text-[9px] font-bold">50</span>
+                  </ImgToolBtn>
+                  <ImgToolBtn onClick={() => setSizePreset("75%")} title="75%">
+                    <span className="text-[9px] font-bold">75</span>
+                  </ImgToolBtn>
+                  <ImgToolBtn onClick={() => setSizePreset("100%")} title="100%">
+                    <Maximize className="h-3.5 w-3.5" />
+                  </ImgToolBtn>
+
+                  <Sep />
+
+                  {/* Border */}
+                  <ImgToolBtn
+                    onClick={() => toggleStyle("border", "2px solid hsl(var(--border))", "none")}
+                    title="Borda"
+                    active={selectedImg.style.border?.includes("solid")}
+                  >
+                    <BoxSelect className="h-3.5 w-3.5" />
+                  </ImgToolBtn>
+
+                  {/* Shadow */}
+                  <ImgToolBtn
+                    onClick={() => toggleStyle("boxShadow", "0 4px 20px rgba(0,0,0,0.15)", "none")}
+                    title="Sombra"
+                    active={selectedImg.style.boxShadow?.includes("rgba")}
+                  >
+                    <RectangleHorizontal className="h-3.5 w-3.5" />
+                  </ImgToolBtn>
+
+                  {/* Rounded */}
+                  <ImgToolBtn
+                    onClick={() => toggleStyle("borderRadius", "50%", "0.75rem")}
+                    title="Circular"
+                    active={selectedImg.style.borderRadius === "50%"}
+                  >
+                    <CircleDot className="h-3.5 w-3.5" />
+                  </ImgToolBtn>
+
+                  <Sep />
+
+                  {/* Delete */}
+                  <ImgToolBtn
+                    onClick={() => { selectedImg.remove(); setSelectedImg(null); emitChange(); }}
+                    title="Remover imagem"
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </ImgToolBtn>
+                </div>
+              </motion.div>
+
+              {/* Selection border + resize handles */}
+              <div
+                className="absolute pointer-events-none"
+                style={{ left: x, top: y, width: imgRect.width, height: imgRect.height }}
+              >
+                <div className="absolute inset-0 border-2 border-primary rounded-xl" />
+                {(["nw", "ne", "sw", "se"] as const).map((corner) => {
+                  const isRight = corner.includes("e");
+                  const isBottom = corner.includes("s");
+                  const cursor = corner === "nw" || corner === "se" ? "nwse-resize" : "nesw-resize";
+                  return (
+                    <div
+                      key={corner}
+                      className="absolute w-3 h-3 bg-primary rounded-sm border-2 border-white shadow pointer-events-auto"
+                      style={{
+                        cursor,
+                        left: isRight ? "calc(100% - 6px)" : "-6px",
+                        top: isBottom ? "calc(100% - 6px)" : "-6px",
+                      }}
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setResizing(true);
+                        resizeStartRef.current = {
+                          startX: e.clientX,
+                          startY: e.clientY,
+                          startW: selectedImg.offsetWidth,
+                          startH: selectedImg.offsetHeight,
+                        };
+                        const aspect = selectedImg.offsetWidth / selectedImg.offsetHeight;
+
+                        const onMove = (ev: MouseEvent) => {
+                          if (!resizeStartRef.current) return;
+                          const { startX, startW } = resizeStartRef.current;
+                          let dx = ev.clientX - startX;
+                          if (!isRight) dx = -dx;
+                          const newW = Math.max(50, startW + dx);
+                          const newH = newW / aspect;
+                          selectedImg.style.width = `${newW}px`;
+                          selectedImg.style.height = `${newH}px`;
+                        };
+
+                        const onUp = () => {
+                          setResizing(false);
+                          resizeStartRef.current = null;
+                          emitChange();
+                          setSelectedImg(null);
+                          setTimeout(() => setSelectedImg(selectedImg), 0);
+                          document.removeEventListener("mousemove", onMove);
+                          document.removeEventListener("mouseup", onUp);
+                        };
+
+                        document.addEventListener("mousemove", onMove);
+                        document.addEventListener("mouseup", onUp);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            </>
           );
         })()}
       </div>
