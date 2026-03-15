@@ -28,8 +28,6 @@
     --radius: 1.5rem;
 
     /* ── iOS 26 Design Tokens ── */
-
-    /* Squircle radii — the signature iOS 26 organic shape */
     --ios-radius-sm: 14px;
     --ios-radius: 22px;
     --ios-radius-lg: 28px;
@@ -42,12 +40,12 @@
     --ios-glass-heavy: rgba(255, 255, 255, 0.92);
     --ios-glass-ultra: rgba(255, 255, 255, 0.97);
 
-    /* Blur intensities (tuned to avoid GPU artifacts) */
+    /* Blur intensities */
     --ios-blur-subtle: 10px;
     --ios-blur: 18px;
     --ios-blur-heavy: 30px;
 
-    /* Shadows — soft, diffused, multi-layer */
+    /* Shadows */
     --ios-shadow-subtle: 
       0 1px 3px rgba(0, 0, 0, 0.04),
       0 0 1px rgba(0, 0, 0, 0.06);
@@ -72,7 +70,7 @@
     --ios-gradient-cool: linear-gradient(145deg, rgba(240,248,255,0.9), rgba(245,245,255,0.7));
     --ios-gradient-surface: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(248,249,252,0.9) 100%);
 
-    /* Accent palette for variety */
+    /* Accent palette */
     --ios-blue: 215 100% 50%;
     --ios-green: 152 69% 38%;
     --ios-red: 0 72% 51%;
@@ -80,6 +78,60 @@
     --ios-purple: 265 60% 55%;
     --ios-teal: 175 70% 40%;
     --ios-pink: 340 75% 55%;
+  }
+
+  /* ── Dark Mode ── */
+  .dark {
+    --background: 228 18% 10%;
+    --foreground: 220 15% 92%;
+    --card: 228 18% 14%;
+    --card-foreground: 220 15% 92%;
+    --popover: 228 18% 14%;
+    --popover-foreground: 220 15% 92%;
+    --primary: 215 100% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 228 14% 20%;
+    --secondary-foreground: 220 12% 75%;
+    --muted: 228 14% 18%;
+    --muted-foreground: 220 8% 56%;
+    --accent: 215 100% 58%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 228 12% 22%;
+    --input: 228 12% 22%;
+    --ring: 215 100% 58%;
+
+    /* Dark glass — deep translucency with blur */
+    --ios-glass-tint: rgba(30, 34, 48, 0.55);
+    --ios-glass: rgba(30, 34, 48, 0.68);
+    --ios-glass-heavy: rgba(30, 34, 48, 0.82);
+    --ios-glass-ultra: rgba(30, 34, 48, 0.92);
+
+    /* Dark shadows — deeper, more dramatic */
+    --ios-shadow-subtle:
+      0 1px 3px rgba(0, 0, 0, 0.2),
+      0 0 1px rgba(0, 0, 0, 0.3);
+    --ios-shadow:
+      0 4px 24px rgba(0, 0, 0, 0.25),
+      0 1px 4px rgba(0, 0, 0, 0.15),
+      0 0 1px rgba(0, 0, 0, 0.3);
+    --ios-shadow-lg:
+      0 8px 40px rgba(0, 0, 0, 0.3),
+      0 2px 8px rgba(0, 0, 0, 0.2),
+      0 0 1px rgba(0, 0, 0, 0.3);
+    --ios-shadow-xl:
+      0 20px 60px rgba(0, 0, 0, 0.35),
+      0 4px 16px rgba(0, 0, 0, 0.2),
+      0 0 1px rgba(0, 0, 0, 0.3);
+    --ios-shadow-float:
+      0 24px 80px rgba(0, 0, 0, 0.4),
+      0 8px 24px rgba(0, 0, 0, 0.25);
+
+    /* Dark gradients */
+    --ios-gradient-warm: linear-gradient(145deg, rgba(40,42,58,0.9), rgba(35,33,50,0.7));
+    --ios-gradient-cool: linear-gradient(145deg, rgba(30,38,55,0.9), rgba(35,35,50,0.7));
+    --ios-gradient-surface: linear-gradient(180deg, rgba(35,38,52,0.95) 0%, rgba(28,30,42,0.9) 100%);
   }
 }
 
@@ -104,11 +156,16 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(0,0,0,0.1) transparent;
   }
+  .dark * {
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+  }
   ::-webkit-scrollbar { width: 5px; height: 5px; background: transparent; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-corner { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 999px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+  .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+  .dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
 }
 
 @layer utilities {
@@ -141,9 +198,41 @@
   }
 
   .ios-glass-dark {
-    background: hsl(222 28% 14%);
+    background: hsl(228 18% 14%);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+  }
+
+  /* Dark mode: make ALL glass surfaces use blur */
+  .dark .ios-glass {
+    background: hsl(var(--card) / 0.55);
+    backdrop-filter: blur(var(--ios-blur)) saturate(160%);
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(160%);
+  }
+
+  .dark .ios-glass-heavy {
+    background: hsl(var(--card) / 0.65);
+    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(170%);
+    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(170%);
+  }
+
+  .dark .ios-glass-ultra {
+    background: hsl(var(--card) / 0.78);
+    backdrop-filter: blur(calc(var(--ios-blur-heavy) + 8px)) saturate(175%);
+    -webkit-backdrop-filter: blur(calc(var(--ios-blur-heavy) + 8px)) saturate(175%);
+  }
+
+  /* Dark mode cards use glass blur */
+  .dark .ios-card {
+    background: hsl(var(--card) / 0.6);
+    backdrop-filter: blur(var(--ios-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(150%);
+    border: 1px solid hsl(var(--border) / 0.3);
+  }
+
+  .dark .ios-card-interactive {
+    background: hsl(var(--card) / 0.5);
+    border: 1px solid hsl(var(--border) / 0.25);
   }
 
   .ios-modal-overlay {
@@ -215,6 +304,10 @@
     box-shadow: var(--ios-shadow-xl);
   }
 
+  .dark .ios-card-interactive:hover {
+    border-color: hsl(var(--primary) / 0.2);
+  }
+
   .ios-card-interactive:active {
     transform: scale(0.98);
     box-shadow: var(--ios-shadow-subtle);
@@ -226,6 +319,7 @@
     background: var(--ios-gradient-surface);
     box-shadow: var(--ios-shadow-lg);
     border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid hsl(var(--border) / 0.3);
     border-radius: var(--ios-radius-2xl);
     transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
                 box-shadow 0.3s ease;
@@ -278,9 +372,14 @@
   }
 
   .ios-segmented-item[data-active="true"] {
-    background: white;
+    background: hsl(var(--card));
     color: hsl(var(--foreground));
     box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06), 0 0 1px rgba(0, 0, 0, 0.1);
+  }
+
+  .dark .ios-segmented-item[data-active="true"] {
+    background: hsl(var(--card) / 0.8);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.3), 0 0 1px rgba(255, 255, 255, 0.05);
   }
 
   /* ── Badge pill ── */
