@@ -485,8 +485,7 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true }: { me
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-      style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 ios-modal-overlay"
       onClick={onClose}
     >
       <motion.div

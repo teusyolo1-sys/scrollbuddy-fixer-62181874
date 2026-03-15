@@ -190,8 +190,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-        style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(10px)" }}
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 ios-modal-overlay"
         onClick={onClose}
       >
         {/* Main modal + chat balloon wrapper */}
