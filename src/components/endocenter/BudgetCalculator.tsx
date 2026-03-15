@@ -147,8 +147,8 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
             )}
           </div>
           <div className="text-left">
-            <p className="text-sm font-bold text-white">{config.label}</p>
-            <p className="text-xs text-white/40">
+            <p className="text-sm font-bold text-foreground">{config.label}</p>
+            <p className="text-xs text-muted-foreground">
               {entries.length} {entries.length === 1 ? "item" : "itens"} · {formatCurrency(totals)}
             </p>
           </div>
