@@ -609,7 +609,7 @@ export default function BudgetCalculator() {
         {/* Right: Legend + Bar, then Despesas detail */}
         <div className="space-y-4">
           <LegendBarCard entries={entries} delay={0.3} />
-          <DespesasDetailCard entries={entries.filter(e => e.category === "despesa")} config={categoryConfig.despesa} total={totals.despesa} onAdd={() => { addEntry("despesa"); setExpandedCategory("despesa"); }} delay={0.35} />
+          <DespesasDetailCard entries={entries.filter(e => e.category === "despesa")} config={categoryConfig.despesa} total={totals.despesa} onAdd={() => { addEntry("despesa"); expandCat("despesa"); }} delay={0.35} />
         </div>
       </div>
     </div>
