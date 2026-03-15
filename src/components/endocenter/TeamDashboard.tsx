@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Target, TrendingUp, Upload, User, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useTeamRole } from "@/hooks/useTeamRole";
 
 const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
 
@@ -198,11 +200,21 @@ function StatusDropdown({ value, onChange, options }: { value: string; onChange:
 
 export default function TeamDashboard() {
   const { team, company, metricEntries } = useEndocenter();
+  const { isAdmin } = useUserRole();
+  const { teamRole } = useTeamRole();
   const [selectedMember, setSelectedMember] = useState<typeof team[number] | null>(null);
   const [periodFilter, setPeriodFilter] = useState<MetricPeriod | "Todas">("Todas");
 
-  const totalRemuneration = useMemo(() => team.reduce((sum, m) => sum + m.remuneration, 0), [team]);
-  const totalHours = useMemo(() => team.reduce((sum, m) => sum + m.hours, 0), [team]);
+  // Filter team: non-admin users only see members matching their role
+  const visibleTeam = useMemo(() => {
+    if (isAdmin || !teamRole) return team;
+    const filtered = team.filter((m) => m.role === teamRole);
+    // If no match found, show all (role name might differ)
+    return filtered.length > 0 ? filtered : team;
+  }, [team, isAdmin, teamRole]);
+
+  const totalRemuneration = useMemo(() => visibleTeam.reduce((sum, m) => sum + m.remuneration, 0), [visibleTeam]);
+  const totalHours = useMemo(() => visibleTeam.reduce((sum, m) => sum + m.hours, 0), [visibleTeam]);
 
   const filteredMetrics = useMemo(
     () => metricEntries.filter((m) => periodFilter === "Todas" || m.period === periodFilter),
@@ -213,7 +225,7 @@ export default function TeamDashboard() {
     { label: "Investimento mensal", value: `R$ ${totalRemuneration.toLocaleString("pt-BR")}`, sub: "Folha total", icon: DollarSign, color: "hsl(var(--ios-blue))" },
     { label: "Horas / mês", value: `${totalHours}h`, sub: "Capacidade", icon: Clock3, color: "hsl(var(--ios-purple))" },
     { label: "Valor médio / hora", value: `R$ ${totalHours > 0 ? (totalRemuneration / totalHours).toFixed(2).replace(".", ",") : "0,00"}`, sub: "Rem ÷ Horas", icon: TrendingUp, color: "hsl(var(--ios-green))" },
-    { label: "Profissionais ativos", value: String(team.filter((m) => m.status === "Ativo").length), sub: "Operacionais", icon: BarChart3, color: "hsl(var(--ios-orange))" },
+    { label: "Profissionais ativos", value: String(visibleTeam.filter((m) => m.status === "Ativo").length), sub: "Operacionais", icon: BarChart3, color: "hsl(var(--ios-orange))" },
   ];
 
   return (
@@ -317,7 +329,7 @@ export default function TeamDashboard() {
       <div>
         <h3 className="text-xl font-bold text-foreground mb-4">Composição da equipe</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-          {team.map((member, i) => (
+          {visibleTeam.map((member, i) => (
             <MemberCard
               key={member.id}
               member={member}
