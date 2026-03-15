@@ -115,6 +115,8 @@ function UserProfilePanel({
   onToggleAllTabs,
   onToggleCompany,
   onClose,
+  getUserSectionPerm,
+  onSetSectionPerm,
 }: {
   profile: UserProfile;
   permissions: { user_id: string; tab_key: string; granted: boolean }[];
@@ -124,7 +126,11 @@ function UserProfilePanel({
   onToggleAllTabs: () => void;
   onToggleCompany: (companyId: string, current: boolean) => void;
   onClose: () => void;
+  getUserSectionPerm: (tabKey: string, sectionKey: string) => { canView: boolean; canEdit: boolean };
+  onSetSectionPerm: (tabKey: string, sectionKey: string, canView: boolean, canEdit: boolean) => void;
 }) {
+  const [expandedTab, setExpandedTab] = useState<string | null>(null);
+
   const getUserPerm = (tabKey: string) =>
     permissions.find(p => p.user_id === profile.id && p.tab_key === tabKey)?.granted ?? false;
   const allGranted = TAB_KEYS.every(k => getUserPerm(k));
@@ -199,18 +205,112 @@ function UserProfilePanel({
               </motion.button>
             </div>
             <p className="text-[11px] text-muted-foreground">
-              {grantedCount} de {TAB_KEYS.length} abas liberadas
+              {grantedCount} de {TAB_KEYS.length} abas liberadas — clique em <Settings2 className="inline h-3 w-3" /> para configurar seções
             </p>
-            <div className="flex flex-wrap gap-2">
-              {TAB_KEYS.map(key => (
-                <TogglePill
-                  key={key}
-                  label={TAB_LABELS[key]}
-                  granted={getUserPerm(key)}
-                  onToggle={() => onToggleTab(key, getUserPerm(key))}
-                  description={TAB_DESCRIPTIONS[key]}
-                />
-              ))}
+
+            <div className="space-y-2">
+              {TAB_KEYS.map(key => {
+                const granted = getUserPerm(key);
+                const isExpanded = expandedTab === key;
+                const sections = TAB_SECTIONS[key];
+
+                return (
+                  <div key={key} className="rounded-xl border border-border/40 overflow-hidden">
+                    {/* Tab row */}
+                    <div className="flex items-center gap-2 p-2">
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => onToggleTab(key, granted)}
+                        className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                          granted
+                            ? 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-400'
+                            : 'bg-muted/40 text-muted-foreground hover:bg-muted/60'
+                        }`}
+                      >
+                        {granted ? <Check className="h-3.5 w-3.5" /> : <X className="h-3 w-3 opacity-40" />}
+                        {TAB_LABELS[key]}
+                      </motion.button>
+
+                      {/* Expand sections button */}
+                      {granted && (
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => setExpandedTab(isExpanded ? null : key)}
+                          className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          title="Configurar seções"
+                        >
+                          {isExpanded ? <ChevronDown className="h-4 w-4" /> : <Settings2 className="h-3.5 w-3.5" />}
+                        </motion.button>
+                      )}
+                    </div>
+
+                    {/* Expanded sections */}
+                    <AnimatePresence>
+                      {isExpanded && granted && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="border-t border-border/30"
+                        >
+                          <div className="p-3 space-y-1.5 bg-muted/20">
+                            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider mb-2">
+                              Seções de "{TAB_LABELS[key]}"
+                            </p>
+                            {sections.map(section => {
+                              const { canView, canEdit } = getUserSectionPerm(key, section.key);
+                              return (
+                                <div
+                                  key={section.key}
+                                  className="flex items-center gap-2 p-2 rounded-lg bg-card/60 border border-border/30"
+                                >
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-[11px] font-semibold text-foreground">{section.label}</p>
+                                    <p className="text-[10px] text-muted-foreground">{section.description}</p>
+                                  </div>
+                                  <div className="flex items-center gap-1 shrink-0">
+                                    {/* View toggle */}
+                                    <motion.button
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={() => onSetSectionPerm(key, section.key, !canView, canView ? false : canEdit)}
+                                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                                        canView
+                                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                                          : 'bg-muted/50 text-muted-foreground/40'
+                                      }`}
+                                      title={canView ? 'Pode ver' : 'Não pode ver'}
+                                    >
+                                      {canView ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                                    </motion.button>
+
+                                    {/* Edit toggle */}
+                                    <motion.button
+                                      whileTap={{ scale: 0.9 }}
+                                      onClick={() => {
+                                        if (!canView) return; // Must be viewable to be editable
+                                        onSetSectionPerm(key, section.key, canView, !canEdit);
+                                      }}
+                                      className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${
+                                        canEdit
+                                          ? 'bg-primary/15 text-primary'
+                                          : 'bg-muted/50 text-muted-foreground/40'
+                                      } ${!canView ? 'opacity-30 cursor-not-allowed' : ''}`}
+                                      title={canEdit ? 'Pode editar' : 'Somente leitura'}
+                                    >
+                                      <Pencil className="h-3 w-3" />
+                                    </motion.button>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
