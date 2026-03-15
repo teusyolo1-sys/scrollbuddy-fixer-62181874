@@ -375,6 +375,42 @@ export type Database = {
         }
         Relationships: []
       }
+      task_complaints: {
+        Row: {
+          assigned_to: string
+          category: string
+          created_at: string
+          description: string
+          id: string
+          reporter_id: string
+          role_name: string
+          task_id: string
+          task_name: string
+        }
+        Insert: {
+          assigned_to: string
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          reporter_id: string
+          role_name?: string
+          task_id: string
+          task_name: string
+        }
+        Update: {
+          assigned_to?: string
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          reporter_id?: string
+          role_name?: string
+          task_id?: string
+          task_name?: string
+        }
+        Relationships: []
+      }
       team_activities: {
         Row: {
           activity_type: string
