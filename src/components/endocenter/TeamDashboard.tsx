@@ -656,7 +656,7 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
 
               {/* Delete member */}
               {isAdmin && onDelete && (
-                <div className="pt-2 space-y-3">
+                <div ref={deleteRef} className="pt-2 space-y-3">
                   {deleteStep === "idle" && (
                     <button
                       onClick={() => setDeleteStep("confirm")}
