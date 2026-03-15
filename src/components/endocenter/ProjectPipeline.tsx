@@ -187,7 +187,7 @@ export default function ProjectPipeline() {
                     )}
                     <div className="text-[11px] text-muted-foreground mt-0.5">{project.deadline}</div>
                   </div>
-                  <StatusPill value={project.status} onChange={(s) => updatePipelineProject(project.id, { status: s })} />
+                  <StatusPill value={project.status} onChange={(s) => handleProjectStatus(project.id, s)} />
                 </div>
 
                 {editMode ? (
