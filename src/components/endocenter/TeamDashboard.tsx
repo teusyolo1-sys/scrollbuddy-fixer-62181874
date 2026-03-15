@@ -41,7 +41,11 @@ function MonthYearPicker() {
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    setPos({ x: e.clientX, y: e.clientY });
+    const menuW = 230;
+    const menuH = 200;
+    const x = Math.min(e.clientX, window.innerWidth - menuW - 8);
+    const y = Math.min(e.clientY, window.innerHeight - menuH - 8);
+    setPos({ x: Math.max(8, x), y: Math.max(8, y) });
     setOpen(true);
   }, []);
 
