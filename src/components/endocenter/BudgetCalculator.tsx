@@ -89,7 +89,7 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
       {entries.map((entry: any, idx: number) => (
         <div key={entry.id} className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 items-center ${idx % 2 ? "bg-muted/20" : ""} hover:bg-accent/20 transition-colors group`}>
           <div className="space-y-1">
-            <input className="w-full bg-transparent text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground/40"
+            <input className="w-full bg-transparent text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground/60 border-b border-border/30 focus:border-primary/40 transition-colors py-1"
               value={entry.description} onChange={(e) => onUpdate(entry.id, { description: e.target.value })} placeholder="Descrição" />
             <div className="flex items-center gap-0.5 flex-wrap">
               {profiles.map((p: any) => {
