@@ -316,7 +316,7 @@ function StackedBarPanel({ entries }: { entries: any[] }) {
           {chartData.map((d, i) => (
             <div key={i} className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-              <span className="text-[11px] text-white/50">{d.name}</span>
+              <span className="text-[11px] text-muted-foreground">{d.name}</span>
             </div>
           ))}
         </div>
