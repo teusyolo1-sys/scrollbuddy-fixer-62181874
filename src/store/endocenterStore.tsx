@@ -798,6 +798,9 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
   const [crisisScenarios, setCrisisScenariosState] = useState<CrisisScenario[]>(
     stored?.crisisScenarios?.length ? stored.crisisScenarios : defaultCrisisScenarios
   );
+  const [budgetEntries, setBudgetEntriesState] = useState<BudgetEntry[]>(
+    stored?.budgetEntries?.length ? stored.budgetEntries : []
+  );
 
   useEffect(() => {
     saveToStorage({
@@ -810,8 +813,9 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
       workflowSteps,
       deadlines,
       crisisScenarios,
+      budgetEntries,
     });
-  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios]);
+  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios, budgetEntries]);
 
   const updateMember = (id: string, updates: Partial<TeamMember>) => {
     setTeamState((prev) =>
