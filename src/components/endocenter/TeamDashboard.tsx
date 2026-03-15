@@ -494,8 +494,8 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true }: { me
         exit={{ opacity: 0, y: 30, scale: 0.95 }}
         transition={{ type: "spring", damping: 28, stiffness: 380 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-card border border-border/50 max-h-[90vh] flex flex-col"
-        style={{ borderRadius: "var(--ios-radius-xl)", boxShadow: "var(--ios-shadow-float)", overflow: "hidden" }}
+        className="w-full max-w-lg ios-modal-surface max-h-[90vh] flex flex-col"
+        style={{ borderRadius: "var(--ios-radius-xl)", overflow: "hidden" }}
       >
         <div className="overflow-y-auto flex-1">
         {/* Header with color band */}
