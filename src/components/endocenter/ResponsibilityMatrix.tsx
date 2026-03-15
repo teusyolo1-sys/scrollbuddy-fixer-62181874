@@ -300,9 +300,10 @@ const defaultColumns: KanbanColumn[] = [
 ];
 
 /* ── Kanban View with Drag & Drop + Column Management ── */
-function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveItem }: {
+function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, onMoveItem }: {
   items: ResponsibilityItem[];
   roleColor: string;
+  isAdmin: boolean;
   onSelect: (item: ResponsibilityItem) => void;
   onToggleDone: (id: string) => void;
   onAdd: () => void;
