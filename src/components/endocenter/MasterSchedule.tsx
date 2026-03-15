@@ -21,6 +21,40 @@ export default function MasterSchedule() {
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [prevWeekId, setPrevWeekId] = useState(activeWeekId);
+  const [now, setNow] = useState(new Date());
+
+  // Auto-update clock every minute
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Parse week date ranges and find current week
+  const currentWeekId = useMemo(() => {
+    const today = now.getDate();
+    for (const w of scheduleWeeks) {
+      const match = w.dates.match(/(\d+)\s*[–-]\s*(\d+)/);
+      if (match) {
+        const start = parseInt(match[1]);
+        const end = parseInt(match[2]);
+        if (today >= start && today <= end) return w.id;
+      }
+    }
+    return null;
+  }, [now, scheduleWeeks]);
+
+  // Auto-select current week on mount
+  useEffect(() => {
+    if (currentWeekId && activeWeekId === scheduleWeeks[0]?.id && currentWeekId !== activeWeekId) {
+      setActiveWeekId(currentWeekId);
+      setPrevWeekId(currentWeekId);
+    }
+  }, [currentWeekId]);
+
+  const monthProgress = useMemo(() => {
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return Math.round((now.getDate() / daysInMonth) * 100);
+  }, [now]);
 
   const week = scheduleWeeks.find((item) => item.id === activeWeekId) ?? scheduleWeeks[0];
 
