@@ -588,7 +588,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                   </div>{/* py-2 */}
                 </div>{/* scroll content */}
               </div>{/* glass inner */}
-            </div>{/* absolute outer */}
+            </div>
             )}
               </div>{/* flex */}
         </motion.div>
