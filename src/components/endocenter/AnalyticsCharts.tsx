@@ -178,7 +178,7 @@ function ChartByStyle({ style, data, color, type }: {
     case "bar":
       return (
         <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={data} layout="vertical" barSize={14}>
+          <BarChart data={data} layout="vertical" barSize={14} maxBarSize={20}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
             <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
@@ -191,7 +191,7 @@ function ChartByStyle({ style, data, color, type }: {
     case "column":
       return (
         <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={data} barSize={16}>
+          <BarChart data={data} barSize={16} maxBarSize={24}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
@@ -289,7 +289,7 @@ function ChartByStyle({ style, data, color, type }: {
     case "waterfall":
       return (
         <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={data} barSize={16}>
+          <BarChart data={data} barSize={16} maxBarSize={24}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
