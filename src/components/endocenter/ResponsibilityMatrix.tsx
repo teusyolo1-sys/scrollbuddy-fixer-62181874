@@ -309,7 +309,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
-  const [draggingColIdx, setDraggingColIdx] = useState<number | null>(null);
+  const [draggingColKey, setDraggingColKey] = useState<string | null>(null);
   const [dragOverColIdx, setDragOverColIdx] = useState<number | null>(null);
   const [columnDragOffsetX, setColumnDragOffsetX] = useState(0);
   const [editingCol, setEditingCol] = useState<string | null>(null);
