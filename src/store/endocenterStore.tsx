@@ -290,6 +290,7 @@ const createRespItem = (task: string, critical: boolean): ResponsibilityItem => 
   timerSeconds: 0,
   timerRunning: false,
   createdAt: new Date().toISOString(),
+  completedAt: "",
   cover: "",
 });
 
