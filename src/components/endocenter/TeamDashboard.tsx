@@ -476,6 +476,12 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
 
   const hourlyRate = form.hours > 0 ? form.remuneration / form.hours : 0;
 
+  useEffect(() => {
+    if (deleteStep !== "idle" && deleteRef.current) {
+      deleteRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [deleteStep]);
+
   const handleSave = () => {
     if (isAdmin) {
       updateMember(member.id, {
