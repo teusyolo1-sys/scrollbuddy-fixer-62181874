@@ -25,7 +25,7 @@ export interface UserProfile {
   avatar_url: string | null;
 }
 
-export const useBudgetEntries = () => {
+export const useBudgetEntries = (companyId?: string) => {
   const { user } = useAuth();
   const [entries, setEntries] = useState<BudgetEntry[]>([]);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
