@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import { BarChart3, ChevronDown, ChevronUp, Clock3, DollarSign, Target, TrendingUp, User, X } from "lucide-react";
+import { BarChart3, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Target, TrendingUp, Upload, User, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
 
@@ -339,7 +339,44 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
 
 /* ── Profile Modal ── */
 function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void }) {
-  const hourlyRate = member.hours > 0 ? member.remuneration / member.hours : 0;
+  const { updateMember } = useEndocenter();
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ ...member });
+  const hourlyRate = form.hours > 0 ? form.remuneration / form.hours : 0;
+
+  const handleSave = () => {
+    updateMember(member.id, {
+      name: form.name,
+      role: form.role,
+      specialty: form.specialty,
+      remuneration: form.remuneration,
+      hours: form.hours,
+      color: form.color,
+      status: form.status,
+      caseNotes: form.caseNotes,
+      tasks: form.tasks,
+      kpis: form.kpis,
+    });
+    setEditing(false);
+  };
+
+  const handlePhotoUpload = () => {
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (re) => {
+        const url = (re.target?.result as string) ?? "";
+        updateMember(member.id, { photoUrl: url });
+        setForm((f) => ({ ...f, photoUrl: url }));
+      };
+      reader.readAsDataURL(file);
+    };
+    input.click();
+  };
 
   return (
     <motion.div
@@ -356,94 +393,162 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
         exit={{ opacity: 0, y: 30, scale: 0.95 }}
         transition={{ type: "spring", damping: 28, stiffness: 380 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-card border border-border/50 overflow-hidden"
+        className="w-full max-w-lg bg-card border border-border/50 overflow-hidden max-h-[90vh] overflow-y-auto"
         style={{ borderRadius: "var(--ios-radius-xl)", boxShadow: "var(--ios-shadow-float)" }}
       >
         {/* Header with color band */}
-        <div className="relative h-24 flex items-end px-6 pb-4" style={{ background: `linear-gradient(135deg, ${member.color}, ${member.color}AA)` }}>
-          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors">
-            <X className="h-4 w-4" />
-          </button>
+        <div className="relative h-24 flex items-end px-6 pb-4" style={{ background: `linear-gradient(135deg, ${form.color}, ${form.color}AA)` }}>
+          <div className="absolute top-4 right-4 flex items-center gap-2">
+            <button
+              onClick={() => { if (editing) handleSave(); else setEditing(true); }}
+              className="w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+            </button>
+            <button onClick={onClose} className="w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Avatar overlapping */}
         <div className="relative px-6 -mt-10">
-          {member.photoUrl ? (
-            <img src={member.photoUrl} alt={member.name} className="h-20 w-20 rounded-3xl object-cover border-4 border-card shadow-lg" />
-          ) : (
-            <div className="h-20 w-20 rounded-3xl border-4 border-card shadow-lg flex items-center justify-center bg-muted">
-              <User className="h-8 w-8" style={{ color: member.color }} />
-            </div>
-          )}
+          <div className="relative w-fit">
+            {form.photoUrl ? (
+              <img src={form.photoUrl} alt={form.name} className="h-20 w-20 rounded-3xl object-cover border-4 border-card shadow-lg" />
+            ) : (
+              <div className="h-20 w-20 rounded-3xl border-4 border-card shadow-lg flex items-center justify-center bg-muted">
+                <User className="h-8 w-8" style={{ color: form.color }} />
+              </div>
+            )}
+            {editing && (
+              <button onClick={handlePhotoUpload} className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-md">
+                <Upload className="h-3 w-3" />
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Info */}
         <div className="px-6 pt-3 pb-6 space-y-5">
-          <div>
-            <h2 className="text-xl font-extrabold text-foreground">{member.name}</h2>
-            <p className="text-sm font-semibold" style={{ color: member.color }}>{member.role}</p>
-            <span className={`ios-badge mt-2 inline-block ${
-              member.status === "Ativo" ? "ios-status-active" : member.status === "Férias" ? "ios-status-warning" : "ios-status-danger"
-            }`}>{member.status}</span>
-          </div>
-
-          {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}` },
-              { label: "Carga Horária", value: `${member.hours}h/mês` },
-              { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}` },
-            ].map((s) => (
-              <div key={s.label} className="p-3 text-center rounded-2xl bg-secondary/40">
-                <div className="text-[10px] font-medium text-muted-foreground">{s.label}</div>
-                <div className="text-sm font-bold text-foreground mt-0.5">{s.value}</div>
+          {editing ? (
+            /* ── Edit Mode ── */
+            <div className="space-y-4">
+              <div className="grid sm:grid-cols-2 gap-2">
+                <input className="ios-input px-3 py-2 text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome" />
+                <input className="ios-input px-3 py-2 text-sm" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Função" />
               </div>
-            ))}
-          </div>
+              <input className="ios-input w-full px-3 py-2 text-sm" value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} placeholder="Especialidade" />
+              <div className="grid sm:grid-cols-2 gap-2">
+                <input type="number" className="ios-input px-3 py-2 text-sm" value={form.remuneration} onChange={(e) => setForm({ ...form, remuneration: Number(e.target.value) })} placeholder="Remuneração" />
+                <input type="number" className="ios-input px-3 py-2 text-sm" value={form.hours} onChange={(e) => setForm({ ...form, hours: Number(e.target.value) })} placeholder="Horas / mês" />
+              </div>
+              <div className="grid sm:grid-cols-2 gap-2">
+                <div className="flex items-center gap-2">
+                  <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="h-9 w-10 rounded-lg border border-border bg-transparent" />
+                  <input className="ios-input flex-1 px-3 py-2 text-sm" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="#000000" />
+                </div>
+                <select className="ios-input px-3 py-2 text-sm" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                  <option>Ativo</option>
+                  <option>Inativo</option>
+                  <option>Férias</option>
+                </select>
+              </div>
+              <textarea className="ios-input w-full px-3 py-2 text-sm min-h-20" value={form.caseNotes} onChange={(e) => setForm({ ...form, caseNotes: e.target.value })} placeholder="Case do membro" />
 
-          {/* Specialty */}
-          <div>
-            <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">Especialidade</div>
-            <p className="text-sm text-foreground">{member.specialty || member.role}</p>
-          </div>
+              {/* Tasks edit */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-muted-foreground">Tarefas</label>
+                {form.tasks.map((task, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <input className="ios-input flex-1 px-3 py-1.5 text-xs" value={task} onChange={(e) => { const t = [...form.tasks]; t[i] = e.target.value; setForm({ ...form, tasks: t }); }} />
+                    <button onClick={() => setForm({ ...form, tasks: form.tasks.filter((_, ci) => ci !== i) })} className="rounded-md p-1 text-destructive hover:bg-destructive/10"><X className="h-3 w-3" /></button>
+                  </div>
+                ))}
+                <button onClick={() => setForm({ ...form, tasks: [...form.tasks, ""] })} className="text-[11px] text-primary">+ adicionar tarefa</button>
+              </div>
 
-          {/* Tasks */}
-          <div>
-            <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">Principais tarefas</div>
-            <ul className="space-y-1.5">
-              {member.tasks.map((task, ti) => (
-                <li key={ti} className="text-sm text-foreground flex items-start gap-2">
-                  <span className="mt-1.5 h-[6px] w-[6px] rounded-full shrink-0" style={{ backgroundColor: member.color }} />
-                  {task}
-                </li>
-              ))}
-            </ul>
-          </div>
+              {/* KPIs edit */}
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-muted-foreground">KPIs</label>
+                {form.kpis.map((kpi, i) => (
+                  <div key={i} className="flex items-center gap-1.5">
+                    <input className="ios-input flex-1 px-3 py-1.5 text-xs" value={kpi} onChange={(e) => { const k = [...form.kpis]; k[i] = e.target.value; setForm({ ...form, kpis: k }); }} />
+                    <button onClick={() => setForm({ ...form, kpis: form.kpis.filter((_, ci) => ci !== i) })} className="rounded-md p-1 text-destructive hover:bg-destructive/10"><X className="h-3 w-3" /></button>
+                  </div>
+                ))}
+                <button onClick={() => setForm({ ...form, kpis: [...form.kpis, ""] })} className="text-[11px] text-primary">+ adicionar KPI</button>
+              </div>
 
-          {/* KPIs */}
-          <div>
-            <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">KPIs</div>
-            <ul className="space-y-1.5">
-              {member.kpis.map((kpi, ki) => (
-                <li key={ki} className="text-sm text-foreground flex items-center gap-2">
-                  <Target className="h-3.5 w-3.5 shrink-0" style={{ color: member.color }} />
-                  {kpi}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Case */}
-          {member.caseNotes && (
-            <div className="p-4 rounded-2xl bg-secondary/30 border border-border/30">
-              <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Case</div>
-              <p className="text-sm text-foreground">{member.caseNotes}</p>
+              <button onClick={handleSave} className="w-full py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold">
+                Salvar alterações
+              </button>
             </div>
-          )}
+          ) : (
+            /* ── View Mode ── */
+            <>
+              <div>
+                <h2 className="text-xl font-extrabold text-foreground">{form.name}</h2>
+                <p className="text-sm font-semibold" style={{ color: form.color }}>{form.role}</p>
+                <span className={`ios-badge mt-2 inline-block ${
+                  form.status === "Ativo" ? "ios-status-active" : form.status === "Férias" ? "ios-status-warning" : "ios-status-danger"
+                }`}>{form.status}</span>
+              </div>
 
-          <p className="text-[11px] text-muted-foreground text-center">
-            R$ {member.remuneration.toLocaleString("pt-BR")} ÷ {member.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora
-          </p>
+              <div className="grid grid-cols-3 gap-3">
+                {[
+                  { label: "Remuneração", value: `R$ ${form.remuneration.toLocaleString("pt-BR")}` },
+                  { label: "Carga Horária", value: `${form.hours}h/mês` },
+                  { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}` },
+                ].map((s) => (
+                  <div key={s.label} className="p-3 text-center rounded-2xl bg-secondary/40">
+                    <div className="text-[10px] font-medium text-muted-foreground">{s.label}</div>
+                    <div className="text-sm font-bold text-foreground mt-0.5">{s.value}</div>
+                  </div>
+                ))}
+              </div>
+
+              <div>
+                <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">Especialidade</div>
+                <p className="text-sm text-foreground">{form.specialty || form.role}</p>
+              </div>
+
+              <div>
+                <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">Principais tarefas</div>
+                <ul className="space-y-1.5">
+                  {form.tasks.map((task, ti) => (
+                    <li key={ti} className="text-sm text-foreground flex items-start gap-2">
+                      <span className="mt-1.5 h-[6px] w-[6px] rounded-full shrink-0" style={{ backgroundColor: form.color }} />
+                      {task}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div>
+                <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">KPIs</div>
+                <ul className="space-y-1.5">
+                  {form.kpis.map((kpi, ki) => (
+                    <li key={ki} className="text-sm text-foreground flex items-center gap-2">
+                      <Target className="h-3.5 w-3.5 shrink-0" style={{ color: form.color }} />
+                      {kpi}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {form.caseNotes && (
+                <div className="p-4 rounded-2xl bg-secondary/30 border border-border/30">
+                  <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Case</div>
+                  <p className="text-sm text-foreground">{form.caseNotes}</p>
+                </div>
+              )}
+
+              <p className="text-[11px] text-muted-foreground text-center">
+                R$ {form.remuneration.toLocaleString("pt-BR")} ÷ {form.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora
+              </p>
+            </>
+          )}
         </div>
       </motion.div>
     </motion.div>
