@@ -736,6 +736,7 @@ interface PersistedData {
   workflowSteps: WorkflowStep[];
   deadlines: DeadlineRecord[];
   crisisScenarios: CrisisScenario[];
+  budgetEntries: BudgetEntry[];
 }
 
 const loadFromStorage = (): Partial<PersistedData> | null => {
