@@ -1,5 +1,11 @@
 import { create } from "zustand";
 
+export interface NotificationMeta {
+  roleId?: string;
+  tab?: string;
+  itemId?: string;
+}
+
 export interface AppNotification {
   id: string;
   title: string;
@@ -7,6 +13,7 @@ export interface AppNotification {
   icon: "check" | "move" | "add" | "delete" | "info";
   timestamp: Date;
   read: boolean;
+  meta?: NotificationMeta;
 }
 
 interface NotificationState {
