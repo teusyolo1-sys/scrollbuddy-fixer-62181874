@@ -235,7 +235,7 @@ export default function AnalyticsCharts() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="ios-card p-4 overflow-hidden"
+            className="ios-card p-4"
           >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <IosDropdown
