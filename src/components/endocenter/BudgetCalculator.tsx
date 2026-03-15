@@ -331,7 +331,7 @@ function PipelineCard({ faturamentoEntries, onAdd, delay, isExpanded, onToggle }
                 className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500 cursor-pointer">
                 <Plus className="h-3.5 w-3.5" />
               </motion.div>
-              <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+              <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </motion.div>
             </div>
