@@ -359,9 +359,22 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
                   <ChevronLeft className="h-3 w-3 text-muted-foreground" />
                 </button>
                 <div className="w-px h-4 bg-border/50" />
-                <span className="px-1">
-                  <GripVertical className="h-3 w-3 text-muted-foreground/50" />
-                </span>
+                <button
+                  onClick={() => {
+                    // Cycle: move to end, or to start if already at end
+                    if (index < columns.length - 1) moveColumn(index, 1);
+                    else {
+                      const newCols = [...columns];
+                      const [col] = newCols.splice(index, 1);
+                      newCols.unshift(col);
+                      setColumns(newCols);
+                    }
+                  }}
+                  className="px-1 cursor-grab active:cursor-grabbing hover:bg-secondary transition-colors rounded"
+                  title="Reposicionar coluna"
+                >
+                  <GripVertical className="h-3 w-3 text-muted-foreground" />
+                </button>
                 <div className="w-px h-4 bg-border/50" />
                 <button
                   onClick={() => moveColumn(index, 1)}
