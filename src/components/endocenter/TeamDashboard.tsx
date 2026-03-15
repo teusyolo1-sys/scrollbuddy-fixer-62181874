@@ -347,7 +347,12 @@ export default function TeamDashboard() {
       {/* Profile Modal */}
       <AnimatePresence>
         {selectedMember && (
-          <ProfileModal member={selectedMember} onClose={() => setSelectedMember(null)} isAdmin={isAdmin} />
+          <ProfileModal
+            member={selectedMember}
+            onClose={() => setSelectedMember(null)}
+            isAdmin={isAdmin}
+            canEdit={isAdmin || selectedMember.role === teamRole}
+          />
         )}
       </AnimatePresence>
     </div>
@@ -424,7 +429,7 @@ function MemberCard({ member, index, isExpanded, onToggle, showFinancials = true
 }
 
 /* ── Profile Modal ── */
-function ProfileModal({ member, onClose, isAdmin = false }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean }) {
+function ProfileModal({ member, onClose, isAdmin = false, canEdit = true }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean; canEdit?: boolean }) {
   const { updateMember } = useEndocenter();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ ...member });
@@ -497,15 +502,17 @@ function ProfileModal({ member, onClose, isAdmin = false }: { member: ReturnType
         {/* Header with color band */}
         <div className="relative h-24 flex items-end px-6 pb-4" style={{ background: `linear-gradient(135deg, ${form.color}, ${form.color}AA)` }}>
           <div className="absolute top-4 right-4 flex items-center gap-2">
-            <motion.button
-              onClick={() => { if (editing) handleSave(); else setEditing(true); }}
-              className="w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors"
-              whileHover={{ scale: 1.15, rotate: editing ? 0 : -15 }}
-              whileTap={{ scale: 0.9 }}
-              transition={{ type: "spring", damping: 12, stiffness: 400 }}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </motion.button>
+            {canEdit && (
+              <motion.button
+                onClick={() => { if (editing) handleSave(); else setEditing(true); }}
+                className="w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors"
+                whileHover={{ scale: 1.15, rotate: editing ? 0 : -15 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", damping: 12, stiffness: 400 }}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+              </motion.button>
+            )}
             <motion.button
               onClick={onClose}
               className="w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors"
