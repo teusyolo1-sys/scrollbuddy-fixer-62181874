@@ -220,8 +220,8 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                                   <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold transition-all"
                                     style={{
                                       backgroundColor: isSelected ? color : "transparent",
-                                      color: isSelected ? "white" : "rgba(255,255,255,0.25)",
-                                      border: `1.5px solid ${isSelected ? color : "rgba(255,255,255,0.1)"}`,
+                                      color: isSelected ? "white" : "hsl(var(--muted-foreground))",
+                                      border: `1.5px solid ${isSelected ? color : "hsl(var(--border))"}`,
                                       opacity: isSelected ? 1 : 0.4,
                                     }}
                                   >
