@@ -17,6 +17,9 @@ import {
 import { CHART_STYLES, type ChartStyle, ChartStyleMenuItem } from "./ChartStylePicker";
 import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
 import { useAuth } from "@/hooks/useAuth";
+import { CardContextMenu } from "./budget/CardContextMenu";
+import { FullscreenPanel } from "./budget/FullscreenPanel";
+import { useCardMenu } from "./budget/useCardMenu";
 
 const categoryConfig: Record<BudgetCategory, { label: string; color: string; icon: "up" | "down" }> = {
   investimento: { label: "Investimentos", color: "#3B82F6", icon: "down" },
