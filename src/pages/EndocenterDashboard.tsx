@@ -76,7 +76,9 @@ function DashboardContent() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   whileTap={{ scale: 0.95 }}
-                  className="relative flex items-center gap-1.5 px-4 py-2 whitespace-nowrap text-xs sm:text-sm font-medium transition-all duration-250"
+                  whileHover={{ scale: 1.05, backgroundColor: active ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.08)" }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className="relative flex items-center gap-1.5 px-4 py-2 whitespace-nowrap text-xs sm:text-sm font-medium"
                   style={{
                     borderRadius: "var(--ios-radius)",
                     background: active ? "rgba(255,255,255,0.15)" : "transparent",
