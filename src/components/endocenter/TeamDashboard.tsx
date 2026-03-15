@@ -21,6 +21,105 @@ const bouncy = {
   mass: 0.45,
 };
 
+const months = [
+  "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+  "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
+];
+
+function MonthYearPicker() {
+  const { company, setCompany } = useEndocenter();
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Parse current month/year
+  const parts = company.month.split(" ");
+  const currentMonth = parts[0] ?? "Março";
+  const currentYear = parseInt(parts[1] ?? "2025", 10);
+
+  const years = Array.from({ length: 7 }, (_, i) => currentYear - 3 + i);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setPos({ x: e.clientX, y: e.clientY });
+    setOpen(true);
+  }, []);
+
+  const select = useCallback((month: string, year: number) => {
+    setCompany({ ...company, month: `${month} ${year}` });
+    setOpen(false);
+  }, [company, setCompany]);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("mousedown", close);
+    return () => window.removeEventListener("mousedown", close);
+  }, [open]);
+
+  return (
+    <>
+      <span
+        onContextMenu={handleContextMenu}
+        className="ios-badge ios-status-info cursor-context-menu select-none"
+      >
+        {company.month}
+      </span>
+
+      <AnimatePresence>
+        {open && (
+          <motion.div
+            ref={menuRef}
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.92 }}
+            transition={{ type: "spring", damping: 24, stiffness: 400 }}
+            className="fixed z-[100] ios-card p-3 shadow-2xl"
+            style={{ top: pos.y, left: pos.x, minWidth: 220 }}
+          >
+            {/* Year row */}
+            <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 border-b border-border/40">
+              {years.map((y) => (
+                <button
+                  key={y}
+                  onClick={() => select(currentMonth, y)}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold whitespace-nowrap transition-colors ${
+                    y === currentYear
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {y}
+                </button>
+              ))}
+            </div>
+
+            {/* Month grid */}
+            <div className="grid grid-cols-3 gap-1">
+              {months.map((m) => (
+                <button
+                  key={m}
+                  onClick={() => select(m, currentYear)}
+                  className={`px-2 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    m === currentMonth
+                      ? "bg-primary text-primary-foreground"
+                      : "text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {m.slice(0, 3)}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+
 export default function TeamDashboard() {
   const { team, company, metricEntries } = useEndocenter();
   const [expandedIds, setExpandedIds] = useState<string[]>([]);
