@@ -355,7 +355,7 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
   };
 
   const startColumnDrag = (startIndex: number, startX: number, startKey: string) => {
-    let currentIdx = startIndex;
+    let hoverIdx: number | null = null;
 
     setDraggingColKey(startKey);
     setDragOverColIdx(null);
@@ -364,45 +364,37 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
     document.body.style.userSelect = "none";
 
     const handleMouseMove = (event: MouseEvent) => {
-      const pointerX = event.clientX;
-      const pointerY = event.clientY;
-
-      setColumnDragOffsetX(pointerX - startX);
+      setColumnDragOffsetX(event.clientX - startX);
 
       let bestIdx: number | null = null;
       let bestDistance = Number.POSITIVE_INFINITY;
 
       colRefs.current.forEach((colEl, idx) => {
-        if (!colEl || idx === currentIdx) return;
+        if (!colEl || idx === startIndex) return;
         const rect = colEl.getBoundingClientRect();
-        const withinY = pointerY >= rect.top - 24 && pointerY <= rect.bottom + 24;
-        if (!withinY) return;
-
+        if (event.clientY < rect.top - 40 || event.clientY > rect.bottom + 40) return;
         const centerX = rect.left + rect.width / 2;
-        const distance = Math.abs(centerX - pointerX);
-
+        const distance = Math.abs(centerX - event.clientX);
         if (distance < bestDistance) {
           bestDistance = distance;
           bestIdx = idx;
         }
       });
 
-      const projectedIdx = bestIdx !== null && bestIdx !== currentIdx ? bestIdx : null;
-      setDragOverColIdx(projectedIdx);
-
-      // Live reorder so sibling columns animate position changes
-      if (projectedIdx !== null) {
-        setColumns((prev) => {
-          const next = [...prev];
-          const [moved] = next.splice(currentIdx, 1);
-          next.splice(projectedIdx, 0, moved);
-          return next;
-        });
-        currentIdx = projectedIdx;
-      }
+      hoverIdx = bestIdx;
+      setDragOverColIdx(hoverIdx);
     };
 
     const finishDrag = () => {
+      // Swap columns on drop
+      if (hoverIdx !== null && hoverIdx !== startIndex) {
+        setColumns((prev) => {
+          const next = [...prev];
+          [next[startIndex], next[hoverIdx!]] = [next[hoverIdx!], next[startIndex]];
+          return next;
+        });
+      }
+
       setDraggingColKey(null);
       setDragOverColIdx(null);
       setColumnDragOffsetX(0);
@@ -523,12 +515,18 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
           <motion.div
             key={col.key}
             layout="position"
-            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            transition={draggingColKey === col.key 
+              ? { type: "tween", duration: 0 } 
+              : { type: "spring", stiffness: 400, damping: 30 }
+            }
             ref={(el) => { colRefs.current[index] = el; }}
-            style={draggingColKey === col.key ? { x: columnDragOffsetX, zIndex: 40 } : { x: 0 }}
-            className={`space-y-2 group/col transition-colors duration-200 ${
-              draggingColKey === col.key ? "opacity-40 scale-95" : ""
-            } ${dragOverColIdx === index && draggingColKey !== col.key ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5" : ""}`}
+            style={draggingColKey === col.key 
+              ? { x: columnDragOffsetX, zIndex: 40, position: "relative" as const } 
+              : { x: 0 }
+            }
+            className={`space-y-2 group/col ${
+              draggingColKey === col.key ? "opacity-70 scale-[1.02]" : ""
+            } ${dragOverColIdx === index && draggingColKey !== col.key ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5 scale-[0.97] opacity-80" : ""}`}
           >
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
