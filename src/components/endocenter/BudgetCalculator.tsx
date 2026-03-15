@@ -193,7 +193,7 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} overflow-hidden flex flex-col row-span-2`}>
+      className={`${gc} overflow-hidden flex flex-col ${expanded ? "row-span-2" : ""}`}>
       <button onClick={() => setExpanded(!expanded)} className="p-4 hover:bg-accent/20 transition-colors w-full">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
@@ -215,59 +215,63 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
         </div>
       </button>
 
-      <AnimatePresence>
-        {expanded && faturamentoEntries.length > 0 && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden px-4 pb-3">
-            <div className="space-y-1.5">
-              {faturamentoEntries.map((e, i) => (
-                <div key={e.id} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-muted/30">
-                  <span className="text-[11px] text-foreground/80 truncate max-w-[140px]">{e.description || `Item ${i + 1}`}</span>
-                  <span className="text-[11px] font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
+      {expanded && (
+        <>
+          <AnimatePresence>
+            {faturamentoEntries.length > 0 && (
+              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden px-4 pb-3">
+                <div className="space-y-1.5">
+                  {faturamentoEntries.map((e, i) => (
+                    <div key={e.id} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-muted/30">
+                      <span className="text-[11px] text-foreground/80 truncate max-w-[140px]">{e.description || `Item ${i + 1}`}</span>
+                      <span className="text-[11px] font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-      {!expanded && (
-        <div className="flex-1 flex items-center justify-center px-4">
-          <div className="text-center space-y-2">
-            <div className="flex flex-col items-center gap-1.5 opacity-10">
-              <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
-              <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
-              <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
-            </div>
-            <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
-          </div>
-        </div>
-      )}
-
-      {/* Upcoming Invoices floating card */}
-      <div className="p-4">
-        <div className={`${gc} p-3`}>
-          <div className="flex items-center gap-2 mb-2">
-            <FileText className="h-3 w-3 text-muted-foreground" />
-            <h4 className="text-[11px] font-bold text-muted-foreground">Upcoming Invoices</h4>
-          </div>
-          {upcoming.length === 0 ? (
-            <div className="space-y-1.5">
-              <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Invoice 1</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
-              <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Feb. 2022</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
-            </div>
-          ) : (
-            <div className="space-y-1.5">
-              {upcoming.map((inv, i) => (
-                <div key={i} className="flex justify-between">
-                  <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{inv.description || `Invoice ${i + 1}`}</span>
-                  <span className="text-[10px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
+          {faturamentoEntries.length === 0 && (
+            <div className="flex-1 flex items-center justify-center px-4">
+              <div className="text-center space-y-2">
+                <div className="flex flex-col items-center gap-1.5 opacity-10">
+                  <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
+                  <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
+                  <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
                 </div>
-              ))}
+                <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
+              </div>
             </div>
           )}
-        </div>
-      </div>
+
+          {/* Upcoming Invoices floating card */}
+          <div className="p-4">
+            <div className={`${gc} p-3`}>
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="h-3 w-3 text-muted-foreground" />
+                <h4 className="text-[11px] font-bold text-muted-foreground">Upcoming Invoices</h4>
+              </div>
+              {upcoming.length === 0 ? (
+                <div className="space-y-1.5">
+                  <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Invoice 1</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
+                  <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Feb. 2022</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  {upcoming.map((inv, i) => (
+                    <div key={i} className="flex justify-between">
+                      <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{inv.description || `Invoice ${i + 1}`}</span>
+                      <span className="text-[10px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </motion.div>
   );
 }
