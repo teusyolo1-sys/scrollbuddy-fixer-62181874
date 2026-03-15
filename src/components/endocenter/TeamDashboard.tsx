@@ -393,9 +393,10 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
         exit={{ opacity: 0, y: 30, scale: 0.95 }}
         transition={{ type: "spring", damping: 28, stiffness: 380 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg bg-card border border-border/50 overflow-hidden max-h-[90vh] overflow-y-auto"
-        style={{ borderRadius: "var(--ios-radius-xl)", boxShadow: "var(--ios-shadow-float)" }}
+        className="w-full max-w-lg bg-card border border-border/50 max-h-[90vh] flex flex-col"
+        style={{ borderRadius: "var(--ios-radius-xl)", boxShadow: "var(--ios-shadow-float)", overflow: "hidden" }}
       >
+        <div className="overflow-y-auto flex-1">
         {/* Header with color band */}
         <div className="relative h-24 flex items-end px-6 pb-4" style={{ background: `linear-gradient(135deg, ${form.color}, ${form.color}AA)` }}>
           <div className="absolute top-4 right-4 flex items-center gap-2">
