@@ -375,6 +375,42 @@ export type Database = {
         }
         Relationships: []
       }
+      team_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          date: string
+          id: string
+          member_name: string
+          notes: string | null
+          unit: string
+          user_id: string
+          value: number
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          date?: string
+          id?: string
+          member_name: string
+          notes?: string | null
+          unit?: string
+          user_id: string
+          value?: number
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          date?: string
+          id?: string
+          member_name?: string
+          notes?: string | null
+          unit?: string
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       trial_sessions: {
         Row: {
           expired: boolean

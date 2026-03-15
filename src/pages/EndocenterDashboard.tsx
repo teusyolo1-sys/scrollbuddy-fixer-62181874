@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Moon, RefreshCw, Rocket, Settings, Shield, Sun } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Moon, RefreshCw, Rocket, Settings, Shield, Sun, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { EndocenterProvider, useEndocenter, defaultTabLabels } from "@/store/endocenterStore";
@@ -13,6 +13,7 @@ import ResponsibilityMatrix from "@/components/endocenter/ResponsibilityMatrix";
 import WorkflowDiagram from "@/components/endocenter/WorkflowDiagram";
 import DeadlineManagement from "@/components/endocenter/DeadlineManagement";
 import BudgetCalculator from "@/components/endocenter/BudgetCalculator";
+import TeamAnalytics from "@/components/endocenter/TeamAnalytics";
 import SettingsDialog from "@/components/endocenter/SettingsDialog";
 import NotificationCenter from "@/components/endocenter/NotificationCenter";
 
@@ -25,6 +26,7 @@ const tabDefs = [
   { id: "workflow" as const, icon: RefreshCw },
   { id: "deadlines" as const, icon: AlertTriangle },
   { id: "budget" as const, icon: DollarSign },
+  { id: "team" as const, icon: Users },
 ];
 
 function DashboardContent() {
@@ -199,6 +201,7 @@ function DashboardContent() {
           {activeTab === "workflow" && <WorkflowDiagram />}
           {activeTab === "deadlines" && <DeadlineManagement />}
           {activeTab === "budget" && <BudgetCalculator />}
+          {activeTab === "team" && <TeamAnalytics />}
         </motion.div>
       </main>
 
