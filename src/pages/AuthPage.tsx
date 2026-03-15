@@ -93,6 +93,11 @@ const AuthPage = () => {
     setLoading(true);
 
     if (!isLogin) {
+      if (!inviteValid) {
+        toast.error('Código de convite inválido ou expirado');
+        setLoading(false);
+        return;
+      }
       if (password !== confirmPassword) {
         toast.error('As senhas não coincidem');
         setLoading(false);
@@ -119,6 +124,9 @@ const AuthPage = () => {
       if (error) {
         toast.error(error.message);
       } else {
+        // Consume the invite after signup — we'll call use_invite via RPC
+        // The user might not be fully confirmed yet, so we store the code for later consumption
+        localStorage.setItem('pending_invite_code', inviteCode);
         toast.success('Conta criada! Verifique seu e-mail para confirmar.');
       }
     }
