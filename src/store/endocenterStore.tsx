@@ -1035,7 +1035,17 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
         role.id === roleId
           ? {
               ...role,
-              [list]: role[list].map((item) => (item.id === itemId ? { ...item, ...updates } : item)),
+              [list]: role[list].map((item) => {
+                if (item.id !== itemId) return item;
+                const merged = { ...item, ...updates };
+                // Auto-populate completedAt when done is toggled
+                if (updates.done === true && !item.completedAt) {
+                  merged.completedAt = new Date().toISOString();
+                } else if (updates.done === false) {
+                  merged.completedAt = "";
+                }
+                return merged;
+              }),
             }
           : role
       )
