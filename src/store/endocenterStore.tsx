@@ -4,6 +4,17 @@ export type MetricPeriod = "Diária" | "Semanal" | "Mensal" | "Anual";
 export type TaskStatus = "pending" | "in_progress" | "done" | "blocked";
 export type DeadlinePriority = "critical" | "high" | "medium" | "low";
 export type DeadlineStatus = "on_track" | "at_risk" | "overdue" | "done";
+export type BudgetCategory = "investimento" | "gasto" | "faturamento" | "receita" | "despesa";
+
+export interface BudgetEntry {
+  id: string;
+  description: string;
+  category: BudgetCategory;
+  amount: number;
+  date: string;
+  participants: string[]; // team member ids
+  notes: string;
+}
 
 export interface TeamMember {
   id: string;
@@ -29,6 +40,7 @@ export interface TabLabels {
   matrix: string;
   workflow: string;
   deadlines: string;
+  budget: string;
 }
 
 export const defaultTabLabels: TabLabels = {
@@ -38,6 +50,7 @@ export const defaultTabLabels: TabLabels = {
   matrix: "Responsabilidades",
   workflow: "Fluxo",
   deadlines: "Prazos & Crises",
+  budget: "Orçamento",
 };
 
 export interface CompanyInfo {
@@ -248,6 +261,11 @@ interface EndocenterStore {
   updateCrisisScenario: (id: string, updates: Partial<CrisisScenario>) => void;
   addCrisisScenario: () => void;
   removeCrisisScenario: (id: string) => void;
+
+  budgetEntries: BudgetEntry[];
+  addBudgetEntry: (category: BudgetCategory) => void;
+  updateBudgetEntry: (id: string, updates: Partial<BudgetEntry>) => void;
+  removeBudgetEntry: (id: string) => void;
 }
 
 const STORAGE_KEY = "endocenter_settings";
@@ -718,6 +736,7 @@ interface PersistedData {
   workflowSteps: WorkflowStep[];
   deadlines: DeadlineRecord[];
   crisisScenarios: CrisisScenario[];
+  budgetEntries: BudgetEntry[];
 }
 
 const loadFromStorage = (): Partial<PersistedData> | null => {
@@ -779,6 +798,9 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
   const [crisisScenarios, setCrisisScenariosState] = useState<CrisisScenario[]>(
     stored?.crisisScenarios?.length ? stored.crisisScenarios : defaultCrisisScenarios
   );
+  const [budgetEntries, setBudgetEntriesState] = useState<BudgetEntry[]>(
+    stored?.budgetEntries?.length ? stored.budgetEntries : []
+  );
 
   useEffect(() => {
     saveToStorage({
@@ -791,8 +813,9 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
       workflowSteps,
       deadlines,
       crisisScenarios,
+      budgetEntries,
     });
-  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios]);
+  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios, budgetEntries]);
 
   const updateMember = (id: string, updates: Partial<TeamMember>) => {
     setTeamState((prev) =>
@@ -1100,6 +1123,31 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
     setCrisisScenariosState((prev) => prev.filter((scenario) => scenario.id !== id));
   };
 
+  const addBudgetEntry = (category: BudgetCategory) => {
+    setBudgetEntriesState((prev) => [
+      ...prev,
+      {
+        id: createId("budget"),
+        description: "",
+        category,
+        amount: 0,
+        date: new Date().toISOString().slice(0, 10),
+        participants: [],
+        notes: "",
+      },
+    ]);
+  };
+
+  const updateBudgetEntry = (id: string, updates: Partial<BudgetEntry>) => {
+    setBudgetEntriesState((prev) =>
+      prev.map((entry) => (entry.id === id ? { ...entry, ...updates } : entry))
+    );
+  };
+
+  const removeBudgetEntry = (id: string) => {
+    setBudgetEntriesState((prev) => prev.filter((entry) => entry.id !== id));
+  };
+
   return (
     <EndocenterContext.Provider
       value={{
@@ -1149,6 +1197,10 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
         updateCrisisScenario,
         addCrisisScenario,
         removeCrisisScenario,
+        budgetEntries,
+        addBudgetEntry,
+        updateBudgetEntry,
+        removeBudgetEntry,
       }}
     >
       {children}
