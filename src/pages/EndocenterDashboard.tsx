@@ -11,6 +11,7 @@ import ResponsibilityMatrix from "@/components/endocenter/ResponsibilityMatrix";
 import WorkflowDiagram from "@/components/endocenter/WorkflowDiagram";
 import DeadlineManagement from "@/components/endocenter/DeadlineManagement";
 import SettingsDialog from "@/components/endocenter/SettingsDialog";
+import NotificationCenter from "@/components/endocenter/NotificationCenter";
 
 const tabs = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
