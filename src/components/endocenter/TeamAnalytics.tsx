@@ -20,35 +20,58 @@ function IosDropdown({ value, onChange, options }: {
   options: { value: string; label: string }[];
 }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
   const selected = options.find((o) => o.value === value);
+
+  const updatePos = useCallback(() => {
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    setPos({ top: rect.bottom + 6, left: rect.left, width: rect.width });
+  }, []);
 
   useEffect(() => {
     if (!open) return;
+    updatePos();
     const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node) &&
+          triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
     window.addEventListener("mousedown", close);
-    return () => window.removeEventListener("mousedown", close);
-  }, [open]);
+    window.addEventListener("scroll", updatePos, true);
+    return () => {
+      window.removeEventListener("mousedown", close);
+      window.removeEventListener("scroll", updatePos, true);
+    };
+  }, [open, updatePos]);
 
   return (
-    <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen(!open)} className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2">
+    <div className="relative">
+      <button ref={triggerRef} type="button" onClick={() => setOpen(!open)} className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2">
         <span className="text-foreground truncate">{selected?.label || "Selecionar"}</span>
         <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
         </motion.span>
       </button>
-      <AnimatePresence>
-        {open && (
+      {open && createPortal(
+        <AnimatePresence>
           <motion.div
+            ref={menuRef}
             initial={{ opacity: 0, y: -4, scale: 0.96 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.96 }}
             transition={{ type: "spring", damping: 24, stiffness: 400 }}
-            className="absolute z-50 top-full mt-1.5 left-0 right-0 bg-card border border-border/60 shadow-lg p-1 max-h-48 overflow-y-auto"
-            style={{ borderRadius: "var(--ios-radius, 16px)", boxShadow: "var(--ios-shadow-float, 0 8px 32px rgba(0,0,0,0.12))" }}
+            className="fixed z-[9999] bg-card border border-border/60 shadow-lg p-1 max-h-48 overflow-y-auto"
+            style={{
+              top: pos.top,
+              left: pos.left,
+              width: pos.width,
+              borderRadius: "var(--ios-radius, 16px)",
+              boxShadow: "var(--ios-shadow-float, 0 8px 32px rgba(0,0,0,0.12))",
+            }}
           >
             {options.map((opt) => (
               <button
@@ -61,8 +84,9 @@ function IosDropdown({ value, onChange, options }: {
               </button>
             ))}
           </motion.div>
-        )}
-      </AnimatePresence>
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 }
