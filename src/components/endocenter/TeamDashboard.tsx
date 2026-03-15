@@ -1,4 +1,5 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Target, TrendingUp, Upload, User, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
@@ -440,7 +441,9 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
     input.click();
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -620,6 +623,7 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
         </div>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
