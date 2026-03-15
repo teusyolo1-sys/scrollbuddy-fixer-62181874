@@ -340,9 +340,32 @@ function CompanyCardItem({
   onUpdate: (updates: Partial<CompanyCard>) => void;
 }) {
   const gradient = gradients[index % gradients.length];
+  const [editingName, setEditingName] = useState(false);
+  const [editingSubtitle, setEditingSubtitle] = useState(false);
+  const [nameValue, setNameValue] = useState(company.name);
+  const [subtitleValue, setSubtitleValue] = useState(company.subtitle);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const subtitleRef = useRef<HTMLInputElement>(null);
 
   const bannerUpload = useFileUpload((url) => onUpdate({ bannerUrl: url }));
   const logoUpload = useFileUpload((url) => onUpdate({ logoUrl: url }));
+
+  const commitName = () => {
+    const trimmed = nameValue.trim();
+    if (trimmed && trimmed !== company.name) onUpdate({ name: trimmed });
+    else setNameValue(company.name);
+    setEditingName(false);
+  };
+
+  const commitSubtitle = () => {
+    const trimmed = subtitleValue.trim();
+    if (trimmed && trimmed !== company.subtitle) onUpdate({ subtitle: trimmed });
+    else setSubtitleValue(company.subtitle);
+    setEditingSubtitle(false);
+  };
+
+  useEffect(() => { if (editingName) nameRef.current?.focus(); }, [editingName]);
+  useEffect(() => { if (editingSubtitle) subtitleRef.current?.focus(); }, [editingSubtitle]);
 
   return (
     <motion.div
@@ -352,9 +375,13 @@ function CompanyCardItem({
       whileTap={{ scale: 0.97, y: 0 }}
       transition={{ delay: Math.min(index * 0.05, 0.15), type: "spring", damping: 22, stiffness: 300 }}
       className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl p-0 text-left overflow-hidden group cursor-pointer"
-      onClick={onOpen}
+      onClick={(e) => {
+        // Don't navigate if editing
+        if (editingName || editingSubtitle) return;
+        onOpen();
+      }}
     >
-      {/* Hidden file inputs — always mounted for admin */}
+      {/* Hidden file inputs */}
       {isAdmin && (
         <>
           <input ref={bannerUpload.inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { e.stopPropagation(); bannerUpload.handleChange(e); }} />
@@ -371,7 +398,6 @@ function CompanyCardItem({
         )}
         <div className="absolute inset-0 bg-black/5" />
 
-        {/* Admin: banner upload button — visible on hover only */}
         {isAdmin && (
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); bannerUpload.trigger(); }}
@@ -383,7 +409,6 @@ function CompanyCardItem({
         )}
 
         <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-          {/* Logo */}
           <div className="relative">
             {company.logoUrl ? (
               <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/30 bg-white/10 backdrop-blur-xl">
@@ -413,8 +438,60 @@ function CompanyCardItem({
 
       {/* Content */}
       <div className="p-5 pt-4">
-        <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">{company.name}</h3>
-        <p className="text-sm text-muted-foreground mt-0.5">{company.subtitle}</p>
+        <div className="flex items-center gap-1.5">
+          {editingName ? (
+            <input
+              ref={nameRef}
+              value={nameValue}
+              onChange={(e) => setNameValue(e.target.value)}
+              onBlur={commitName}
+              onKeyDown={(e) => { if (e.key === "Enter") commitName(); if (e.key === "Escape") { setNameValue(company.name); setEditingName(false); } }}
+              onClick={(e) => e.stopPropagation()}
+              className="text-lg font-bold text-foreground bg-transparent border-b-2 border-primary outline-none w-full"
+              maxLength={60}
+            />
+          ) : (
+            <>
+              <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">{company.name}</h3>
+              {isAdmin && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditingName(true); }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-secondary"
+                  title="Editar nome"
+                >
+                  <Pencil className="h-3 w-3 text-muted-foreground" />
+                </button>
+              )}
+            </>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          {editingSubtitle ? (
+            <input
+              ref={subtitleRef}
+              value={subtitleValue}
+              onChange={(e) => setSubtitleValue(e.target.value)}
+              onBlur={commitSubtitle}
+              onKeyDown={(e) => { if (e.key === "Enter") commitSubtitle(); if (e.key === "Escape") { setSubtitleValue(company.subtitle); setEditingSubtitle(false); } }}
+              onClick={(e) => e.stopPropagation()}
+              className="text-sm text-muted-foreground bg-transparent border-b border-primary/50 outline-none w-full"
+              maxLength={80}
+            />
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground">{company.subtitle}</p>
+              {isAdmin && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); setEditingSubtitle(true); }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-secondary"
+                  title="Editar descrição"
+                >
+                  <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
+                </button>
+              )}
+            </>
+          )}
+        </div>
         <div className="flex items-center justify-between mt-4">
           <span className="ios-badge ios-status-info">{company.month}</span>
           <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
