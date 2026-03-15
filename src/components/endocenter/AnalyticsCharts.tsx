@@ -203,29 +203,35 @@ export default function AnalyticsCharts() {
           className="ios-card p-5"
         >
           <h4 className="text-sm font-bold text-foreground mb-4">Distribuição por categoria</h4>
-          <ResponsiveContainer width="100%" height={240}>
-            <PieChart>
-              <Pie
-                data={budgetByCategory.filter((c) => c.value > 0)}
-                cx="50%"
-                cy="50%"
-                innerRadius={55}
-                outerRadius={90}
-                paddingAngle={3}
-                dataKey="value"
-                stroke="none"
-              >
-                {budgetByCategory.filter((c) => c.value > 0).map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip
-                contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
-                formatter={(value: number) => [formatCurrency(value)]}
-              />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-            </PieChart>
-          </ResponsiveContainer>
+          {budgetByCategory.some((c) => c.value > 0) ? (
+            <ResponsiveContainer width="100%" height={240}>
+              <PieChart>
+                <Pie
+                  data={budgetByCategory.filter((c) => c.value > 0)}
+                  cx="50%" cy="50%"
+                  innerRadius={55} outerRadius={90}
+                  paddingAngle={3} dataKey="value" stroke="none"
+                >
+                  {budgetByCategory.filter((c) => c.value > 0).map((entry, i) => (
+                    <Cell key={i} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
+                  formatter={(value: number) => [formatCurrency(value)]}
+                />
+                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="flex items-center justify-center h-[240px] text-muted-foreground text-sm">
+              <div className="text-center">
+                <DollarSign className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p>Nenhum lançamento registrado</p>
+                <p className="text-xs mt-1">Adicione entradas no Orçamento para ver o gráfico</p>
+              </div>
+            </div>
+          )}
         </motion.div>
 
         {/* Team remuneration — bar chart */}
