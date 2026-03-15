@@ -336,20 +336,22 @@
 
   /* ── Input — soft, inset feel ── */
   .ios-input {
-    background: rgba(120, 120, 128, 0.06);
-    border: 1px solid rgba(120, 120, 128, 0.08);
+    background: hsl(var(--muted) / 0.5);
+    border: 1px solid hsl(var(--border) / 0.5);
     border-radius: var(--ios-radius-sm);
     transition: all 0.2s ease;
     outline: none;
+    color: hsl(var(--foreground));
   }
 
   /* Global rounded selects */
   select {
     border-radius: var(--ios-radius-sm) !important;
+    color: hsl(var(--foreground));
   }
 
   .ios-input:focus {
-    background: rgba(120, 120, 128, 0.1);
+    background: hsl(var(--muted) / 0.7);
     border-color: hsl(var(--ios-blue) / 0.35);
     box-shadow: 0 0 0 4px hsl(var(--ios-blue) / 0.1);
   }
