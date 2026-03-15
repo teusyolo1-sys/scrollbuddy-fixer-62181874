@@ -686,7 +686,7 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
                       />
                       {deleteError && <p className="text-xs text-destructive">{deleteError}</p>}
                       <div className="flex gap-2">
-                        <button onClick={() => { setDeleteStep("idle"); setPassword(""); setDeleteError(""); }} className="flex-1 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-secondary/50 transition-colors">
+                        <button onClick={() => { setDeleteStep("idle"); setPassword(""); setDeleteError(""); }} className="flex-1 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-sm font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-colors">
                           CANCELAR
                         </button>
                         <button
