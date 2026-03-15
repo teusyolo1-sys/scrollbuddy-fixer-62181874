@@ -2,23 +2,25 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette } from "lucide-react";
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis, ScatterChart, Scatter,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ComposedChart,
 } from "recharts";
 import {
   ContextMenu,
   ContextMenuTrigger,
   ContextMenuContent,
-  ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubTrigger,
   ContextMenuSubContent,
+  ContextMenuItem,
 } from "@/components/ui/context-menu";
 import { useClientMetrics, METRIC_CONFIG, METRIC_TYPES, type MetricType } from "@/hooks/useClientMetrics";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { CHART_STYLES, ChartStyleMenuItem, type ChartStyle } from "./ChartStylePicker";
 
 const ICONS: Record<MetricType, typeof TrendingUp> = {
   seguidores: Users,
@@ -27,14 +29,6 @@ const ICONS: Record<MetricType, typeof TrendingUp> = {
   faturamento: TrendingUp,
   leads: Eye,
   alcance: BarChart3,
-};
-
-type ChartStyle = "area" | "bar" | "line";
-
-const CHART_STYLE_LABELS: Record<ChartStyle, string> = {
-  area: "📈 Área",
-  bar: "📊 Barras",
-  line: "📉 Linha",
 };
 
 /* ── Color Palettes ── */
@@ -54,7 +48,6 @@ const COLOR_PALETTES: ColorPalette[] = [
   { name: "Monocromático", colors: ["#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1"] },
 ];
 
-/* Palette preview swatch row */
 function PaletteSwatches({ colors }: { colors: string[] }) {
   return (
     <div className="flex gap-0.5">
@@ -86,11 +79,7 @@ function IosDropdown({ value, onChange, options }: {
 
   return (
     <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2"
-      >
+      <button type="button" onClick={() => setOpen(!open)} className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           {selected?.color && <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selected.color }} />}
           <span className="text-foreground">{selected?.label || "Selecionar"}</span>
@@ -127,7 +116,9 @@ function IosDropdown({ value, onChange, options }: {
   );
 }
 
-/* ── Chart renderer ── */
+/* ── Chart renderer supporting all styles ── */
+const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4"];
+
 function ChartByStyle({ style, data, color, type }: {
   style: ChartStyle;
   data: { name: string; value: number }[];
@@ -140,44 +131,293 @@ function ChartByStyle({ style, data, color, type }: {
   const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))" };
   const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
 
-  return (
-    <ResponsiveContainer width="100%" height={160}>
-      {style === "area" ? (
-        <AreaChart data={data}>
-          <defs>
-            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-              <stop offset="95%" stopColor={color} stopOpacity={0} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-          <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-          <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
-          <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
-          <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} />
-        </AreaChart>
-      ) : style === "bar" ? (
-        <BarChart data={data} barSize={16}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-          <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-          <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
-          <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
-          <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
-        </BarChart>
-      ) : (
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-          <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-          <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
-          <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
-          <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ r: 3, fill: color }} activeDot={{ r: 5 }} />
-        </LineChart>
-      )}
-    </ResponsiveContainer>
-  );
+  // Prepare cumulative data for pareto
+  const paretoData = useMemo(() => {
+    const sorted = [...data].sort((a, b) => b.value - a.value);
+    const total = sorted.reduce((s, d) => s + d.value, 0);
+    let cum = 0;
+    return sorted.map((d) => {
+      cum += d.value;
+      return { ...d, cum: total > 0 ? parseFloat(((cum / total) * 100).toFixed(1)) : 0 };
+    });
+  }, [data]);
+
+  switch (style) {
+    case "line":
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+            <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ r: 3, fill: color }} activeDot={{ r: 5 }} />
+          </LineChart>
+        </ResponsiveContainer>
+      );
+
+    case "area":
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <AreaChart data={data}>
+            <defs>
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                <stop offset="95%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+            <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} />
+          </AreaChart>
+        </ResponsiveContainer>
+      );
+
+    case "bar":
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <BarChart data={data} layout="vertical" barSize={14}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
+            <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+            <Bar dataKey="value" fill={color} radius={[0, 4, 4, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+
+    case "column":
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <BarChart data={data} barSize={16}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+            <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ResponsiveContainer>
+      );
+
+    case "pie":
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <PieChart>
+            <Pie data={data} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius={30} outerRadius={60} strokeWidth={1} stroke="hsl(var(--card))">
+              {data.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+            </Pie>
+            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+          </PieChart>
+        </ResponsiveContainer>
+      );
+
+    case "radar": {
+      const radarData = data.map((d) => ({ subject: d.name, value: d.value }));
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <RadarChart data={radarData} cx="50%" cy="50%" outerRadius={55}>
+            <PolarGrid stroke="hsl(var(--border))" />
+            <PolarAngleAxis dataKey="subject" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} />
+            <Radar dataKey="value" stroke={color} fill={color} fillOpacity={0.25} strokeWidth={2} />
+            <Tooltip contentStyle={tooltipStyle} />
+          </RadarChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    case "scatter": {
+      const scatterData = data.map((d, i) => ({ x: i + 1, y: d.value, name: d.name }));
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <ScatterChart>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <XAxis type="number" dataKey="x" tick={tickStyle} axisLine={false} tickLine={false} />
+            <YAxis type="number" dataKey="y" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <Tooltip contentStyle={tooltipStyle} />
+            <Scatter data={scatterData} fill={color} />
+          </ScatterChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    case "bubble": {
+      const bubbleData = data.map((d, i) => ({ x: i + 1, y: d.value, z: d.value * 10, name: d.name }));
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <ScatterChart>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <XAxis type="number" dataKey="x" tick={tickStyle} axisLine={false} tickLine={false} />
+            <YAxis type="number" dataKey="y" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <Tooltip contentStyle={tooltipStyle} />
+            <Scatter data={bubbleData} fill={color} fillOpacity={0.5}>
+              {bubbleData.map((_, i) => <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />)}
+            </Scatter>
+          </ScatterChart>
+        </ResponsiveContainer>
+      );
+    }
+
+    case "funnel": {
+      const sorted = [...data].sort((a, b) => b.value - a.value);
+      const maxVal = sorted[0]?.value || 1;
+      return (
+        <div className="h-[160px] flex flex-col justify-center gap-1 px-2">
+          {sorted.map((d, i) => {
+            const widthPct = Math.max((d.value / maxVal) * 100, 10);
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-[9px] text-muted-foreground w-8 text-right truncate">{d.name}</span>
+                <div className="flex-1 h-5 rounded-md bg-secondary/20 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${widthPct}%` }}
+                    transition={{ delay: i * 0.08, duration: 0.5 }}
+                    className="h-full rounded-md"
+                    style={{ background: `linear-gradient(90deg, ${color}60, ${color})` }}
+                  />
+                </div>
+                <span className="text-[9px] font-bold" style={{ color }}>{d.value}</span>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    case "waterfall":
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <BarChart data={data} barSize={16}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+              {data.map((entry, i) => {
+                const prev = i > 0 ? data[i - 1].value : 0;
+                const isUp = entry.value >= prev;
+                return <Cell key={i} fill={isUp ? "#10b981" : "#ef4444"} />;
+              })}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      );
+
+    case "heatmap": {
+      const weeks = Math.min(data.length, 7);
+      const cellW = Math.floor(160 / weeks);
+      const maxV = Math.max(...data.map((d) => d.value), 1);
+      return (
+        <div className="h-[160px] flex items-center justify-center">
+          <svg width="100%" height={140} viewBox={`0 0 ${weeks * (cellW + 4)} 140`}>
+            {data.slice(0, weeks * 5).map((d, i) => {
+              const col = i % weeks;
+              const row = Math.floor(i / weeks);
+              const intensity = d.value / maxV;
+              const r = parseInt(color.slice(1, 3), 16);
+              const g = parseInt(color.slice(3, 5), 16);
+              const b = parseInt(color.slice(5, 7), 16);
+              return (
+                <rect
+                  key={i}
+                  x={col * (cellW + 4)}
+                  y={row * 28}
+                  width={cellW}
+                  height={24}
+                  rx={4}
+                  fill={`rgba(${r},${g},${b},${0.1 + intensity * 0.9})`}
+                />
+              );
+            })}
+          </svg>
+        </div>
+      );
+    }
+
+    case "pareto":
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <ComposedChart data={paretoData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
+            <YAxis yAxisId="left" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <YAxis yAxisId="right" orientation="right" tick={tickStyle} axisLine={false} tickLine={false} width={35} domain={[0, 100]} />
+            <Tooltip contentStyle={tooltipStyle} />
+            <Bar yAxisId="left" dataKey="value" fill={color} barSize={16} radius={[4, 4, 0, 0]} />
+            <Line yAxisId="right" type="monotone" dataKey="cum" stroke="#ef4444" strokeWidth={2} dot={{ r: 3 }} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      );
+
+    case "treemap": {
+      const maxV = Math.max(...data.map((d) => d.value), 1);
+      const totalArea = 160 * 280;
+      let cx = 0, cy = 0, rowH = 0;
+      const rects = data.map((d, i) => {
+        const area = (d.value / data.reduce((s, x) => s + x.value, 0)) * totalArea;
+        const w = Math.max(Math.sqrt(area * 1.6), 30);
+        const h = Math.max(area / w, 20);
+        if (cx + w > 280) { cx = 0; cy += rowH + 4; rowH = 0; }
+        const rect = { x: cx, y: cy, w, h, name: d.name, value: d.value, color: PIE_COLORS[i % PIE_COLORS.length] };
+        cx += w + 4;
+        rowH = Math.max(rowH, h);
+        return rect;
+      });
+      return (
+        <div className="h-[160px] overflow-hidden px-1">
+          <svg width="100%" height={160} viewBox={`0 0 280 160`}>
+            {rects.map((r, i) => (
+              <g key={i}>
+                <rect x={r.x} y={r.y} width={r.w} height={r.h} rx={4} fill={r.color} fillOpacity={0.75} />
+                <text x={r.x + 4} y={r.y + 14} fontSize={9} fill="white" fontWeight="bold">{r.name}</text>
+              </g>
+            ))}
+          </svg>
+        </div>
+      );
+    }
+
+    case "gantt": {
+      const maxV = Math.max(...data.map((d) => d.value), 1);
+      return (
+        <div className="h-[160px] flex flex-col justify-center gap-2 px-2">
+          {data.map((d, i) => {
+            const widthPct = (d.value / maxV) * 80;
+            const offset = (i * 5) % 20;
+            return (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-[9px] text-muted-foreground w-8 text-right truncate">{d.name}</span>
+                <div className="flex-1 relative h-4">
+                  <div className="absolute inset-0 bg-secondary/20 rounded-full" />
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${widthPct}%` }}
+                    transition={{ delay: i * 0.1, duration: 0.5 }}
+                    className="absolute h-full rounded-full"
+                    style={{ left: `${offset}%`, background: PIE_COLORS[i % PIE_COLORS.length] }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    default:
+      return (
+        <ResponsiveContainer width="100%" height={160}>
+          <LineChart data={data}>
+            <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} />
+          </LineChart>
+        </ResponsiveContainer>
+      );
+  }
 }
 
-/* ── Individual Metric Chart Card with Context Menu ── */
+/* ── Individual Metric Chart Card ── */
 function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange }: {
   type: MetricType;
   data: { name: string; value: number }[];
@@ -205,7 +445,6 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
           className="ios-card p-5 min-h-[280px] cursor-context-menu"
           style={{ overflow: "visible" }}
         >
-          {/* Header */}
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}15` }}>
@@ -239,20 +478,16 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
           </div>
         </motion.div>
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-56">
+      <ContextMenuContent className="w-56 max-h-[400px] overflow-y-auto">
         <ContextMenuLabel>Estilo do gráfico</ContextMenuLabel>
         <ContextMenuSeparator />
-        {(Object.keys(CHART_STYLE_LABELS) as ChartStyle[]).map((s) => (
-          <ContextMenuItem
-            key={s}
-            onClick={() => onStyleChange(s)}
-            className={chartStyle === s ? "bg-primary/10 text-primary font-semibold" : ""}
-          >
-            <span className="flex items-center gap-2">
-              {CHART_STYLE_LABELS[s]}
-              {chartStyle === s && <Check className="h-3.5 w-3.5 ml-auto" />}
-            </span>
-          </ContextMenuItem>
+        {CHART_STYLES.map((cfg) => (
+          <ChartStyleMenuItem
+            key={cfg.key}
+            config={cfg}
+            isActive={chartStyle === cfg.key}
+            onSelect={() => onStyleChange(cfg.key)}
+          />
         ))}
         <ContextMenuSeparator />
         <ContextMenuSub>
@@ -283,7 +518,7 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
   );
 }
 
-/* ── Funnel visualization with context menu ── */
+/* ── Funnel visualization ── */
 function ConversionFunnel({ data, colorOverrides, onApplyPalette }: {
   data: Record<MetricType, { name: string; value: number }[]>;
   colorOverrides: Record<string, string>;
@@ -300,7 +535,7 @@ function ConversionFunnel({ data, colorOverrides, onApplyPalette }: {
   const stepsWithData = funnelSteps.filter((s) => data[s.type]?.length > 0);
   if (stepsWithData.length < 2) return null;
 
-  const latestValues = stepsWithData.map((s, i) => {
+  const latestValues = stepsWithData.map((s) => {
     const vals = data[s.type];
     return {
       ...s,
@@ -333,7 +568,6 @@ function ConversionFunnel({ data, colorOverrides, onApplyPalette }: {
               const convRate = nextStep && step.value > 0
                 ? ((nextStep.value / step.value) * 100).toFixed(1)
                 : null;
-
               return (
                 <div key={step.type}>
                   <div className="flex items-center justify-between mb-1">
@@ -448,9 +682,7 @@ export default function AnalyticsCharts() {
   const activeTypes = METRIC_TYPES.filter((t) => perMetricData[t]?.length > 0);
 
   const getRelatedInfo = (type: MetricType): string | undefined => {
-    if (type === "conversao" && perMetricData.leads && perMetricData.vendas) {
-      return "⚡ Calculado automaticamente: Vendas ÷ Leads × 100";
-    }
+    if (type === "conversao" && perMetricData.leads && perMetricData.vendas) return "⚡ Calculado automaticamente: Vendas ÷ Leads × 100";
     if (type === "leads" && perMetricData.alcance) {
       const alcLast = perMetricData.alcance[perMetricData.alcance.length - 1]?.value ?? 0;
       const leadsLast = perMetricData.leads[perMetricData.leads.length - 1]?.value ?? 0;
@@ -483,7 +715,7 @@ export default function AnalyticsCharts() {
 
   const defaultStyles: Record<string, ChartStyle> = {
     seguidores: "area",
-    vendas: "bar",
+    vendas: "column",
     conversao: "line",
     faturamento: "area",
     leads: "bar",
@@ -516,27 +748,10 @@ export default function AnalyticsCharts() {
             className="ios-card p-4"
           >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <IosDropdown
-                value={formType}
-                onChange={(v) => setFormType(v as MetricType)}
-                options={dropdownOptions}
-              />
-              <input
-                type="number"
-                placeholder="Valor"
-                value={formValue}
-                onChange={(e) => setFormValue(e.target.value)}
-                className="ios-input px-3 py-2 text-sm"
-              />
-              <input
-                type="date"
-                value={formDate}
-                onChange={(e) => setFormDate(e.target.value)}
-                className="ios-input px-3 py-2 text-sm"
-              />
-              <button onClick={handleAdd} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">
-                Adicionar
-              </button>
+              <IosDropdown value={formType} onChange={(v) => setFormType(v as MetricType)} options={dropdownOptions} />
+              <input type="number" placeholder="Valor" value={formValue} onChange={(e) => setFormValue(e.target.value)} className="ios-input px-3 py-2 text-sm" />
+              <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="ios-input px-3 py-2 text-sm" />
+              <button onClick={handleAdd} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">Adicionar</button>
             </div>
           </motion.div>
         )}
