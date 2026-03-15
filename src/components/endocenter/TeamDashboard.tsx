@@ -1,5 +1,5 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
-import { BarChart3, ChevronDown, ChevronUp, Clock3, DollarSign, Target, TrendingUp, User } from "lucide-react";
+import { BarChart3, ChevronDown, ChevronUp, Clock3, DollarSign, Target, TrendingUp, User, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
 
@@ -135,16 +135,8 @@ function MonthYearPicker() {
 
 export default function TeamDashboard() {
   const { team, company, metricEntries } = useEndocenter();
-  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [selectedMember, setSelectedMember] = useState<typeof team[number] | null>(null);
   const [periodFilter, setPeriodFilter] = useState<MetricPeriod | "Todas">("Todas");
-
-  const toggleExpand = useCallback((id: string) => {
-    setExpandedIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 2) return [prev[1], id];
-      return [...prev, id];
-    });
-  }, []);
 
   const totalRemuneration = useMemo(() => team.reduce((sum, m) => sum + m.remuneration, 0), [team]);
   const totalHours = useMemo(() => team.reduce((sum, m) => sum + m.hours, 0), [team]);
@@ -258,48 +250,28 @@ export default function TeamDashboard() {
         </div>
       </div>
 
-      {/* Team members — dynamic layout based on expanded count */}
+      {/* Team members */}
       <div>
         <h3 className="text-xl font-bold text-foreground mb-4">Composição da equipe</h3>
-
-        {/* Expanded cards row */}
-        {expandedIds.length > 0 && (
-          <div className={`grid gap-4 mb-4 ${expandedIds.length === 2 ? "md:grid-cols-2" : "grid-cols-1"} items-start`}>
-            {team
-              .filter((m) => expandedIds.includes(m.id))
-              .map((member, i) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  index={i}
-                  isExpanded
-                  onToggle={toggleExpand}
-                />
-              ))}
-          </div>
-        )}
-
-        {/* Collapsed cards row */}
-        {(() => {
-          const collapsed = team.filter((m) => !expandedIds.includes(m.id));
-          if (collapsed.length === 0) return null;
-          // 0 expanded → 2 cols, 1 expanded → 3 cols for remaining 3, 2 expanded → 2 cols for remaining 2
-          const cols = expandedIds.length === 1 ? "md:grid-cols-3" : "md:grid-cols-2";
-          return (
-            <div className={`grid grid-cols-1 ${cols} gap-4 items-start`}>
-              {collapsed.map((member, i) => (
-                <MemberCard
-                  key={member.id}
-                  member={member}
-                  index={i}
-                  isExpanded={false}
-                  onToggle={toggleExpand}
-                />
-              ))}
-            </div>
-          );
-        })()}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+          {team.map((member, i) => (
+            <MemberCard
+              key={member.id}
+              member={member}
+              index={i}
+              isExpanded={false}
+              onToggle={() => setSelectedMember(member)}
+            />
+          ))}
+        </div>
       </div>
+
+      {/* Profile Modal */}
+      <AnimatePresence>
+        {selectedMember && (
+          <ProfileModal member={selectedMember} onClose={() => setSelectedMember(null)} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -325,7 +297,6 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
       className="ios-card overflow-hidden cursor-pointer"
       onClick={() => onToggle(member.id)}
     >
-      {/* Header */}
       <div className="p-5" style={{ borderLeft: `4px solid ${member.color}` }}>
         <div className="flex items-center gap-3.5">
           {member.photoUrl ? (
@@ -348,7 +319,6 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
           </span>
         </div>
 
-        {/* Stats */}
         <div className="grid grid-cols-3 gap-2.5 mt-4">
           {[
             { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}`, sub: "/ mês" },
@@ -362,88 +332,120 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
             </div>
           ))}
         </div>
-
-        {/* Toggle button — fluid morph */}
-        <motion.button
-          whileTap={{ scale: 0.94 }}
-          whileHover={{ scale: 1.02 }}
-          transition={bouncy}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggle(member.id);
-          }}
-          className="w-full mt-4 py-2.5 px-4 text-xs font-semibold flex items-center justify-between rounded-2xl transition-colors"
-          style={{
-            color: member.color,
-            border: `1.5px solid ${member.color}25`,
-            background: `${member.color}08`,
-          }}
-        >
-          {isExpanded ? "Ocultar detalhes" : "Ver responsabilidades e KPIs"}
-          <motion.span
-            animate={{ rotate: isExpanded ? 180 : 0 }}
-            transition={{ ...bouncy }}
-          >
-            <ChevronDown className="h-3.5 w-3.5" />
-          </motion.span>
-        </motion.button>
       </div>
+    </motion.div>
+  );
+}
 
-      {/* Expanded detail */}
-      <AnimatePresence>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ type: "spring", damping: 28, stiffness: 340, mass: 0.5 }}
-            className="overflow-hidden"
-            style={{ willChange: "height, opacity" }}
-          >
-            <div className="px-5 pb-5 pt-3 space-y-4 border-t border-border/30">
-              <div>
-                <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Especialidade</div>
-                <p className="text-sm text-foreground mt-1">{member.specialty || member.role}</p>
-              </div>
+/* ── Profile Modal ── */
+function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void }) {
+  const hourlyRate = member.hours > 0 ? member.remuneration / member.hours : 0;
 
-              <div>
-                <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Principais tarefas</div>
-                <ul className="mt-1.5 space-y-1.5">
-                  {member.tasks.map((task, ti) => (
-                    <li key={`${member.id}-task-${ti}`} className="text-sm text-foreground flex items-start gap-2">
-                      <span className="mt-1.5 h-[6px] w-[6px] rounded-full shrink-0" style={{ backgroundColor: member.color }} />
-                      {task}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 30, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 30, scale: 0.95 }}
+        transition={{ type: "spring", damping: 28, stiffness: 380 }}
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-lg bg-card border border-border/50 overflow-hidden"
+        style={{ borderRadius: "var(--ios-radius-xl)", boxShadow: "var(--ios-shadow-float)" }}
+      >
+        {/* Header with color band */}
+        <div className="relative h-24 flex items-end px-6 pb-4" style={{ background: `linear-gradient(135deg, ${member.color}, ${member.color}AA)` }}>
+          <button onClick={onClose} className="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors">
+            <X className="h-4 w-4" />
+          </button>
+        </div>
 
-              <div>
-                <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">KPIs</div>
-                <ul className="mt-1.5 space-y-1.5">
-                  {member.kpis.map((kpi, ki) => (
-                    <li key={`${member.id}-kpi-${ki}`} className="text-sm text-foreground flex items-center gap-2">
-                      <Target className="h-3.5 w-3.5 shrink-0" style={{ color: member.color }} />
-                      {kpi}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-secondary/30 border border-border/30">
-                <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase">Case do membro</div>
-                <p className="text-sm text-foreground mt-1">
-                  {member.caseNotes || "Sem case registrado. Edite no Lobby de Gestão (⚙)."}
-                </p>
-              </div>
-
-              <p className="text-[11px] text-muted-foreground">
-                Cálculo: R$ {member.remuneration.toLocaleString("pt-BR")} ÷ {member.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora
-              </p>
+        {/* Avatar overlapping */}
+        <div className="relative px-6 -mt-10">
+          {member.photoUrl ? (
+            <img src={member.photoUrl} alt={member.name} className="h-20 w-20 rounded-3xl object-cover border-4 border-card shadow-lg" />
+          ) : (
+            <div className="h-20 w-20 rounded-3xl border-4 border-card shadow-lg flex items-center justify-center" style={{ background: `${member.color}20` }}>
+              <User className="h-8 w-8" style={{ color: member.color }} />
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </div>
+
+        {/* Info */}
+        <div className="px-6 pt-3 pb-6 space-y-5">
+          <div>
+            <h2 className="text-xl font-extrabold text-foreground">{member.name}</h2>
+            <p className="text-sm font-semibold" style={{ color: member.color }}>{member.role}</p>
+            <span className={`ios-badge mt-2 inline-block ${
+              member.status === "Ativo" ? "ios-status-active" : member.status === "Férias" ? "ios-status-warning" : "ios-status-danger"
+            }`}>{member.status}</span>
+          </div>
+
+          {/* Stats */}
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}` },
+              { label: "Carga Horária", value: `${member.hours}h/mês` },
+              { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}` },
+            ].map((s) => (
+              <div key={s.label} className="p-3 text-center rounded-2xl bg-secondary/40">
+                <div className="text-[10px] font-medium text-muted-foreground">{s.label}</div>
+                <div className="text-sm font-bold text-foreground mt-0.5">{s.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Specialty */}
+          <div>
+            <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">Especialidade</div>
+            <p className="text-sm text-foreground">{member.specialty || member.role}</p>
+          </div>
+
+          {/* Tasks */}
+          <div>
+            <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">Principais tarefas</div>
+            <ul className="space-y-1.5">
+              {member.tasks.map((task, ti) => (
+                <li key={ti} className="text-sm text-foreground flex items-start gap-2">
+                  <span className="mt-1.5 h-[6px] w-[6px] rounded-full shrink-0" style={{ backgroundColor: member.color }} />
+                  {task}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* KPIs */}
+          <div>
+            <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">KPIs</div>
+            <ul className="space-y-1.5">
+              {member.kpis.map((kpi, ki) => (
+                <li key={ki} className="text-sm text-foreground flex items-center gap-2">
+                  <Target className="h-3.5 w-3.5 shrink-0" style={{ color: member.color }} />
+                  {kpi}
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Case */}
+          {member.caseNotes && (
+            <div className="p-4 rounded-2xl bg-secondary/30 border border-border/30">
+              <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1">Case</div>
+              <p className="text-sm text-foreground">{member.caseNotes}</p>
+            </div>
+          )}
+
+          <p className="text-[11px] text-muted-foreground text-center">
+            R$ {member.remuneration.toLocaleString("pt-BR")} ÷ {member.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora
+          </p>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
