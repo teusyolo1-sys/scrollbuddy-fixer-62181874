@@ -644,6 +644,76 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
               <button onClick={handleSave} className="w-full py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold">
                 Salvar alterações
               </button>
+
+              {/* Delete member */}
+              {isAdmin && onDelete && (
+                <div className="pt-2 space-y-3">
+                  {deleteStep === "idle" && (
+                    <button
+                      onClick={() => setDeleteStep("confirm")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-destructive/30 text-destructive text-sm font-semibold hover:bg-destructive/10 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Remover membro
+                    </button>
+                  )}
+
+                  {deleteStep === "confirm" && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl border border-destructive/30 bg-destructive/5 space-y-3">
+                      <p className="text-sm text-destructive font-semibold">Tem certeza que deseja remover {member.name}?</p>
+                      <div className="flex gap-2">
+                        <button onClick={() => setDeleteStep("idle")} className="flex-1 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-secondary/50 transition-colors">
+                          CANCELAR
+                        </button>
+                        <button onClick={() => setDeleteStep("password")} className="flex-1 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-colors">
+                          CONFIRMAR
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {deleteStep === "password" && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl border border-destructive/30 bg-destructive/5 space-y-3">
+                      <p className="text-sm text-foreground font-semibold">Digite sua senha para confirmar:</p>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setDeleteError(""); }}
+                        className="ios-input w-full px-3 py-2 text-sm"
+                        placeholder="Senha da conta admin"
+                        autoFocus
+                      />
+                      {deleteError && <p className="text-xs text-destructive">{deleteError}</p>}
+                      <div className="flex gap-2">
+                        <button onClick={() => { setDeleteStep("idle"); setPassword(""); setDeleteError(""); }} className="flex-1 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-secondary/50 transition-colors">
+                          CANCELAR
+                        </button>
+                        <button
+                          disabled={deleting || !password}
+                          onClick={async () => {
+                            setDeleting(true);
+                            setDeleteError("");
+                            try {
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (!user?.email) { setDeleteError("Erro ao verificar usuário."); setDeleting(false); return; }
+                              const { error } = await supabase.auth.signInWithPassword({ email: user.email, password });
+                              if (error) { setDeleteError("Senha incorreta."); setDeleting(false); return; }
+                              onDelete(member.id);
+                              onClose();
+                            } catch {
+                              setDeleteError("Erro inesperado.");
+                            }
+                            setDeleting(false);
+                          }}
+                          className="flex-1 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                        >
+                          {deleting ? "Verificando..." : "CONFIRMAR"}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             /* ── View Mode ── */
