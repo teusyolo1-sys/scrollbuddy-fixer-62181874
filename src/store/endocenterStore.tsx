@@ -253,6 +253,13 @@ const createRespItem = (task: string, critical: boolean): ResponsibilityItem => 
   cover: "",
 });
 
+const hydrateRespItem = (item: any): ResponsibilityItem => ({
+  description: "", labels: [], dueDate: "", priority: item.critical ? "high" : "medium",
+  assignees: [], checklist: [], attachments: [], timerSeconds: 0, timerRunning: false,
+  createdAt: new Date().toISOString(), cover: "",
+  ...item,
+});
+
 const withColorPalette = (member: TeamMember): TeamMember => ({
   ...member,
   colorLight: `${member.color}1A`,
