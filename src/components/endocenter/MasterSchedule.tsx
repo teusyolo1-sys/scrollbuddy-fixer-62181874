@@ -160,6 +160,7 @@ export default function MasterSchedule() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {scheduleWeeks.map((item) => {
           const selected = item.id === week.id;
+          const isCurrent = item.id === currentWeekId;
           return (
             <motion.button
               key={item.id}
@@ -184,9 +185,18 @@ export default function MasterSchedule() {
                       border: `1px solid ${item.themeColor}`,
                       boxShadow: `0 6px 24px ${item.themeColor}40`,
                     }
+                  : isCurrent
+                  ? { borderColor: item.themeColor, boxShadow: `0 0 0 2px ${item.themeColor}30` }
                   : undefined
               }
             >
+              {isCurrent && (
+                <span className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                  selected ? "bg-white/25 text-white" : "bg-primary/10 text-primary"
+                }`}>
+                  HOJE
+                </span>
+              )}
               <div className={`text-xs font-medium ${selected ? "text-white/70" : "text-muted-foreground"}`}>
                 Dias {item.dates}
               </div>
