@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import {
   Plus, Trash2, ChevronDown, Loader2,
   ArrowUpRight, ArrowDownRight, TrendingUp,
-  BarChart3, PieChart, FileText, CalendarDays,
+  FileText, CalendarDays,
   ChevronLeft, ChevronRight, X, Pencil, Maximize2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,11 +12,14 @@ import {
   PieChart as RPieChart, Pie, Cell,
   AreaChart, Area, LineChart, Line,
   RadarChart, Radar, PolarGrid, PolarAngleAxis,
-  ComposedChart, XAxis, YAxis, Tooltip
+  ComposedChart, XAxis, YAxis
 } from "recharts";
 import { CHART_STYLES, type ChartStyle, ChartStyleMenuItem } from "./ChartStylePicker";
 import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
 import { useAuth } from "@/hooks/useAuth";
+import { CardContextMenu } from "./budget/CardContextMenu";
+import { FullscreenPanel } from "./budget/FullscreenPanel";
+import { useCardMenu } from "./budget/useCardMenu";
 
 const categoryConfig: Record<BudgetCategory, { label: string; color: string; icon: "up" | "down" }> = {
   investimento: { label: "Investimentos", color: "#3B82F6", icon: "down" },
@@ -34,87 +37,8 @@ const formatCurrency = (value: number) =>
 /* ── Glass card base ── */
 const gc = "rounded-2xl border border-border/60 shadow-[var(--ios-shadow)] bg-card/70 backdrop-blur-xl";
 
-/* ── Card Context Menu ── */
-function CardContextMenu({ pos, onClose, onRename, onFullscreen }: {
-  pos: { x: number; y: number }; onClose: () => void;
-  onRename: () => void; onFullscreen: () => void;
-}) {
-  return createPortal(
-    <>
-      <div className="fixed inset-0 z-[9998]" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }} />
-      <motion.div
-        initial={{ opacity: 0, scale: 0.92 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", damping: 22, stiffness: 400 }}
-        className="fixed z-[9999] bg-card border border-border/60 rounded-xl shadow-xl py-1.5 px-1 min-w-[180px] backdrop-blur-xl"
-        style={{
-          left: Math.min(pos.x, window.innerWidth - 200),
-          top: Math.min(pos.y, window.innerHeight - 120),
-        }}
-      >
-        <button onClick={() => { onRename(); onClose(); }}
-          className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent/40 transition-colors text-foreground">
-          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>Renomear</span>
-        </button>
-        <button onClick={() => { onFullscreen(); onClose(); }}
-          className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent/40 transition-colors text-foreground">
-          <Maximize2 className="h-3.5 w-3.5 text-muted-foreground" />
-          <span>Abrir em tela cheia</span>
-        </button>
-      </motion.div>
-    </>,
-    document.body
-  );
-}
 
-/* ── Fullscreen Panel ── */
-function FullscreenPanel({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
-  return createPortal(
-    <AnimatePresence>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[9990] bg-background/80 backdrop-blur-xl flex flex-col"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
-          <h2 className="text-lg font-bold text-foreground">{title}</h2>
-          <motion.button whileTap={{ scale: 0.9 }} onClick={onClose}
-            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-accent/30 transition-colors">
-            <X className="h-4 w-4 text-muted-foreground" />
-          </motion.button>
-        </div>
-        {/* Content */}
-        <div className="flex-1 overflow-auto p-6">
-          {children}
-        </div>
-      </motion.div>
-    </AnimatePresence>,
-    document.body
-  );
-}
 
-/* ── useCardMenu hook ── */
-function useCardMenu() {
-  const [ctxPos, setCtxPos] = useState<{ x: number; y: number } | null>(null);
-  const [isRenaming, setIsRenaming] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setCtxPos({ x: e.clientX, y: e.clientY });
-  }, []);
-
-  return {
-    ctxPos, setCtxPos,
-    isRenaming, setIsRenaming,
-    isFullscreen, setIsFullscreen,
-    handleContextMenu,
-  };
-}
 
 /* ── Category Header (reusable) ── */
 function CatHeader({ config, count, total, onAdd, isExpanded, onToggle, customLabel, isRenaming, onRenameSubmit }: {
