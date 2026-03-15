@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { Camera, ChevronDown, FileText, Globe, MessageCircle, Plus, Settings, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type TaskStatus } from "@/store/endocenterStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const iconMap = {
   settings: Settings,
