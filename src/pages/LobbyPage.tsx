@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import { useAgencyWallet } from "@/hooks/useAgencyWallet";
 
 interface CompanyCard {
   id: string;
