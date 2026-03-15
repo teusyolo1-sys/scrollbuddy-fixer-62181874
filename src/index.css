@@ -83,24 +83,24 @@
   /* ── Dark Mode ── */
   .dark {
     --background: 228 18% 10%;
-    --foreground: 220 15% 92%;
+    --foreground: 220 15% 93%;
     --card: 228 18% 14%;
-    --card-foreground: 220 15% 92%;
+    --card-foreground: 220 15% 93%;
     --popover: 228 18% 14%;
-    --popover-foreground: 220 15% 92%;
-    --primary: 215 100% 58%;
+    --popover-foreground: 220 15% 93%;
+    --primary: 215 100% 60%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 228 14% 20%;
-    --secondary-foreground: 220 12% 75%;
-    --muted: 228 14% 18%;
-    --muted-foreground: 220 8% 56%;
-    --accent: 215 100% 58%;
+    --secondary: 228 14% 22%;
+    --secondary-foreground: 220 12% 82%;
+    --muted: 228 14% 19%;
+    --muted-foreground: 220 8% 65%;
+    --accent: 215 100% 60%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 72% 55%;
+    --destructive: 0 72% 58%;
     --destructive-foreground: 0 0% 100%;
-    --border: 228 12% 22%;
-    --input: 228 12% 22%;
-    --ring: 215 100% 58%;
+    --border: 228 12% 24%;
+    --input: 228 12% 24%;
+    --ring: 215 100% 60%;
 
     /* Dark glass — deep translucency with blur */
     --ios-glass-tint: rgba(30, 34, 48, 0.55);
