@@ -189,17 +189,11 @@
     box-shadow: var(--ios-shadow);
     border: 1px solid hsl(var(--border) / 0.5);
     border-radius: var(--ios-radius-lg);
-    isolation: isolate;
-    backface-visibility: hidden;
-    transform: translateZ(0);
-    transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                box-shadow 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
-                filter 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    transition: box-shadow 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   }
 
   .ios-card:hover {
-    box-shadow: var(--ios-shadow-xl);
-    transform: translateY(-1px);
+    box-shadow: var(--ios-shadow-lg);
   }
 
   .ios-card-interactive {
