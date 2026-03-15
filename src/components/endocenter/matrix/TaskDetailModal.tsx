@@ -192,11 +192,15 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
       >
         <motion.div
           initial={{ opacity: 0, y: 30, scale: 0.95 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
+          animate={{ 
+            opacity: 1, y: 0, scale: 1,
+            maxWidth: editingDescription ? "80rem" : "28rem",
+            height: editingDescription ? "85vh" : "min(85vh, 90vw * 16 / 9)",
+          }}
           exit={{ opacity: 0, y: 20, scale: 0.97 }}
-          transition={{ type: "spring", damping: 28, stiffness: 350 }}
+          transition={{ type: "spring", damping: 28, stiffness: 280 }}
           onClick={(e) => e.stopPropagation()}
-          className="w-full max-w-5xl h-[85vh] rounded-3xl bg-card border border-border/50 overflow-hidden flex flex-col"
+          className="w-full rounded-3xl bg-card border border-border/50 overflow-hidden flex flex-col"
           style={{ boxShadow: "0 24px 80px rgba(0,0,0,0.25)" }}
         >
           {/* Cover */}
