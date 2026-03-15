@@ -101,7 +101,7 @@ function DashboardContent() {
       </header>
 
       {/* Main content */}
-      <main className="relative z-10 max-w-7xl mx-auto px-5 sm:px-6 py-7">
+      <main className="relative max-w-7xl mx-auto px-5 sm:px-6 py-7">
         <motion.div
           key={activeTab}
           initial={{ opacity: 0, y: 8 }}
