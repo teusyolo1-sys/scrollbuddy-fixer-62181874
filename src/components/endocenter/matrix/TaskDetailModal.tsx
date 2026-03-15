@@ -45,6 +45,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
+  const editorRef = useRef<RichTextEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
   useEffect(() => {
