@@ -529,16 +529,9 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
 
               {/* Drag grip - only on hover */}
               <div
-                draggable
-                onDragStart={(e) => {
-                  setDraggingColIdx(index);
-                  setGlobalDraggingCursor();
-                  e.dataTransfer.effectAllowed = "move";
-                }}
-                onDragEnd={() => {
-                  setDraggingColIdx(null);
-                  setDragOverColIdx(null);
-                  clearGlobalDraggingCursor();
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  startColumnDrag(index);
                 }}
                 className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary hover:text-foreground"
                 title="Arrastar para reordenar"
