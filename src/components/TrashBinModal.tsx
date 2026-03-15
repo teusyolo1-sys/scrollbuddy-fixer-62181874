@@ -192,21 +192,26 @@ export default function TrashBinModal({ open, onClose }: Props) {
                       </div>
                     ) : (
                       <div className="flex items-center gap-1">
-                        <button
+                        <motion.button
                           onClick={() => handleRestore(item)}
                           disabled={deletingId === item.id}
+                          whileHover={{ scale: 1.15 }}
+                          whileTap={{ scale: 0.9, rotate: -180 }}
                           className="p-2 rounded-xl hover:bg-primary/10 text-primary transition-colors"
                           title="Recuperar item"
                         >
                           {deletingId === item.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
-                        </button>
-                        <button
+                        </motion.button>
+                        <motion.button
                           onClick={() => setConfirmId(item.id)}
+                          whileHover={{ scale: 1.15, rotate: [0, -8, 8, -8, 0] }}
+                          whileTap={{ scale: 0.85 }}
+                          transition={{ rotate: { duration: 0.4 } }}
                           className="p-2 rounded-xl hover:bg-destructive/10 text-destructive transition-colors"
                           title="Deletar permanentemente"
                         >
                           <Trash2 className="h-4 w-4" />
-                        </button>
+                        </motion.button>
                       </div>
                     )}
                   </motion.div>
