@@ -208,9 +208,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           {item.cover && (
             <div className="relative h-32 overflow-hidden group shrink-0">
               <img src={item.cover} alt="" className="w-full h-full object-cover" />
-              <button onClick={() => onUpdate({ cover: "" })} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <motion.button onClick={() => onUpdate({ cover: "" })} whileHover={{ scale: 1.15, rotate: 90 }} whileTap={{ scale: 0.9 }} transition={{ type: "spring", stiffness: 400, damping: 14 }} className="absolute top-3 right-3 w-7 h-7 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </motion.button>
             </div>
           )}
 
@@ -257,17 +257,28 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 )}
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <button onClick={() => setSidebarOpen(!sidebarOpen)}
+                <motion.button onClick={() => setSidebarOpen(!sidebarOpen)}
+                  whileHover={{ scale: 1.12, rotate: 30 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
                   className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${sidebarOpen ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
                   title="Propriedades">
                   <Settings2 className="h-4 w-4" />
-                </button>
-                <button onClick={() => setEditingDescription(false)} className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors" title="Minimizar">
+                </motion.button>
+                <motion.button onClick={() => setEditingDescription(false)}
+                  whileHover={{ scale: 1.12, y: 2 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                  className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors" title="Minimizar">
                   <ChevronDown className="h-4 w-4" />
-                </button>
-                <button onClick={onClose} className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                </motion.button>
+                <motion.button onClick={onClose}
+                  whileHover={{ scale: 1.12, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                  className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
                   <X className="h-4 w-4" />
-                </button>
+                </motion.button>
               </div>
             </div>
           )}
@@ -281,9 +292,13 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 </span>
                 <h2 className="text-sm font-bold text-foreground truncate">{item.task}</h2>
               </div>
-              <button onClick={onClose} className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
+              <motion.button onClick={onClose}
+                whileHover={{ scale: 1.12, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </motion.button>
             </div>
           )}
 
