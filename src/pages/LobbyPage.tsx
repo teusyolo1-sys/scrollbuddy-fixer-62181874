@@ -111,14 +111,43 @@ export default function LobbyPage() {
         />
 
         <div className="relative max-w-5xl mx-auto px-6 pt-16 pb-8">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", damping: 25 }}>
-            <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground">
-              Seus projetos
-            </h1>
-            <p className="text-lg mt-2 text-muted-foreground max-w-md">
-              Gerencie equipes, métricas e operações de marketing em um só lugar.
-            </p>
-          </motion.div>
+          <div className="flex items-start justify-between">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", damping: 25 }}>
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground">
+                Seus projetos
+              </h1>
+              <p className="text-lg mt-2 text-muted-foreground max-w-md">
+                Gerencie equipes, métricas e operações de marketing em um só lugar.
+              </p>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
+              {!authLoading && (
+                user ? (
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground hidden sm:inline">
+                      {user.user_metadata?.display_name || user.email?.split("@")[0]}
+                    </span>
+                    <button
+                      onClick={async () => { await signOut(); }}
+                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sair
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => navigate("/auth")}
+                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    <LogIn className="h-4 w-4" />
+                    Entrar
+                  </button>
+                )
+              )}
+            </motion.div>
+          </div>
         </div>
       </div>
 
