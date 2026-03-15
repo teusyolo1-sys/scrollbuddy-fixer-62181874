@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgencyWallet } from "@/hooks/useAgencyWallet";
+import TrashBinModal from "@/components/TrashBinModal";
 
 interface CompanyCard {
   id: string;
