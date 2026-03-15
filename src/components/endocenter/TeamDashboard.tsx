@@ -267,6 +267,9 @@ export default function TeamDashboard() {
       </div>
 
       {/* Metrics — Fluid morph segmented control */}
+      {isAdmin && <AnalyticsCharts />}
+
+      {/* Metrics registered */}
       <div className="ios-card p-5 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <h3 className="text-base font-bold text-foreground">Métricas registradas</h3>
