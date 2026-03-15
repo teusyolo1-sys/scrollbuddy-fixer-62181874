@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useTabPermissions, TAB_KEYS, TAB_LABELS, type TabKey } from '@/hooks/useTabPermissions';
 import { motion } from 'framer-motion';
-import { Shield, Users, Check, X, Loader2, ArrowLeft, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Shield, Users, Check, X, Loader2, ArrowLeft, ToggleLeft, ToggleRight, Building2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -14,13 +14,44 @@ interface UserProfile {
   display_name: string | null;
 }
 
+interface CompanyPerm {
+  user_id: string;
+  company_id: string;
+  granted: boolean;
+}
+
+const COMPANIES_KEY = "endocenter_companies";
+const STORAGE_KEY = "endocenter_settings";
+
+function loadCompanyList(): { id: string; name: string }[] {
+  try {
+    const raw = localStorage.getItem(COMPANIES_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      return parsed.map((c: any) => ({ id: c.id, name: c.name }));
+    }
+  } catch {}
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const data = JSON.parse(raw);
+      return [{ id: "default", name: data.company?.name || "Endocenter" }];
+    }
+  } catch {}
+  return [{ id: "default", name: "Endocenter" }];
+}
+
 export default function PermissionsPage() {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
   const { permissions, loading: permLoading, setPermission, setAllPermissions } = useTabPermissions();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [companyPerms, setCompanyPerms] = useState<CompanyPerm[]>([]);
+  const [loadingCompanyPerms, setLoadingCompanyPerms] = useState(true);
   const navigate = useNavigate();
+
+  const companies = loadCompanyList();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -30,6 +61,37 @@ export default function PermissionsPage() {
     };
     if (user) fetchUsers();
   }, [user]);
+
+  useEffect(() => {
+    const fetchCompanyPerms = async () => {
+      const { data } = await supabase.from('company_permissions').select('user_id, company_id, granted') as { data: CompanyPerm[] | null };
+      setCompanyPerms(data || []);
+      setLoadingCompanyPerms(false);
+    };
+    if (user) fetchCompanyPerms();
+  }, [user]);
+
+  const getCompanyPerm = useCallback((userId: string, companyId: string) => {
+    return companyPerms.find(p => p.user_id === userId && p.company_id === companyId)?.granted ?? false;
+  }, [companyPerms]);
+
+  const toggleCompanyPerm = async (userId: string, companyId: string, current: boolean) => {
+    if (current) {
+      // Revoke
+      await supabase.from('company_permissions').delete().match({ user_id: userId, company_id: companyId } as any);
+      setCompanyPerms(prev => prev.filter(p => !(p.user_id === userId && p.company_id === companyId)));
+    } else {
+      // Grant
+      await supabase.from('company_permissions').upsert({
+        user_id: userId,
+        company_id: companyId,
+        granted: true,
+        granted_by: user?.id,
+      } as any, { onConflict: 'user_id,company_id' });
+      setCompanyPerms(prev => [...prev.filter(p => !(p.user_id === userId && p.company_id === companyId)), { user_id: userId, company_id: companyId, granted: true }]);
+    }
+    toast.success(!current ? 'Acesso à empresa concedido' : 'Acesso à empresa revogado');
+  };
 
   if (roleLoading || permLoading) {
     return (
@@ -84,7 +146,7 @@ export default function PermissionsPage() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-5 sm:px-6 py-8">
+      <main className="max-w-5xl mx-auto px-5 sm:px-6 py-8 space-y-10">
         {loadingUsers ? (
           <div className="flex justify-center py-20">
             <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -96,87 +158,150 @@ export default function PermissionsPage() {
             <p className="text-xs text-muted-foreground mt-1">Quando outros usuários se registrarem, eles aparecerão aqui.</p>
           </div>
         ) : (
-          <div className="space-y-6">
-            {/* Legend */}
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500/40" />
-                Acesso liberado
+          <>
+            {/* ── Tab Permissions ── */}
+            <div className="space-y-4">
+              <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" /> Permissões de abas
+              </h2>
+              <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-emerald-500/20 border border-emerald-500/40" />
+                  Acesso liberado
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-sm bg-muted border border-border" />
+                  Sem acesso
+                </div>
               </div>
-              <div className="flex items-center gap-1.5">
-                <div className="w-3 h-3 rounded-sm bg-muted border border-border" />
-                Sem acesso
+
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-sm font-semibold text-foreground min-w-[200px]">Usuário</th>
+                      {TAB_KEYS.map(key => (
+                        <th key={key} className="text-center py-3 px-2 text-xs font-medium text-muted-foreground min-w-[90px]">
+                          {TAB_LABELS[key]}
+                        </th>
+                      ))}
+                      <th className="text-center py-3 px-2 text-xs font-medium text-muted-foreground min-w-[80px]">Todos</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((u, i) => {
+                      const allGranted = getUserAllGranted(u.id);
+                      return (
+                        <motion.tr
+                          key={u.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className="border-b border-border/50 hover:bg-muted/20 transition-colors"
+                        >
+                          <td className="py-3 px-4">
+                            <p className="text-sm font-medium text-foreground">{u.display_name || 'Sem nome'}</p>
+                            <p className="text-xs text-muted-foreground">{u.email}</p>
+                          </td>
+                          {TAB_KEYS.map(tabKey => {
+                            const granted = getUserPerm(u.id, tabKey);
+                            return (
+                              <td key={tabKey} className="text-center py-3 px-2">
+                                <motion.button
+                                  whileTap={{ scale: 0.85 }}
+                                  onClick={() => handleToggle(u.id, tabKey, granted)}
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-all ${
+                                    granted
+                                      ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                                      : 'bg-muted/30 text-muted-foreground border border-border/50 hover:bg-muted/50'
+                                  }`}
+                                >
+                                  {granted ? <Check className="h-4 w-4" /> : <X className="h-3.5 w-3.5" />}
+                                </motion.button>
+                              </td>
+                            );
+                          })}
+                          <td className="text-center py-3 px-2">
+                            <motion.button
+                              whileTap={{ scale: 0.85 }}
+                              onClick={() => handleToggleAll(u.id)}
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-all ${
+                                allGranted
+                                  ? 'bg-primary/15 text-primary border border-primary/30'
+                                  : 'bg-muted/30 text-muted-foreground border border-border/50 hover:bg-muted/50'
+                              }`}
+                              title={allGranted ? 'Revogar todos' : 'Conceder todos'}
+                            >
+                              {allGranted ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
+                            </motion.button>
+                          </td>
+                        </motion.tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            {/* Users table */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="text-left py-3 px-4 text-sm font-semibold text-foreground min-w-[200px]">Usuário</th>
-                    {TAB_KEYS.map(key => (
-                      <th key={key} className="text-center py-3 px-2 text-xs font-medium text-muted-foreground min-w-[90px]">
-                        {TAB_LABELS[key]}
-                      </th>
-                    ))}
-                    <th className="text-center py-3 px-2 text-xs font-medium text-muted-foreground min-w-[80px]">Todos</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {users.map((u, i) => {
-                    const allGranted = getUserAllGranted(u.id);
-                    return (
-                      <motion.tr
-                        key={u.id}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.03 }}
-                        className="border-b border-border/50 hover:bg-muted/20 transition-colors"
-                      >
-                        <td className="py-3 px-4">
-                          <p className="text-sm font-medium text-foreground">{u.display_name || 'Sem nome'}</p>
-                          <p className="text-xs text-muted-foreground">{u.email}</p>
-                        </td>
-                        {TAB_KEYS.map(tabKey => {
-                          const granted = getUserPerm(u.id, tabKey);
-                          return (
-                            <td key={tabKey} className="text-center py-3 px-2">
-                              <motion.button
-                                whileTap={{ scale: 0.85 }}
-                                onClick={() => handleToggle(u.id, tabKey, granted)}
-                                className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-all ${
-                                  granted
-                                    ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
-                                    : 'bg-muted/30 text-muted-foreground border border-border/50 hover:bg-muted/50'
-                                }`}
-                              >
-                                {granted ? <Check className="h-4 w-4" /> : <X className="h-3.5 w-3.5" />}
-                              </motion.button>
-                            </td>
-                          );
-                        })}
-                        <td className="text-center py-3 px-2">
-                          <motion.button
-                            whileTap={{ scale: 0.85 }}
-                            onClick={() => handleToggleAll(u.id)}
-                            className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-all ${
-                              allGranted
-                                ? 'bg-primary/15 text-primary border border-primary/30'
-                                : 'bg-muted/30 text-muted-foreground border border-border/50 hover:bg-muted/50'
-                            }`}
-                            title={allGranted ? 'Revogar todos' : 'Conceder todos'}
-                          >
-                            {allGranted ? <ToggleRight className="h-4 w-4" /> : <ToggleLeft className="h-4 w-4" />}
-                          </motion.button>
-                        </td>
-                      </motion.tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            {/* ── Company Permissions ── */}
+            {companies.length > 0 && (
+              <div className="space-y-4">
+                <h2 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-primary" /> Acesso a empresas
+                </h2>
+                <p className="text-xs text-muted-foreground">Selecione quais empresas cada profissional poderá visualizar.</p>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-3 px-4 text-sm font-semibold text-foreground min-w-[200px]">Usuário</th>
+                        {companies.map(c => (
+                          <th key={c.id} className="text-center py-3 px-2 text-xs font-medium text-muted-foreground min-w-[100px]">
+                            {c.name}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u, i) => (
+                        <motion.tr
+                          key={u.id}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.03 }}
+                          className="border-b border-border/50 hover:bg-muted/20 transition-colors"
+                        >
+                          <td className="py-3 px-4">
+                            <p className="text-sm font-medium text-foreground">{u.display_name || 'Sem nome'}</p>
+                            <p className="text-xs text-muted-foreground">{u.email}</p>
+                          </td>
+                          {companies.map(c => {
+                            const granted = getCompanyPerm(u.id, c.id);
+                            return (
+                              <td key={c.id} className="text-center py-3 px-2">
+                                <motion.button
+                                  whileTap={{ scale: 0.85 }}
+                                  onClick={() => toggleCompanyPerm(u.id, c.id, granted)}
+                                  className={`w-8 h-8 rounded-lg flex items-center justify-center mx-auto transition-all ${
+                                    granted
+                                      ? 'bg-emerald-500/15 text-emerald-500 border border-emerald-500/30'
+                                      : 'bg-muted/30 text-muted-foreground border border-border/50 hover:bg-muted/50'
+                                  }`}
+                                >
+                                  {granted ? <Check className="h-4 w-4" /> : <X className="h-3.5 w-3.5" />}
+                                </motion.button>
+                              </td>
+                            );
+                          })}
+                        </motion.tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </main>
     </div>
