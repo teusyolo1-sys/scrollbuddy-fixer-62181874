@@ -336,9 +336,16 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     )}
                   </div>
                   <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/[0.03] transition-colors pointer-events-none flex items-center justify-center">
-                    <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-100 scale-90 text-xs font-semibold text-foreground/80 bg-card border border-border/50 px-4 py-2 shadow-lg"
-                      style={{ borderRadius: "var(--ios-radius-sm)", backdropFilter: "blur(12px)", boxShadow: "var(--ios-shadow)" }}>
-                      <Pencil className="h-3 w-3" /> Editar
+                    <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-100 scale-90 inline-flex items-center gap-1.5 text-xs font-semibold text-foreground/80 px-4 py-2.5"
+                      style={{
+                        borderRadius: "var(--ios-radius)",
+                        background: "hsla(var(--card), 0.75)",
+                        backdropFilter: "blur(20px) saturate(1.8)",
+                        WebkitBackdropFilter: "blur(20px) saturate(1.8)",
+                        border: "0.5px solid hsla(var(--border), 0.4)",
+                        boxShadow: "0 4px 24px rgba(0,0,0,0.12), 0 1px 4px rgba(0,0,0,0.08)",
+                      }}>
+                      <Pencil className="h-3.5 w-3.5 text-primary" /> Editar
                     </div>
                   </div>
                   <div className="absolute top-3 right-3 text-[9px] font-mono text-muted-foreground/30 bg-secondary/50 px-1.5 py-0.5" style={{ borderRadius: "6px" }}>
