@@ -133,7 +133,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
     >
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-accent/30 transition-colors"
       >
         <div className="flex items-center gap-3">
           <div
