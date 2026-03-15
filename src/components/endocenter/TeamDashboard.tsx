@@ -351,7 +351,19 @@ export default function TeamDashboard() {
 
       {/* Team members */}
       <div>
-        <h3 className="text-xl font-bold text-foreground mb-4">Composição da equipe</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-foreground">Composição da equipe</h3>
+          {isAdmin && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => { addMember(); }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+            </motion.button>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           {visibleTeam.map((member, i) => (
             <MemberCard
