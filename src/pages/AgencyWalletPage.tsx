@@ -467,7 +467,7 @@ export default function AgencyWalletPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); addInvoice(); }}
+                <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); addInvoice(); setInvoicesOpen(true); }}
                   className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-500">
                   <Plus className="h-3.5 w-3.5" />
                 </motion.button>
