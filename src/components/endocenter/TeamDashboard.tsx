@@ -57,7 +57,7 @@ export default function TeamDashboard() {
           <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Dashboard da equipe</h2>
           <p className="text-sm text-muted-foreground mt-0.5">Resumo financeiro, cases e métricas</p>
         </div>
-        <span className="ios-badge ios-status-info">{company.month}</span>
+        <MonthYearPicker />
       </div>
 
       {/* Summary metrics — Diaphragm bloom entrance */}
