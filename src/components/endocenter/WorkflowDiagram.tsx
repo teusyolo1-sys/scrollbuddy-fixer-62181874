@@ -11,6 +11,7 @@ type EditingSection = { stepId: string; section: "inputs" | "outputs" | "rules" 
 
 export default function WorkflowDiagram() {
   const { workflowSteps, updateWorkflowStep, addWorkflowStep, removeWorkflowStep } = useEndocenter();
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [editMode, setEditMode] = useState(false);
   const [editingSection, setEditingSection] = useState<EditingSection>(null);
   const [detailStep, setDetailStep] = useState<WorkflowStep | null>(null);
