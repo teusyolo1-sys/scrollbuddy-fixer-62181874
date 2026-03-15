@@ -505,7 +505,15 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
       }}
       onDragEnd={handleDragEnd}
     >
-      <div className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px]`}>
+      <div
+        className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px] relative`}
+        onContextMenu={(e) => {
+          if (!isAdmin) return;
+          e.preventDefault();
+          setContextMenu({ x: e.clientX, y: e.clientY });
+        }}
+        onClick={() => contextMenu && setContextMenu(null)}
+      >
         {columnData.map((col, index) => (
           <motion.div
             key={col.key}
@@ -537,17 +545,19 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
                 <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md shrink-0">{col.items.length}</span>
               </div>
 
-              {/* Drag grip - only on hover */}
-              <div
-                onMouseDown={(e) => {
-                  e.preventDefault();
-                  startColumnDrag(index, e.clientX, col.key);
-                }}
-                className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary hover:text-foreground"
-                title="Arrastar para reordenar"
-              >
-                <GripVertical className="h-3.5 w-3.5" />
-              </div>
+              {/* Drag grip - only on hover, admin only */}
+              {isAdmin && (
+                <div
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    startColumnDrag(index, e.clientX, col.key);
+                  }}
+                  className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  title="Arrastar para reordenar"
+                >
+                  <GripVertical className="h-3.5 w-3.5" />
+                </div>
+              )}
 
               {/* 3-dot menu with all actions */}
               <div className="relative" ref={menuCol === col.key ? menuRef : undefined}>
@@ -569,23 +579,27 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
                       <button onClick={() => { onAdd(); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
                         <Plus className="h-3 w-3" /> Nova tarefa
                       </button>
-                      <button onClick={() => startRename(col.key)} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
-                        <Pencil className="h-3 w-3" /> Renomear
-                      </button>
-                      {index > 0 && (
-                        <button onClick={() => { moveColumn(index, -1); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
-                          <ChevronLeft className="h-3 w-3" /> Mover ← esquerda
-                        </button>
-                      )}
-                      {index < columns.length - 1 && (
-                        <button onClick={() => { moveColumn(index, 1); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
-                          <ChevronRight className="h-3 w-3" /> Mover → direita
-                        </button>
-                      )}
-                      {!["todo", "urgent", "done"].includes(col.key) && (
-                        <button onClick={() => { removeColumn(col.key); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-destructive/10 transition-colors text-destructive">
-                          <Trash2 className="h-3 w-3" /> Remover
-                        </button>
+                      {isAdmin && (
+                        <>
+                          <button onClick={() => startRename(col.key)} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
+                            <Pencil className="h-3 w-3" /> Renomear
+                          </button>
+                          {index > 0 && (
+                            <button onClick={() => { moveColumn(index, -1); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
+                              <ChevronLeft className="h-3 w-3" /> Mover ← esquerda
+                            </button>
+                          )}
+                          {index < columns.length - 1 && (
+                            <button onClick={() => { moveColumn(index, 1); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
+                              <ChevronRight className="h-3 w-3" /> Mover → direita
+                            </button>
+                          )}
+                          {!["todo", "urgent", "done"].includes(col.key) && (
+                            <button onClick={() => { removeColumn(col.key); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-destructive/10 transition-colors text-destructive">
+                              <Trash2 className="h-3 w-3" /> Remover
+                            </button>
+                          )}
+                        </>
                       )}
                     </motion.div>
                   )}
@@ -627,20 +641,32 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
             </DroppableColumn>
           </motion.div>
         ))}
-
-        {/* Add column button */}
-        <div className="flex items-center justify-center">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={addColumn}
-            className="flex flex-col items-center gap-2 p-6 rounded-2xl border-2 border-dashed border-border/50 hover:border-primary/40 hover:bg-primary/5 transition-colors text-muted-foreground hover:text-primary"
-          >
-            <Plus className="h-5 w-5" />
-            <span className="text-xs font-medium">Nova coluna</span>
-          </motion.button>
-        </div>
       </div>
+
+      {/* Context menu for adding columns (admin only) */}
+      <AnimatePresence>
+        {contextMenu && isAdmin && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed z-[100] w-44 rounded-xl border border-border/60 bg-card p-1 space-y-0.5"
+            style={{
+              left: contextMenu.x,
+              top: contextMenu.y,
+              boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => { addColumn(); setContextMenu(null); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground"
+            >
+              <Plus className="h-3 w-3" /> Nova coluna
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <DragOverlay dropAnimation={{
         duration: 280,
         easing: "cubic-bezier(0.34, 1.56, 0.64, 1)",
