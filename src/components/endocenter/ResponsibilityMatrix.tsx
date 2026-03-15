@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Columns3, LayoutList, Plus, Search } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type ResponsibilityItem } from "@/store/endocenterStore";
 import TaskCard from "./matrix/TaskCard";
@@ -48,6 +49,12 @@ export default function ResponsibilityMatrix() {
     updateResponsibilityRoleItem(role.id, activeTab, itemId, updates);
     if (selectedItem && selectedItem.item.id === itemId) {
       setSelectedItem({ ...selectedItem, item: { ...selectedItem.item, ...updates } });
+    }
+    if (updates.done === true) {
+      const item = currentItems.find((i) => i.id === itemId);
+      toast({ title: "✅ Tarefa concluída", description: item?.task || "Tarefa marcada como feita" });
+    } else if (updates.done === false) {
+      toast({ title: "🔄 Tarefa reaberta", description: "Tarefa movida de volta para pendente" });
     }
   };
 
