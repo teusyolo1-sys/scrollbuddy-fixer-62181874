@@ -375,8 +375,8 @@ function UpcomingInvoices({ entries }: { entries: any[] }) {
       className={`${glassCard} bg-card/90 backdrop-blur-2xl p-4`}
     >
       <div className="flex items-center gap-2 mb-3">
-        <FileText className="h-3.5 w-3.5 text-white/40" />
-        <h4 className="text-xs font-bold text-white/60">Upcoming Invoices</h4>
+        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+        <h4 className="text-xs font-bold text-muted-foreground">Upcoming Invoices</h4>
       </div>
       {upcoming.length === 0 ? (
         <p className="text-[11px] text-white/25">Nenhuma fatura pendente</p>
