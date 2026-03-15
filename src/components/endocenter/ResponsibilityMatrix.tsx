@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Columns3, LayoutList, Plus, Search, ChevronLeft, ChevronRight, Trash2, Pencil, MoreVertical } from "lucide-react";
+import { Columns3, LayoutList, Plus, Search, ChevronLeft, ChevronRight, Trash2, Pencil, MoreVertical, GripVertical } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNotificationStore } from "@/store/notificationStore";
 import { motion, AnimatePresence } from "framer-motion";
@@ -475,11 +475,18 @@ function SortableTaskCard({ item, roleColor, onClick, onToggleDone }: {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition,
     opacity: isDragging ? 0.4 : 1,
-    cursor: "grab",
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div ref={setNodeRef} style={style} className="group/card relative">
+      <div
+        {...attributes}
+        {...listeners}
+        className="absolute -left-1 top-1/2 -translate-y-1/2 z-10 opacity-0 group-hover/card:opacity-100 transition-all duration-200 scale-90 group-hover/card:scale-100 cursor-grab active:cursor-grabbing p-1 rounded-lg hover:bg-secondary/80"
+        title="Arrastar"
+      >
+        <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+      </div>
       <TaskCard item={item} roleColor={roleColor} onClick={onClick} onToggleDone={onToggleDone} />
     </div>
   );
