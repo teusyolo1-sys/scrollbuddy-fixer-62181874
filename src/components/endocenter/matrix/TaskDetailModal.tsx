@@ -1,13 +1,14 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { 
-  AlertTriangle, Calendar, CheckSquare, Clock, Image, Link2, Paperclip, 
+  AlertTriangle, Calendar, CheckSquare, Clock, Image, Link2, MessageCircle, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
   ChevronDown, ChevronRight, Settings2, Pencil, ImagePlus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } from "@/store/endocenterStore";
 import RichTextEditor, { type RichTextEditorHandle } from "./RichTextEditor";
+import TaskChat from "./TaskChat";
 
 const priorityOptions = [
   { value: "low" as const, label: "Baixa", color: "hsl(var(--muted-foreground))" },
@@ -546,6 +547,11 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                           <button onClick={handleAddLink} className="text-xs font-medium text-primary px-1">+</button>
                         </div>
                       )}
+                    </SideSection>
+
+                    {/* Chat */}
+                    <SideSection icon={MessageCircle} label="Chat" defaultOpen>
+                      <TaskChat />
                     </SideSection>
 
                     {/* Footer actions */}
