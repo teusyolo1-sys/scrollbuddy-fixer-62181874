@@ -372,7 +372,7 @@ function UpcomingInvoices({ entries }: { entries: any[] }) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.6 }}
-      className={`${glassCard} bg-white/[0.08] backdrop-blur-2xl p-4`}
+      className={`${glassCard} bg-card/90 backdrop-blur-2xl p-4`}
     >
       <div className="flex items-center gap-2 mb-3">
         <FileText className="h-3.5 w-3.5 text-white/40" />
