@@ -30,6 +30,7 @@ const tabDefs = [
 ];
 
 function DashboardContent() {
+  const { companyId } = useParams<{ companyId: string }>();
   const { allowedTabs, loading: permLoading } = useTabPermissions();
   const { isAdmin } = useUserRole();
   const [settingsOpen, setSettingsOpen] = useState(false);
