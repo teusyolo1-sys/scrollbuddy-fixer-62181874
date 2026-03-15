@@ -261,6 +261,11 @@ interface EndocenterStore {
   updateCrisisScenario: (id: string, updates: Partial<CrisisScenario>) => void;
   addCrisisScenario: () => void;
   removeCrisisScenario: (id: string) => void;
+
+  budgetEntries: BudgetEntry[];
+  addBudgetEntry: (category: BudgetCategory) => void;
+  updateBudgetEntry: (id: string, updates: Partial<BudgetEntry>) => void;
+  removeBudgetEntry: (id: string) => void;
 }
 
 const STORAGE_KEY = "endocenter_settings";
