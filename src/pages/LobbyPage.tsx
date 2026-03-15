@@ -132,7 +132,7 @@ export default function LobbyPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.05, 0.15), type: "spring", damping: 26, stiffness: 340 }}
                 onClick={() => openCompany(company)}
-                className="ios-squircle p-0 text-left overflow-hidden group"
+                className="ios-glass border border-white/30 dark:border-white/10 rounded-3xl p-0 text-left overflow-hidden group"
               >
                 {/* Gradient header */}
                 <div className="h-28 relative" style={{ background: gradient }}>
