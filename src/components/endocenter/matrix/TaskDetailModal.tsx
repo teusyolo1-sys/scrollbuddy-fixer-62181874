@@ -426,7 +426,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Timer */}
-                    <SideSection icon={Timer} label="Temporizador">
+                    <SideSection icon={Timer} label="Temporizador" defaultOpen={item.timerSeconds > 0 || item.timerRunning}>
                       <div className="flex items-center gap-2">
                         <span className="font-mono text-base font-bold text-foreground tabular-nums">{formatTimer(timerSeconds)}</span>
                         <button onClick={() => setTimerRunning(!timerRunning)}
