@@ -744,18 +744,25 @@ interface PersistedData {
   budgetEntries: BudgetEntry[];
 }
 
-const loadFromStorage = (): Partial<PersistedData> | null => {
+const loadFromStorage = (companyId?: string): Partial<PersistedData> | null => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const key = getStorageKey(companyId);
+    const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw);
+    // Fallback to legacy key for the default company
+    if (companyId) {
+      const legacyRaw = localStorage.getItem(STORAGE_KEY);
+      if (legacyRaw) return JSON.parse(legacyRaw);
+    }
   } catch {
     return null;
   }
   return null;
 };
 
-const saveToStorage = (data: PersistedData) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+const saveToStorage = (data: PersistedData, companyId?: string) => {
+  const key = getStorageKey(companyId);
+  localStorage.setItem(key, JSON.stringify(data));
 };
 
 const EndocenterContext = createContext<EndocenterStore | null>(null);
