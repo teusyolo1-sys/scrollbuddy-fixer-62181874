@@ -69,8 +69,9 @@ function StatCard({ label, value, icon: Icon, color, delay, children }: {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.03, y: -4 }}
       transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} p-5 relative overflow-hidden`}
+      className={`${gc} p-5 relative overflow-hidden cursor-default`}
     >
       <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10" style={{ background: color, filter: "blur(30px)" }} />
       <div className="flex items-center gap-3 mb-3">
