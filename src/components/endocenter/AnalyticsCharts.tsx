@@ -147,7 +147,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
