@@ -116,7 +116,7 @@ export default function WorkflowDiagram() {
                         onChange={(e) => updateWorkflowStep(step.id, { owner: e.target.value })} />
                       <input className="ios-input px-2 py-2 text-xs" value={step.duration}
                         onChange={(e) => updateWorkflowStep(step.id, { duration: e.target.value })} />
-                      <button onClick={() => removeWorkflowStep(step.id)}
+                      <button onClick={() => { addNotification({ title: "Fluxo: etapa removida", description: step.title, icon: "delete" }); removeWorkflowStep(step.id); }}
                         className="rounded-md p-1 text-destructive hover:bg-destructive/10">
                         <Trash2 className="h-3 w-3" />
                       </button>
