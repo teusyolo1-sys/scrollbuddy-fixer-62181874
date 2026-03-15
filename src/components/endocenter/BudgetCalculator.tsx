@@ -157,6 +157,7 @@ function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd
 function GastosChartCard({ entries, config, total, onAdd, delay }: {
   entries: any[]; config: typeof categoryConfig.gasto; total: number; onAdd: () => void; delay: number;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const chartData = useMemo(() => {
     if (entries.length === 0) return [{ name: "Vazio", value: 1, color: "hsl(var(--muted))" }];
     const byDesc: Record<string, number> = {};
@@ -168,23 +169,25 @@ function GastosChartCard({ entries, config, total, onAdd, delay }: {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
       className={`${gc} overflow-hidden`}>
-      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} />
-      <div className="px-4 pb-4 flex items-center justify-center gap-4">
-        <ResponsiveContainer width={90} height={90}>
-          <RPieChart>
-            <Pie data={chartData} innerRadius={28} outerRadius={42} dataKey="value" stroke="none">
-              {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
-            </Pie>
-          </RPieChart>
-        </ResponsiveContainer>
-        <ResponsiveContainer width={90} height={90}>
-          <RPieChart>
-            <Pie data={chartData} innerRadius={0} outerRadius={42} dataKey="value" stroke="none">
-              {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.7} />)}
-            </Pie>
-          </RPieChart>
-        </ResponsiveContainer>
-      </div>
+      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)} />
+      {expanded && (
+        <div className="px-4 pb-4 flex items-center justify-center gap-4">
+          <ResponsiveContainer width={90} height={90}>
+            <RPieChart>
+              <Pie data={chartData} innerRadius={28} outerRadius={42} dataKey="value" stroke="none">
+                {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
+              </Pie>
+            </RPieChart>
+          </ResponsiveContainer>
+          <ResponsiveContainer width={90} height={90}>
+            <RPieChart>
+              <Pie data={chartData} innerRadius={0} outerRadius={42} dataKey="value" stroke="none">
+                {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.7} />)}
+              </Pie>
+            </RPieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </motion.div>
   );
 }
