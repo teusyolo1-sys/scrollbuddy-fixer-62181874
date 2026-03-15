@@ -14,6 +14,123 @@ export type Database = {
   }
   public: {
     Tables: {
+      agency_expenses: {
+        Row: {
+          amount: number
+          category: string
+          created_at: string
+          created_by: string
+          date: string
+          description: string
+          id: string
+          notes: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by: string
+          date?: string
+          description?: string
+          id?: string
+          notes?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          created_at?: string
+          created_by?: string
+          date?: string
+          description?: string
+          id?: string
+          notes?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      agency_revenue_categories: {
+        Row: {
+          color: string
+          created_at: string
+          created_by: string
+          icon: string
+          id: string
+          name: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          created_by: string
+          icon?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          created_by?: string
+          icon?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      agency_revenues: {
+        Row: {
+          amount: number
+          category_id: string | null
+          company_id: string | null
+          created_at: string
+          created_by: string
+          date: string
+          description: string
+          id: string
+          notes: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by: string
+          date?: string
+          description?: string
+          id?: string
+          notes?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category_id?: string | null
+          company_id?: string | null
+          created_at?: string
+          created_by?: string
+          date?: string
+          description?: string
+          id?: string
+          notes?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_revenues_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "agency_revenue_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_revenues_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       api_keys: {
         Row: {
           activated_at: string | null
@@ -70,8 +187,11 @@ export type Database = {
       }
       budget_entries: {
         Row: {
+          agency_fee: number
+          agency_fee_type: string
           amount: number
           category: string
+          company_id: string | null
           created_at: string
           created_by: string
           date: string
@@ -81,8 +201,11 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          agency_fee?: number
+          agency_fee_type?: string
           amount?: number
           category: string
+          company_id?: string | null
           created_at?: string
           created_by: string
           date?: string
@@ -92,8 +215,11 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          agency_fee?: number
+          agency_fee_type?: string
           amount?: number
           category?: string
+          company_id?: string | null
           created_at?: string
           created_by?: string
           date?: string
@@ -102,7 +228,15 @@ export type Database = {
           notes?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "budget_entries_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       budget_entry_participants: {
         Row: {
