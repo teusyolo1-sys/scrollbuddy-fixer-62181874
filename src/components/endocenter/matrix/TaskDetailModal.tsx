@@ -157,21 +157,24 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const checkTotal = item.checklist.length;
   const checkPct = checkTotal > 0 ? Math.round((checkDone / checkTotal) * 100) : 0;
 
-  /* ── Collapsible Section helper ── */
+  /* ── Collapsible Section helper — iOS 26 style ── */
   const SideSection = ({ icon: Icon, label, children, defaultOpen = false }: { icon: any; label: string; children: React.ReactNode; defaultOpen?: boolean }) => {
     const [open, setOpen] = useState(defaultOpen);
     return (
-      <div className="border-b border-border/30 last:border-b-0">
-        <button onClick={() => setOpen(!open)} className="flex items-center gap-2 w-full px-3 py-2.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
-          <Icon className="h-3.5 w-3.5 shrink-0" />
+      <div className="mb-1">
+        <button onClick={() => setOpen(!open)} 
+          className="flex items-center gap-2.5 w-full px-4 py-3 text-[13px] font-semibold text-foreground/80 hover:text-foreground hover:bg-secondary/40 transition-colors"
+          style={{ borderRadius: "var(--ios-radius-sm)" }}
+        >
+          <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="flex-1 text-left">{label}</span>
-          {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground/50 transition-transform duration-200 ${open ? "rotate-90" : ""}`} />
         </button>
         <div
-          className="overflow-hidden transition-all duration-150"
+          className="overflow-hidden transition-all duration-200 ease-out"
           style={{ maxHeight: open ? "500px" : "0px", opacity: open ? 1 : 0 }}
         >
-          <div className="px-3 pb-3 space-y-2">{children}</div>
+          <div className="px-4 pb-3 pt-1 space-y-2.5">{children}</div>
         </div>
       </div>
     );
