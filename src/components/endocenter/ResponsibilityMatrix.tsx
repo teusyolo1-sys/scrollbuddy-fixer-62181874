@@ -24,6 +24,7 @@ export default function ResponsibilityMatrix() {
     updateResponsibilityRole, addResponsibilityRoleItem,
     updateResponsibilityRoleItem, removeResponsibilityRoleItem,
   } = useEndocenter();
+  const addNotification = useNotificationStore((s) => s.addNotification);
 
   const [activeRoleId, setActiveRoleId] = useState(responsibilityRoles[0]?.id ?? "");
   const [activeTab, setActiveTab] = useState<MatrixTab>("weekly");
@@ -53,9 +54,13 @@ export default function ResponsibilityMatrix() {
     }
     if (updates.done === true) {
       const item = currentItems.find((i) => i.id === itemId);
-      toast({ title: "✅ Tarefa concluída", description: item?.task || "Tarefa marcada como feita" });
+      const taskName = item?.task || "Tarefa";
+      toast({ title: "✅ Tarefa concluída", description: taskName });
+      addNotification({ title: `${role.role} concluiu tarefa`, description: taskName, icon: "check" });
     } else if (updates.done === false) {
-      toast({ title: "🔄 Tarefa reaberta", description: "Tarefa movida de volta para pendente" });
+      const item = currentItems.find((i) => i.id === itemId);
+      toast({ title: "🔄 Tarefa reaberta", description: "Movida para pendente" });
+      addNotification({ title: `${role.role} reabriu tarefa`, description: item?.task || "Tarefa", icon: "move" });
     }
   };
 
