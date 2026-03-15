@@ -3,6 +3,7 @@ import { Send, AtSign, Trash2, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useChatMessages, type ChatProfile } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotificationStore } from "@/store/notificationStore";
 
 function getInitials(name: string | null | undefined, email: string | null | undefined) {
   if (name) return name.slice(0, 2).toUpperCase();
