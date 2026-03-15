@@ -503,7 +503,8 @@ export default function AgencyWalletPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Expenses */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, type: "spring", damping: 22 }}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01, y: -2 }}
+              transition={{ delay: 0.35, type: "spring", damping: 22 }}
               className={`${gc} overflow-hidden`}>
               <button onClick={() => setExpensesOpen(!expensesOpen)}
                 className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
