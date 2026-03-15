@@ -44,8 +44,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [timerRunning, setTimerRunning] = useState(item.timerRunning);
   const [timerSeconds, setTimerSeconds] = useState(item.timerSeconds);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
+  const [chatBalloonOpen, setChatBalloonOpen] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<RichTextEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
