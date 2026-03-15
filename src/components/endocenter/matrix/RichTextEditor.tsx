@@ -500,8 +500,8 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
                 className="absolute z-30 pointer-events-auto"
                 style={{
                   left: x,
-                  top: Math.max(0, y - 44),
-                  maxWidth: Math.max(imgRect.width, 320),
+                  top: y > 52 ? y - 48 : y + imgRect.height + 8,
+                  maxWidth: Math.max(imgRect.width, 340),
                 }}
               >
                 <div className="flex items-center gap-0.5 px-1.5 py-1 rounded-xl bg-card border border-border/60 shadow-lg flex-wrap"
