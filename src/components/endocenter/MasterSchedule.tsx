@@ -74,12 +74,10 @@ export default function MasterSchedule() {
               style={
                 selected
                   ? {
-                      background: `${item.themeColor}cc`,
-                      backdropFilter: "blur(20px) saturate(180%)",
-                      WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                      background: item.themeColor,
                       borderRadius: "var(--ios-radius-lg)",
-                      border: `1px solid ${item.themeColor}40`,
-                      boxShadow: `0 8px 32px ${item.themeColor}30, 0 0 0 1px ${item.themeColor}20`,
+                      border: `1px solid ${item.themeColor}`,
+                      boxShadow: `0 6px 24px ${item.themeColor}40`,
                     }
                   : undefined
               }
