@@ -564,10 +564,10 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
 }
 
 /* ── Despesas Detail Table (right column) ── */
-function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
+function DespesasDetailCard({ entries, config, total, onAdd, delay, isExpanded, onToggle }: {
   entries: any[]; config: typeof categoryConfig.despesa; total: number; onAdd: () => void; delay: number;
+  isExpanded: boolean; onToggle: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
   const [customLabel, setCustomLabel] = useState<string | undefined>();
   const [rowNames, setRowNames] = useState(["Expense type", "Expense type", "Receital", "Other treakion"]);
@@ -622,7 +622,7 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
         className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
-        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)}
+        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle}
           customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
         {expanded && renderTable(false)}
       </motion.div>
