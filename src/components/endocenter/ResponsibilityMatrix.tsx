@@ -9,6 +9,9 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-
 import { useDroppable } from "@dnd-kit/core";
 import TaskCard from "./matrix/TaskCard";
 import TaskDetailModal from "./matrix/TaskDetailModal";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useTeamRole } from "@/hooks/useTeamRole";
+import { useAuth } from "@/hooks/useAuth";
 
 type MatrixTab = "weekly" | "monthly" | "quality";
 type ViewMode = "kanban" | "list";
@@ -28,14 +31,51 @@ export default function ResponsibilityMatrix() {
     updateResponsibilityRoleItem, removeResponsibilityRoleItem,
   } = useEndocenter();
   const addNotification = useNotificationStore((s) => s.addNotification);
+  const { isAdmin } = useUserRole();
+  const { teamRole, loading: teamRoleLoading } = useTeamRole();
+  const { user } = useAuth();
 
-  const [activeRoleId, setActiveRoleId] = useState(responsibilityRoles[0]?.id ?? "");
+  // Filter roles: admin sees all, others see only their assigned role
+  const visibleRoles = useMemo(() => {
+    if (isAdmin || !teamRole) return responsibilityRoles;
+    return responsibilityRoles.filter((r) => r.role === teamRole);
+  }, [responsibilityRoles, isAdmin, teamRole]);
+
+  // Collect tasks from OTHER roles where this user is mentioned/assigned
+  const mentionedTasksFromOtherRoles = useMemo(() => {
+    if (isAdmin || !teamRole || !user) return [];
+    const userDisplayName = user.user_metadata?.display_name || user.email?.split("@")[0] || "";
+    const otherRoles = responsibilityRoles.filter((r) => r.role !== teamRole);
+    const results: { roleId: string; roleName: string; roleColor: string; tab: "weekly" | "monthly" | "quality"; item: ResponsibilityItem }[] = [];
+    for (const r of otherRoles) {
+      for (const tab of ["weekly", "monthly", "quality"] as const) {
+        for (const item of r[tab]) {
+          const isAssigned = item.assignees.some(
+            (a) => a.toLowerCase() === userDisplayName.toLowerCase()
+          );
+          if (isAssigned) {
+            results.push({ roleId: r.id, roleName: r.role, roleColor: r.color, tab, item });
+          }
+        }
+      }
+    }
+    return results;
+  }, [responsibilityRoles, isAdmin, teamRole, user]);
+
+  const [activeRoleId, setActiveRoleId] = useState(visibleRoles[0]?.id ?? "");
   const [activeTab, setActiveTab] = useState<MatrixTab>("weekly");
   const [viewMode, setViewMode] = useState<ViewMode>("kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<{ roleId: string; tab: MatrixTab; item: ResponsibilityItem } | null>(null);
 
-  const role = responsibilityRoles.find((r) => r.id === activeRoleId) ?? responsibilityRoles[0];
+  // Keep activeRoleId valid
+  useEffect(() => {
+    if (visibleRoles.length > 0 && !visibleRoles.find((r) => r.id === activeRoleId)) {
+      setActiveRoleId(visibleRoles[0].id);
+    }
+  }, [visibleRoles, activeRoleId]);
+
+  const role = visibleRoles.find((r) => r.id === activeRoleId) ?? visibleRoles[0];
   const teamMembers = team.map((t) => t.name);
 
   const completionByTab = useMemo(() => {
@@ -43,6 +83,10 @@ export default function ResponsibilityMatrix() {
     const rate = (items: ResponsibilityItem[]) => items.length ? Math.round((items.filter((i) => i.done).length / items.length) * 100) : 0;
     return { weekly: rate(role.weekly), monthly: rate(role.monthly), quality: rate(role.quality) };
   }, [role]);
+
+  if (teamRoleLoading) {
+    return <div className="text-center py-10 text-muted-foreground text-sm">Carregando...</div>;
+  }
 
   if (!role) return null;
 
@@ -98,8 +142,8 @@ export default function ResponsibilityMatrix() {
       </div>
 
       {/* Role cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {responsibilityRoles.map((item) => {
+      <div className={`grid gap-3 ${visibleRoles.length === 1 ? "grid-cols-1 max-w-sm" : "grid-cols-2 lg:grid-cols-4"}`}>
+        {visibleRoles.map((item) => {
           const total = item.weekly.length + item.monthly.length + item.quality.length;
           const done = item.weekly.filter((e) => e.done).length + item.monthly.filter((e) => e.done).length + item.quality.filter((e) => e.done).length;
           const pct = total ? Math.round((done / total) * 100) : 0;
@@ -129,6 +173,30 @@ export default function ResponsibilityMatrix() {
           );
         })}
       </div>
+
+      {/* Mentioned tasks from other roles (cross-role visibility) */}
+      {mentionedTasksFromOtherRoles.length > 0 && (
+        <div className="ios-card p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">📌 Tarefas compartilhadas com você</h3>
+          <p className="text-xs text-muted-foreground">Tarefas de outras áreas onde você foi atribuído</p>
+          <div className="grid gap-2">
+            {mentionedTasksFromOtherRoles.map((mt) => (
+              <button
+                key={`${mt.roleId}-${mt.tab}-${mt.item.id}`}
+                onClick={() => setSelectedItem({ roleId: mt.roleId, tab: mt.tab, item: mt.item })}
+                className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-colors text-left"
+              >
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: mt.roleColor }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate">{mt.item.task}</p>
+                  <p className="text-[10px] text-muted-foreground">{mt.roleName} · {tabLabels[mt.tab]}</p>
+                </div>
+                {mt.item.done && <span className="text-[10px] text-emerald-500 font-medium">✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Content area */}
       <div className="ios-card overflow-visible">
