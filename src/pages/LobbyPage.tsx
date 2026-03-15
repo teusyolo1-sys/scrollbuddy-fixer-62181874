@@ -416,6 +416,8 @@ export default function LobbyPage() {
         </div>
       </div>
     </div>
+    {isAdmin && <TrashBinModal open={trashOpen} onClose={() => setTrashOpen(false)} />}
+    </>
   );
 }
 
