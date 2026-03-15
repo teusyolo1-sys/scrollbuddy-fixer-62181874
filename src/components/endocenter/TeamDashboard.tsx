@@ -652,10 +652,14 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
                   {deleteStep === "idle" && (
                     <button
                       onClick={() => setDeleteStep("confirm")}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-destructive/30 text-destructive text-sm font-semibold hover:bg-destructive/10 transition-colors"
+                      className="group relative w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-destructive/30 text-destructive text-sm font-semibold transition-all duration-300 overflow-hidden hover:scale-[1.03] hover:border-destructive hover:shadow-[0_0_12px_rgba(239,68,68,0.3),inset_0_0_12px_rgba(239,68,68,0.05)] hover:bg-destructive/10"
+                      style={{ isolation: "isolate" }}
                     >
-                      <Trash2 className="h-4 w-4" />
-                      Remover membro
+                      <span className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" style={{ background: "radial-gradient(circle at center, transparent 0%, transparent 30%, hsl(var(--destructive) / 0.08) 70%, transparent 100%)", animation: "none" }} />
+                      <span className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none animate-[pulse_1.5s_ease-in-out_infinite]" style={{ boxShadow: "inset 0 0 0 1.5px hsl(var(--destructive) / 0.5)" }} />
+                      <span className="absolute inset-0 rounded-2xl scale-0 group-hover:scale-100 transition-transform duration-500 ease-out pointer-events-none bg-destructive/5" />
+                      <Trash2 className="h-4 w-4 relative z-10 transition-transform duration-300 group-hover:scale-110" />
+                      <span className="relative z-10">Remover membro</span>
                     </button>
                   )}
 
