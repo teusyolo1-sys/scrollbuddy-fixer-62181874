@@ -873,7 +873,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
       <CategoryCard {...catProps("investimento")} delay={0} />
 
       {/* Row 2: Gastos | Gastos (charts) | Receita */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <CategoryCard {...catProps("gasto")} delay={0.05} />
         <GastosChartCard
           entries={entries.filter(e => e.category === "gasto")}
