@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, RefreshCw, Rocket, Settings } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, Moon, RefreshCw, Rocket, Settings, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { EndocenterProvider, useEndocenter } from "@/store/endocenterStore";
+import { useTheme } from "@/hooks/useTheme";
 import TeamDashboard from "@/components/endocenter/TeamDashboard";
 import MasterSchedule from "@/components/endocenter/MasterSchedule";
 import ProjectPipeline from "@/components/endocenter/ProjectPipeline";
