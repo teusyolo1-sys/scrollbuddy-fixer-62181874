@@ -610,8 +610,23 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
           </motion.button>
         </div>
       </div>
-      <DragOverlay>
-        {activeItem && <TaskCard item={activeItem} roleColor={roleColor} onClick={() => {}} onToggleDone={() => {}} />}
+      <DragOverlay dropAnimation={{
+        duration: 280,
+        easing: "cubic-bezier(0.34, 1.56, 0.64, 1)",
+      }}>
+        {activeItem && (
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0.8, rotate: -1 }}
+            animate={{ scale: 1.05, opacity: 1, rotate: 1.5 }}
+            style={{
+              boxShadow: "0 20px 60px rgba(0,0,0,0.18), 0 8px 20px rgba(0,0,0,0.12)",
+              borderRadius: "var(--ios-radius-lg)",
+              cursor: "url('/cursors/move.svg') 7 7, grabbing",
+            }}
+          >
+            <TaskCard item={activeItem} roleColor={roleColor} onClick={() => {}} onToggleDone={() => {}} />
+          </motion.div>
+        )}
       </DragOverlay>
     </DndContext>
   );
@@ -638,10 +653,12 @@ function SortableTaskCard({ item, roleColor, onClick, onToggleDone }: {
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
 
-  const style = {
-    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    transition,
-    opacity: isDragging ? 0.4 : 1,
+  const style: React.CSSProperties = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${isDragging ? 1.04 : 1})` : undefined,
+    transition: transition || "transform 0.25s cubic-bezier(0.34,1.56,0.64,1), opacity 0.2s ease, box-shadow 0.2s ease",
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : "auto",
+    boxShadow: isDragging ? "0 12px 40px rgba(0,0,0,0.15), 0 4px 12px rgba(0,0,0,0.1)" : undefined,
     cursor: isDragging
       ? "url('/cursors/move.svg') 7 7, grabbing"
       : "url('/cursors/grab.svg') 8 8, grab",
