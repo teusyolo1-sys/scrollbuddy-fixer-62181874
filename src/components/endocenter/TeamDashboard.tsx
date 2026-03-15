@@ -458,11 +458,7 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
                   <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="h-9 w-10 shrink-0 rounded-lg border border-border bg-transparent cursor-pointer" />
                   <input className="ios-input flex-1 min-w-0 px-3 py-2 text-sm" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="#000000" />
                 </div>
-                <select className="ios-input px-3 py-2 text-sm w-full" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
-                  <option>Ativo</option>
-                  <option>Inativo</option>
-                  <option>Férias</option>
-                </select>
+                <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={["Ativo", "Inativo", "Férias"]} />
               </div>
               <textarea className="ios-input w-full px-3 py-2 text-sm min-h-20" value={form.caseNotes} onChange={(e) => setForm({ ...form, caseNotes: e.target.value })} placeholder="Case do membro" />
 
