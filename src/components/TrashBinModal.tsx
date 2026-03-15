@@ -40,9 +40,9 @@ export default function TrashBinModal({ open, onClose }: Props) {
     if (!user) return;
     setLoading(true);
     const { data } = await supabase
-      .from("trash_bin")
+      .from("trash_bin" as any)
       .select("*")
-      .order("deleted_at", { ascending: false });
+      .order("deleted_at", { ascending: false }) as { data: TrashItem[] | null };
     setItems((data as TrashItem[]) ?? []);
     setLoading(false);
   };
