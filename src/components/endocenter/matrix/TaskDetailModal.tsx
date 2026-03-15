@@ -253,22 +253,69 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
 
           {/* Main content area: Editor (75%) + Sidebar (25%) */}
           <div className="flex flex-1 min-h-0 overflow-hidden">
-            {/* Editor — 75% */}
+            {/* Editor / Read-only view — 75% */}
             <div className="flex-1 flex flex-col min-w-0">
-              <RichTextEditor
-                value={description}
-                onChange={handleDescriptionChange}
-                minHeight="100%"
-                placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
-              />
+              {editingDescription ? (
+                <div className="flex flex-col h-full">
+                  <RichTextEditor
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    minHeight="100%"
+                    placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
+                  />
+                  <div className="flex items-center gap-2 px-4 py-2 border-t border-border/40 bg-secondary/20 shrink-0">
+                    <button onClick={() => setEditingDescription(false)}
+                      className="text-xs font-semibold px-4 py-1.5 text-white transition-colors"
+                      style={{ backgroundColor: roleColor, borderRadius: "var(--ios-radius-sm)" }}>
+                      Concluir edição
+                    </button>
+                    <span className="text-[10px] text-muted-foreground">Editando descrição...</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto cursor-pointer group" onClick={() => setEditingDescription(true)}>
+                  {description && description !== "<br>" && description.replace(/<[^>]*>/g, "").trim() ? (
+                    <div className="px-6 py-5 text-sm text-foreground prose prose-sm max-w-none
+                      [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3
+                      [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-2
+                      [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2
+                      [&_blockquote]:border-l-4 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
+                      [&_pre]:bg-secondary [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-xs
+                      [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
+                      [&_a]:text-primary [&_a]:underline
+                      [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-2
+                      [&_hr]:border-border/50 [&_hr]:my-3"
+                      dangerouslySetInnerHTML={{ __html: description }}
+                    />
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground/40 p-8">
+                      <Type className="h-10 w-10" />
+                      <p className="text-sm font-medium">Clique para adicionar uma descrição</p>
+                      <p className="text-xs">Use formatação rica como um editor de texto</p>
+                    </div>
+                  )}
+                  {/* Hover hint */}
+                  <div className="sticky bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 bg-gradient-to-t from-card to-transparent">
+                    <span className="text-[10px] font-medium text-muted-foreground bg-secondary/80 px-3 py-1 rounded-full"
+                      style={{ borderRadius: "var(--ios-radius-sm)" }}>
+                      ✏️ Clique para editar
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Sidebar — collapsible properties panel */}
+            {/* Sidebar — iOS 26 glass panel */}
             <div
-              className="border-l border-border/40 bg-secondary/10 overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
-              style={{ width: sidebarOpen ? 280 : 0, opacity: sidebarOpen ? 1 : 0 }}
+              className="overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
+              style={{ 
+                width: sidebarOpen ? 300 : 0, 
+                opacity: sidebarOpen ? 1 : 0,
+                background: "var(--ios-glass-heavy)",
+                borderLeft: sidebarOpen ? "1px solid hsl(var(--border) / 0.3)" : "none",
+              }}
             >
-              <div className="w-[280px]">
+              <div className="w-[300px] py-2">
                     {/* Priority */}
                     <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
                       <div className="flex flex-wrap gap-1">
