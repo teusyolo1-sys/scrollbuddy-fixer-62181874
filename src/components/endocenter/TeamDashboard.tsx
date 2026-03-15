@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Target, TrendingUp, Upload, User, X } from "lucide-react";
+import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Plus, Target, Trash2, TrendingUp, Upload, User, X } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import AnalyticsCharts from "./AnalyticsCharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
@@ -202,7 +203,7 @@ function StatusDropdown({ value, onChange, options }: { value: string; onChange:
 }
 
 export default function TeamDashboard() {
-  const { team, company, metricEntries } = useEndocenter();
+  const { team, company, metricEntries, addMember, removeMember } = useEndocenter();
   const { isAdmin } = useUserRole();
   const { teamRole } = useTeamRole();
   const { canViewSection } = useSectionPermissions();
@@ -350,7 +351,19 @@ export default function TeamDashboard() {
 
       {/* Team members */}
       <div>
-        <h3 className="text-xl font-bold text-foreground mb-4">Composição da equipe</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-bold text-foreground">Composição da equipe</h3>
+          {isAdmin && (
+            <motion.button
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => { addMember(); }}
+              className="w-9 h-9 rounded-xl flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+            >
+              <Plus className="h-4 w-4" />
+            </motion.button>
+          )}
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
           {visibleTeam.map((member, i) => (
             <MemberCard
@@ -373,6 +386,7 @@ export default function TeamDashboard() {
             onClose={() => setSelectedMember(null)}
             isAdmin={isAdmin}
             canEdit={isAdmin || selectedMember.role === teamRole}
+            onDelete={isAdmin ? (id) => { removeMember(id); setSelectedMember(null); } : undefined}
           />
         )}
       </AnimatePresence>
@@ -450,10 +464,14 @@ function MemberCard({ member, index, isExpanded, onToggle, showFinancials = true
 }
 
 /* ── Profile Modal ── */
-function ProfileModal({ member, onClose, isAdmin = false, canEdit = true }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean; canEdit?: boolean }) {
+function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDelete }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean; canEdit?: boolean; onDelete?: (id: string) => void }) {
   const { updateMember } = useEndocenter();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ ...member });
+  const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "password">("idle");
+  const [password, setPassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const hourlyRate = form.hours > 0 ? form.remuneration / form.hours : 0;
 
   const handleSave = () => {
@@ -627,6 +645,76 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true }: { me
               <button onClick={handleSave} className="w-full py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold">
                 Salvar alterações
               </button>
+
+              {/* Delete member */}
+              {isAdmin && onDelete && (
+                <div className="pt-2 space-y-3">
+                  {deleteStep === "idle" && (
+                    <button
+                      onClick={() => setDeleteStep("confirm")}
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl border border-destructive/30 text-destructive text-sm font-semibold hover:bg-destructive/10 transition-colors"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                      Remover membro
+                    </button>
+                  )}
+
+                  {deleteStep === "confirm" && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl border border-destructive/30 bg-destructive/5 space-y-3">
+                      <p className="text-sm text-destructive font-semibold">Tem certeza que deseja remover {member.name}?</p>
+                      <div className="flex gap-2">
+                        <button onClick={() => setDeleteStep("idle")} className="flex-1 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-secondary/50 transition-colors">
+                          CANCELAR
+                        </button>
+                        <button onClick={() => setDeleteStep("password")} className="flex-1 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-colors">
+                          CONFIRMAR
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {deleteStep === "password" && (
+                    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl border border-destructive/30 bg-destructive/5 space-y-3">
+                      <p className="text-sm text-foreground font-semibold">Digite sua senha para confirmar:</p>
+                      <input
+                        type="password"
+                        value={password}
+                        onChange={(e) => { setPassword(e.target.value); setDeleteError(""); }}
+                        className="ios-input w-full px-3 py-2 text-sm"
+                        placeholder="Senha da conta admin"
+                        autoFocus
+                      />
+                      {deleteError && <p className="text-xs text-destructive">{deleteError}</p>}
+                      <div className="flex gap-2">
+                        <button onClick={() => { setDeleteStep("idle"); setPassword(""); setDeleteError(""); }} className="flex-1 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-secondary/50 transition-colors">
+                          CANCELAR
+                        </button>
+                        <button
+                          disabled={deleting || !password}
+                          onClick={async () => {
+                            setDeleting(true);
+                            setDeleteError("");
+                            try {
+                              const { data: { user } } = await supabase.auth.getUser();
+                              if (!user?.email) { setDeleteError("Erro ao verificar usuário."); setDeleting(false); return; }
+                              const { error } = await supabase.auth.signInWithPassword({ email: user.email, password });
+                              if (error) { setDeleteError("Senha incorreta."); setDeleting(false); return; }
+                              onDelete(member.id);
+                              onClose();
+                            } catch {
+                              setDeleteError("Erro inesperado.");
+                            }
+                            setDeleting(false);
+                          }}
+                          className="flex-1 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-colors disabled:opacity-50"
+                        >
+                          {deleting ? "Verificando..." : "CONFIRMAR"}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             /* ── View Mode ── */
