@@ -374,7 +374,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Due Date */}
-                    <SideSection icon={Calendar} label="Data de entrega" defaultOpen>
+                    <SideSection icon={Calendar} label="Data de entrega" defaultOpen={!!item.dueDate}>
                       <input type="date" value={item.dueDate} onChange={(e) => onUpdate({ dueDate: e.target.value })} className="ios-input px-3 py-1.5 text-xs w-full" />
                     </SideSection>
 
