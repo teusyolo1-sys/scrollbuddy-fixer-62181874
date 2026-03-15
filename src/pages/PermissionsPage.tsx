@@ -60,20 +60,47 @@ function getInitials(name: string | null, email: string | null) {
 }
 
 /* ── Toggle Pill ── */
-function TogglePill({ label, granted, onToggle }: { label: string; granted: boolean; onToggle: () => void }) {
+function TogglePill({ label, granted, onToggle, description }: { label: string; granted: boolean; onToggle: () => void; description?: string }) {
+  const [showInfo, setShowInfo] = useState(false);
+
   return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      onClick={onToggle}
-      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-        granted
-          ? 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
-          : 'bg-muted/40 text-muted-foreground border border-border/50 hover:bg-muted/60'
-      }`}
-    >
-      {granted ? <Check className="h-3.5 w-3.5" /> : <X className="h-3 w-3 opacity-40" />}
-      {label}
-    </motion.button>
+    <div className="relative">
+      <div className="flex items-center gap-1">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={onToggle}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+            granted
+              ? 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
+              : 'bg-muted/40 text-muted-foreground border border-border/50 hover:bg-muted/60'
+          }`}
+        >
+          {granted ? <Check className="h-3.5 w-3.5" /> : <X className="h-3 w-3 opacity-40" />}
+          {label}
+        </motion.button>
+        {description && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowInfo(!showInfo)}
+            className="w-5 h-5 rounded-full flex items-center justify-center text-muted-foreground/50 hover:text-primary hover:bg-primary/10 transition-colors"
+          >
+            <Info className="h-3 w-3" />
+          </motion.button>
+        )}
+      </div>
+      <AnimatePresence>
+        {showInfo && description && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -4, height: 0 }}
+            className="absolute left-0 top-full mt-1.5 z-10 w-64 p-2.5 rounded-xl bg-popover border border-border shadow-lg"
+          >
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{description}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
