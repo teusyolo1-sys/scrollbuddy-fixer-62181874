@@ -249,7 +249,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                       <div className="w-24">
                         <input
                           type="date"
-                          className="w-full bg-transparent text-[11px] text-white/40 outline-none text-center border-b border-transparent focus:border-white/10 transition-colors"
+                          className="w-full bg-transparent text-[11px] text-muted-foreground outline-none text-center border-b border-transparent focus:border-border transition-colors"
                           value={entry.date}
                           onChange={(e) => onUpdate(entry.id, { date: e.target.value })}
                         />
