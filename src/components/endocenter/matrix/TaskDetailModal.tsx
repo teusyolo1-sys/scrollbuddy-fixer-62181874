@@ -340,7 +340,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               }}
             >
               <div
-                className="h-full overflow-y-auto overflow-x-hidden pointer-events-auto"
+                className="h-full overflow-y-auto overflow-x-hidden pointer-events-auto overflow-hidden"
                 style={{
                   width: 300,
                   background: "var(--ios-glass)",
