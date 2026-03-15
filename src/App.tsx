@@ -4,6 +4,7 @@ import { supabaseConfigured } from "@/integrations/supabase/client";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import EditorPage from "./pages/EditorPage";
+import AgencyWalletPage from "./pages/AgencyWalletPage";
 import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
 import CheckoutPage from "./pages/CheckoutPage";
