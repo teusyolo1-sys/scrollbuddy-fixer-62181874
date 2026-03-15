@@ -180,6 +180,7 @@ function UserProfilePanel({
                   label={TAB_LABELS[key]}
                   granted={getUserPerm(key)}
                   onToggle={() => onToggleTab(key, getUserPerm(key))}
+                  description={TAB_DESCRIPTIONS[key]}
                 />
               ))}
             </div>
