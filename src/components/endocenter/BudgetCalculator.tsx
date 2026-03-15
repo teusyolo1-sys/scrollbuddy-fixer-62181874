@@ -624,7 +624,7 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay, isExpanded, 
         className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
         <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle}
           customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
-        {expanded && renderTable(false)}
+        {isExpanded && renderTable(false)}
       </motion.div>
       {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
       {isFullscreen && (
