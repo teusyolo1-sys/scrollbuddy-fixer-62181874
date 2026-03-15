@@ -67,6 +67,15 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
   const [hoveredImg, setHoveredImg] = useState<{ el: HTMLImageElement; rect: DOMRect } | null>(null);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
 
+  // Expose insertImageUrl to parent
+  useImperativeHandle(ref, () => ({
+    insertImageUrl: (url: string) => {
+      editorRef.current?.focus();
+      document.execCommand("insertImage", false, url);
+      emitChange();
+    },
+  }), [emitChange]);
+
   useEffect(() => {
     if (editorRef.current && !editorRef.current.innerHTML && value) {
       editorRef.current.innerHTML = value;
