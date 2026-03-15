@@ -551,7 +551,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
 
                     {/* Chat */}
                     <SideSection icon={MessageCircle} label="Chat" defaultOpen>
-                      <TaskChat />
+                      <TaskChat taskId={item.id} taskName={item.task} />
                     </SideSection>
 
                     {/* Footer actions */}

@@ -3,6 +3,7 @@ import { Send, AtSign, Trash2, MessageCircle } from "lucide-react";
 import { motion } from "framer-motion";
 import { useChatMessages, type ChatProfile } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
+import { useNotificationStore } from "@/store/notificationStore";
 
 function getInitials(name: string | null | undefined, email: string | null | undefined) {
   if (name) return name.slice(0, 2).toUpperCase();
@@ -38,9 +39,15 @@ function renderContent(content: string) {
   return parts.length > 0 ? parts : content;
 }
 
-export default function TaskChat() {
+interface TaskChatProps {
+  taskId: string;
+  taskName?: string;
+}
+
+export default function TaskChat({ taskId, taskName }: TaskChatProps) {
   const { user } = useAuth();
-  const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages();
+  const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages(taskId);
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [input, setInput] = useState(""); // display text (shows @Name)
   const [rawInput, setRawInput] = useState(""); // raw text (stores @[Name](id))
   const [mentionMap, setMentionMap] = useState<{ displayName: string; fullTag: string }[]>([]);
@@ -114,10 +121,26 @@ export default function TaskChat() {
     let m;
     while ((m = mentionRegex.exec(trimmed)) !== null) mentions.push(m[1]);
     await sendMessage(trimmed, mentions);
+
+    // Notify mentioned users
+    if (mentions.length > 0) {
+      const senderName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "Alguém";
+      for (const mentionedId of mentions) {
+        const mentionedProfile = profiles.find((p) => p.id === mentionedId);
+        const mentionedName = mentionedProfile?.display_name || mentionedProfile?.email?.split("@")[0] || "você";
+        addNotification({
+          title: `${senderName} mencionou ${mentionedName}`,
+          description: `Na tarefa "${taskName || "sem título"}"`,
+          icon: "info",
+          meta: { tab: "matrix", itemId: taskId },
+        });
+      }
+    }
+
     setInput("");
     setRawInput("");
     setMentionMap([]);
-  }, [rawInput, sendMessage]);
+  }, [rawInput, sendMessage, user, profiles, addNotification, taskId, taskName]);
 
   if (loading) {
     return <p className="text-[10px] text-muted-foreground text-center py-2">Carregando...</p>;
