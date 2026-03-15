@@ -260,16 +260,11 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             </div>
 
             {/* Sidebar — collapsible properties panel */}
-            <AnimatePresence>
-              {sidebarOpen && (
-                <motion.div
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 280, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  transition={{ type: "spring", damping: 28, stiffness: 350 }}
-                  className="border-l border-border/40 bg-secondary/10 overflow-y-auto overflow-x-hidden shrink-0"
-                >
-                  <div className="w-[280px]">
+            <div
+              className="border-l border-border/40 bg-secondary/10 overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
+              style={{ width: sidebarOpen ? 280 : 0, opacity: sidebarOpen ? 1 : 0 }}
+            >
+              <div className="w-[280px]">
                     {/* Priority */}
                     <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
                       <div className="flex flex-wrap gap-1">
