@@ -318,17 +318,28 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               )}
             </div>
 
-            {/* Sidebar — iOS 26 glass panel */}
+            {/* Sidebar — iOS 26 floating balloon panel */}
             <div
-              className="overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
-              style={{ 
-                width: (sidebarOpen && editingDescription) ? 300 : 0, 
+              className="absolute right-3 top-14 bottom-3 z-20 transition-all duration-300 ease-out overflow-hidden pointer-events-none"
+              style={{
+                width: (sidebarOpen && editingDescription) ? 300 : 0,
                 opacity: (sidebarOpen && editingDescription) ? 1 : 0,
-                background: "var(--ios-glass-heavy)",
-                borderLeft: sidebarOpen ? "1px solid hsl(var(--border) / 0.3)" : "none",
+                transform: (sidebarOpen && editingDescription) ? "translateX(0) scale(1)" : "translateX(12px) scale(0.96)",
               }}
             >
-              <div className="w-[300px] py-2">
+              <div
+                className="h-full overflow-y-auto overflow-x-hidden pointer-events-auto"
+                style={{
+                  width: 300,
+                  background: "var(--ios-glass)",
+                  backdropFilter: "blur(var(--ios-blur-heavy))",
+                  WebkitBackdropFilter: "blur(var(--ios-blur-heavy))",
+                  borderRadius: "var(--ios-radius)",
+                  boxShadow: "var(--ios-shadow-lg)",
+                  border: "1px solid hsl(var(--border) / 0.25)",
+                }}
+              >
+                <div className="py-2">
                     {/* Priority */}
                     <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
                       <div className="flex gap-2">
