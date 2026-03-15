@@ -140,7 +140,7 @@ function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd
       className={`${gc} overflow-hidden`} style={{ borderLeft: `3px solid ${config.color}30` }}>
       <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle} />
       <AnimatePresence>
-        {isExpanded && (
+        {isExpanded && entries.length > 0 && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
             transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden">
             <div className="px-4 pb-4">
