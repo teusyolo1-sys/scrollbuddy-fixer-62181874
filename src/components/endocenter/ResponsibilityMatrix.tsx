@@ -539,7 +539,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
               <div
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  startColumnDrag(index);
+                  startColumnDrag(index, e.clientX);
                 }}
                 className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary hover:text-foreground"
                 title="Arrastar para reordenar"
