@@ -182,7 +182,8 @@ export default function TeamDashboard() {
               initial={diaphragm.initial}
               animate={diaphragm.animate}
               transition={{ type: "spring", damping: 18, stiffness: 200, mass: 0.8, delay: i * 0.08 }}
-              className="ios-card p-5"
+              whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
+              className="ios-card p-5 cursor-default"
             >
               <div className="w-10 h-10 rounded-2xl flex items-center justify-center mb-3" style={{ background: `${card.color}15` }}>
                 <Icon className="h-5 w-5" style={{ color: card.color }} />

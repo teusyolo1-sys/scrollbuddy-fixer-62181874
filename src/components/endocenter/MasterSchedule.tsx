@@ -68,6 +68,7 @@ export default function MasterSchedule() {
                 setExpandedRole(null);
               }}
               whileTap={{ scale: 0.97 }}
+              whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
               className={`p-4 text-left transition-all overflow-hidden relative ${
                 selected ? "" : "ios-card"
               }`}
