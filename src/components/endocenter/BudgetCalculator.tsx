@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  BarChart, Bar, ResponsiveContainer,
+  BarChart, Bar, ResponsiveContainer, CartesianGrid,
   PieChart as RPieChart, Pie, Cell
 } from "recharts";
 import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
@@ -324,6 +324,7 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
         <div className="flex-1 min-w-0">
           <ResponsiveContainer width="100%" height={110}>
             <BarChart data={chartData} barSize={16} barGap={2}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
               {catColors.map((d, i) => (
                 <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85}
                   radius={i === catColors.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />
