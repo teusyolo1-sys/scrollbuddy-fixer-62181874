@@ -64,6 +64,38 @@ export default function TrashBinModal({ open, onClose }: Props) {
     setConfirmId(null);
   };
 
+  const handleRestore = async (item: TrashItem) => {
+    setDeletingId(item.id);
+    try {
+      const table = getRestoreTable(item.item_type);
+      if (table && item.item_data && Object.keys(item.item_data).length > 0) {
+        const { error: restoreError } = await supabase.from(table as any).insert(item.item_data as any);
+        if (restoreError) {
+          toast({ title: "Erro ao restaurar", description: restoreError.message, variant: "destructive" });
+          setDeletingId(null);
+          return;
+        }
+      }
+      await supabase.from("trash_bin" as any).delete().eq("id", item.id);
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
+      toast({ title: "Item restaurado com sucesso" });
+    } catch {
+      toast({ title: "Erro ao restaurar", variant: "destructive" });
+    }
+    setDeletingId(null);
+  };
+
+  const getRestoreTable = (type: string): string | null => {
+    const map: Record<string, string> = {
+      member: "profiles",
+      company: "companies",
+      project: "projects",
+      task: "budget_entries",
+      budget: "budget_entries",
+    };
+    return map[type] || null;
+  };
+
   const handleDeleteAll = async () => {
     setLoading(true);
     const { error } = await supabase.from("trash_bin" as any).delete().neq("id", "00000000-0000-0000-0000-000000000000");
