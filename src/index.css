@@ -224,6 +224,14 @@
     box-shadow: var(--ios-shadow-subtle);
   }
 
+  /* ── Colored blocks glow on hover ── */
+  .ios-card [style*="background"] {
+    transition: filter 0.28s ease, box-shadow 0.28s ease;
+  }
+  .ios-card:hover [style*="background"] {
+    filter: brightness(1.06);
+  }
+
   /* ── Squircle cards — icon-shaped cards like iOS app icons ── */
   .ios-squircle {
     background: var(--ios-gradient-surface);
