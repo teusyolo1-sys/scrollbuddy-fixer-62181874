@@ -75,7 +75,7 @@ export const useBudgetEntries = (companyId?: string) => {
     })));
 
     setLoading(false);
-  }, [user]);
+  }, [user, companyId]);
 
   const fetchProfiles = useCallback(async () => {
     if (!user) return;
