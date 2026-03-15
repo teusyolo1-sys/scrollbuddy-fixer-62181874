@@ -384,11 +384,24 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
+  const setGlobalDraggingCursor = () => {
+    document.body.classList.add("is-dragging-cursor");
+  };
+
+  const clearGlobalDraggingCursor = () => {
+    document.body.classList.remove("is-dragging-cursor");
+  };
+
+  useEffect(() => {
+    return () => clearGlobalDraggingCursor();
+  }, []);
+
   const activeItem = activeId ? items.find((i) => i.id === activeId) : null;
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
+    clearGlobalDraggingCursor();
     if (!over) return;
     const overId = String(over.id);
     const itemId = String(active.id);
@@ -414,7 +427,19 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
   const gridCols = columns.length <= 3 ? "md:grid-cols-3" : columns.length === 4 ? "md:grid-cols-4" : "md:grid-cols-5";
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActiveId(String(e.active.id))} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={(e) => {
+        setActiveId(String(e.active.id));
+        setGlobalDraggingCursor();
+      }}
+      onDragCancel={() => {
+        setActiveId(null);
+        clearGlobalDraggingCursor();
+      }}
+      onDragEnd={handleDragEnd}
+    >
       <div className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px]`}>
         {columnData.map((col, index) => (
           <div
