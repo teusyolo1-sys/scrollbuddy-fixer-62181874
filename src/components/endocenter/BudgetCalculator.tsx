@@ -536,14 +536,25 @@ export default function BudgetCalculator() {
     }, {} as Record<BudgetCategory, number>);
   }, [entries]);
 
+  const toggleCat = (cat: BudgetCategory) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  };
+  const expandCat = (cat: BudgetCategory) => {
+    setExpandedCategories(prev => new Set(prev).add(cat));
+  };
+
   const catProps = (cat: BudgetCategory) => ({
     cat,
     config: categoryConfig[cat],
     entries: entries.filter(e => e.category === cat),
     total: totals[cat],
-    isExpanded: expandedCategory === cat,
-    onToggle: () => setExpandedCategory(expandedCategory === cat ? null : cat),
-    onAdd: () => { addEntry(cat); setExpandedCategory(cat); },
+    isExpanded: expandedCategories.has(cat),
+    onToggle: () => toggleCat(cat),
+    onAdd: () => { addEntry(cat); expandCat(cat); },
     onUpdate: updateEntry,
     onRemove: removeEntry,
     profiles,
