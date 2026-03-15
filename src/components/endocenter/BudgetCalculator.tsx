@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  BarChart, Bar, ResponsiveContainer,
+  BarChart, Bar, ResponsiveContainer, CartesianGrid,
   PieChart as RPieChart, Pie, Cell
 } from "recharts";
 import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
