@@ -216,8 +216,9 @@ function DashboardContent() {
 }
 
 export default function EndocenterDashboard() {
+  const { companyId } = useParams<{ companyId: string }>();
   return (
-    <EndocenterProvider>
+    <EndocenterProvider companyId={companyId}>
       <DashboardContent />
     </EndocenterProvider>
   );
