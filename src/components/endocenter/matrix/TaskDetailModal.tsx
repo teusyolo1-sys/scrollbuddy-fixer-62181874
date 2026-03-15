@@ -606,9 +606,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 width: 320,
                 height: "60vh",
                 maxHeight: "75vh",
-                background: "var(--ios-glass, hsl(var(--card)))",
-                backdropFilter: "blur(40px) saturate(1.8)",
-                WebkitBackdropFilter: "blur(40px) saturate(1.8)",
+                background: "hsl(var(--card))",
                 boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
                 border: "1px solid hsl(var(--border) / 0.3)",
               }}
@@ -620,7 +618,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                   <X className="h-3 w-3" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-3">
+              <div className="flex-1 min-h-0 overflow-hidden p-3">
                 <TaskChat taskId={item.id} taskName={item.task} />
               </div>
             </motion.div>

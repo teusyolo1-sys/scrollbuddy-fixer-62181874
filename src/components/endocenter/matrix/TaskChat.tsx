@@ -147,9 +147,9 @@ export default function TaskChat({ taskId, taskName }: TaskChatProps) {
   }
 
   return (
-    <div className="space-y-2">
+    <div className="flex flex-col h-full">
       {/* Messages */}
-      <div className="max-h-40 overflow-y-auto space-y-2 pr-1">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-2 pr-1">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center gap-1 py-3 text-muted-foreground/40">
             <MessageCircle className="h-5 w-5" />
@@ -196,7 +196,7 @@ export default function TaskChat({ taskId, taskName }: TaskChatProps) {
 
       {/* Mention dropdown */}
       {mentionQuery !== null && filteredProfiles.length > 0 && (
-        <div className="rounded-lg bg-card border border-border/50 overflow-hidden shadow-lg">
+        <div className="rounded-lg bg-card border border-border/50 overflow-hidden shadow-lg shrink-0">
           {filteredProfiles.map((p) => (
             <button
               key={p.id}
@@ -214,8 +214,8 @@ export default function TaskChat({ taskId, taskName }: TaskChatProps) {
         </div>
       )}
 
-      {/* Input */}
-      <div className="flex gap-1">
+      {/* Input — pinned at bottom */}
+      <div className="flex gap-1 pt-2 shrink-0 mt-auto">
         <input
           ref={inputRef}
           value={input}
