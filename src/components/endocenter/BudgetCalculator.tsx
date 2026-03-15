@@ -25,9 +25,9 @@ const categories: BudgetCategory[] = ["investimento", "gasto", "faturamento", "r
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-/* ── Glass card base classes ── */
-const glassCard = "rounded-2xl border border-white/[0.08] shadow-[0_4px_30px_rgba(0,0,0,0.3)]";
-const glassCardBg = "bg-white/[0.06] backdrop-blur-xl";
+/* ── Glass card base classes (theme-aware) ── */
+const glassCard = "rounded-2xl border border-border shadow-[var(--ios-shadow)]";
+const glassCardBg = "bg-card/80 backdrop-blur-xl";
 
 /* ── Mini Sparkline ── */
 function MiniSparkline({ data, color, type = "area" }: { data: number[]; color: string; type?: "area" | "bar" }) {
@@ -81,9 +81,9 @@ function KPICard({ label, value, color, sparkData, sparkType, change, icon: Icon
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
             <IconComp className="h-4 w-4" style={{ color }} />
           </div>
-          <span className="text-xs text-white/50 font-medium tracking-wide">{label}</span>
+          <span className="text-xs text-muted-foreground font-medium tracking-wide">{label}</span>
           {change !== undefined && change !== 0 && (
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${change > 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${change > 0 ? "bg-emerald-500/15 text-emerald-400 dark:text-emerald-400" : "bg-red-500/15 text-red-500 dark:text-red-400"}`}>
               {change > 0 ? "+" : ""}{change.toFixed(0)}% vs. Feb
             </span>
           )}
@@ -133,7 +133,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
     >
       <button
         onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-white/[0.03] transition-colors"
+        className="w-full flex items-center justify-between p-4 hover:bg-accent/30 transition-colors"
       >
         <div className="flex items-center gap-3">
           <div
@@ -147,8 +147,8 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
             )}
           </div>
           <div className="text-left">
-            <p className="text-sm font-bold text-white">{config.label}</p>
-            <p className="text-xs text-white/40">
+            <p className="text-sm font-bold text-foreground">{config.label}</p>
+            <p className="text-xs text-muted-foreground">
               {entries.length} {entries.length === 1 ? "item" : "itens"} · {formatCurrency(totals)}
             </p>
           </div>
@@ -163,7 +163,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
             <Plus className="h-4 w-4" />
           </motion.button>
           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
-            <ChevronDown className="h-4 w-4 text-white/30" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </motion.div>
         </div>
       </button>
@@ -179,13 +179,13 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
           >
             <div className="px-4 pb-4">
               {entries.length === 0 ? (
-                <p className="text-xs text-white/30 text-center py-8">
+                <p className="text-xs text-muted-foreground text-center py-8">
                   Nenhum item ainda. Clique em + para adicionar.
                 </p>
               ) : (
-                <div className="border border-white/[0.06] rounded-xl overflow-hidden">
+                <div className="border border-border rounded-xl overflow-hidden">
                   {/* Table header */}
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-white/[0.03] text-[10px] font-semibold text-white/30 uppercase tracking-wider">
+                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-muted/50 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     <span>Descrição</span>
                     <span className="w-24 text-right">Valor</span>
                     <span className="w-24 text-center">Data</span>
@@ -197,11 +197,11 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 items-center ${idx % 2 === 0 ? "bg-transparent" : "bg-white/[0.02]"} hover:bg-white/[0.04] transition-colors group`}
+                      className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 items-center ${idx % 2 === 0 ? "bg-transparent" : "bg-muted/30"} hover:bg-accent/30 transition-colors group`}
                     >
                       <div className="space-y-1.5">
                         <input
-                          className="w-full bg-transparent text-sm font-medium text-white/90 outline-none placeholder:text-white/20 border-b border-transparent focus:border-white/10 transition-colors"
+                          className="w-full bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground/50 border-b border-transparent focus:border-border transition-colors"
                           value={entry.description}
                           onChange={(e) => onUpdate(entry.id, { description: e.target.value })}
                           placeholder="Descrição do item"
@@ -220,8 +220,8 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                                   <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold transition-all"
                                     style={{
                                       backgroundColor: isSelected ? color : "transparent",
-                                      color: isSelected ? "white" : "rgba(255,255,255,0.25)",
-                                      border: `1.5px solid ${isSelected ? color : "rgba(255,255,255,0.1)"}`,
+                                      color: isSelected ? "white" : "hsl(var(--muted-foreground))",
+                                      border: `1.5px solid ${isSelected ? color : "hsl(var(--border))"}`,
                                       opacity: isSelected ? 1 : 0.4,
                                     }}
                                   >
@@ -235,10 +235,10 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                       </div>
                       <div className="w-24">
                         <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-white/25">R$</span>
+                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/60">R$</span>
                           <input
                             type="number"
-                            className="w-full bg-transparent text-sm font-bold text-right outline-none placeholder:text-white/15 border-b border-transparent focus:border-white/10 transition-colors pl-6 pr-1"
+                            className="w-full bg-transparent text-sm font-bold text-right outline-none placeholder:text-muted-foreground/30 border-b border-transparent focus:border-border transition-colors pl-6 pr-1"
                             value={entry.amount || ""}
                             onChange={(e) => onUpdate(entry.id, { amount: Number(e.target.value) })}
                             placeholder="0"
@@ -249,22 +249,22 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                       <div className="w-24">
                         <input
                           type="date"
-                          className="w-full bg-transparent text-[11px] text-white/40 outline-none text-center border-b border-transparent focus:border-white/10 transition-colors"
+                          className="w-full bg-transparent text-[11px] text-muted-foreground outline-none text-center border-b border-transparent focus:border-border transition-colors"
                           value={entry.date}
                           onChange={(e) => onUpdate(entry.id, { date: e.target.value })}
                         />
                       </div>
                       <button
                         onClick={() => onRemove(entry.id)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-red-500/40 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-destructive/40 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </motion.div>
                   ))}
                   {/* Total row */}
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-white/[0.03] border-t border-white/[0.06]">
-                    <span className="text-xs font-bold text-white/70">Total</span>
+                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-muted/50 border-t border-border">
+                    <span className="text-xs font-bold text-foreground/70">Total</span>
                     <span className="w-24 text-right text-sm font-extrabold" style={{ color: config.color }}>
                       {formatCurrency(totals)}
                     </span>
@@ -299,8 +299,8 @@ function StackedBarPanel({ entries }: { entries: any[] }) {
       className={`${glassCard} ${glassCardBg} p-5`}
     >
       <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="h-4 w-4 text-white/40" />
-        <h3 className="text-sm font-bold text-white/70">Distribuição por categoria</h3>
+        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-bold text-foreground/70">Distribuição por categoria</h3>
       </div>
       <div className="flex items-start gap-6">
         <div className="flex-1">
@@ -316,7 +316,7 @@ function StackedBarPanel({ entries }: { entries: any[] }) {
           {chartData.map((d, i) => (
             <div key={i} className="flex items-center gap-2">
               <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-              <span className="text-[11px] text-white/50">{d.name}</span>
+              <span className="text-[11px] text-muted-foreground">{d.name}</span>
             </div>
           ))}
         </div>
@@ -343,8 +343,8 @@ function DonutPanel({ entries }: { entries: any[] }) {
       className={`${glassCard} ${glassCardBg} p-5`}
     >
       <div className="flex items-center gap-2 mb-3">
-        <PieChart className="h-4 w-4 text-white/40" />
-        <h3 className="text-sm font-bold text-white/70">Composição</h3>
+        <PieChart className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-bold text-foreground/70">Composição</h3>
       </div>
       <div className="flex items-center justify-center">
         <ResponsiveContainer width={120} height={120}>
@@ -372,20 +372,20 @@ function UpcomingInvoices({ entries }: { entries: any[] }) {
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ delay: 0.6 }}
-      className={`${glassCard} bg-white/[0.08] backdrop-blur-2xl p-4`}
+      className={`${glassCard} bg-card/90 backdrop-blur-2xl p-4`}
     >
       <div className="flex items-center gap-2 mb-3">
-        <FileText className="h-3.5 w-3.5 text-white/40" />
-        <h4 className="text-xs font-bold text-white/60">Upcoming Invoices</h4>
+        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
+        <h4 className="text-xs font-bold text-muted-foreground">Upcoming Invoices</h4>
       </div>
       {upcoming.length === 0 ? (
-        <p className="text-[11px] text-white/25">Nenhuma fatura pendente</p>
+        <p className="text-[11px] text-muted-foreground/50">Nenhuma fatura pendente</p>
       ) : (
         <div className="space-y-2">
           {upcoming.map((inv, i) => (
             <div key={i} className="flex items-center justify-between">
-              <span className="text-[11px] text-white/50 truncate max-w-[120px]">{inv.description || `Invoice ${i + 1}`}</span>
-              <span className="text-[11px] font-bold text-white/70">{formatCurrency(inv.amount)}</span>
+              <span className="text-[11px] text-muted-foreground truncate max-w-[120px]">{inv.description || `Invoice ${i + 1}`}</span>
+              <span className="text-[11px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
             </div>
           ))}
         </div>
@@ -404,18 +404,18 @@ function PipelinePlaceholder() {
       className={`${glassCard} ${glassCardBg} p-5 relative min-h-[280px] flex flex-col`}
     >
       <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="h-4 w-4 text-white/40" />
-        <h3 className="text-sm font-bold text-white/70">Pipeline de Faturamento</h3>
+        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-bold text-foreground/70">Pipeline de Faturamento</h3>
       </div>
       <div className="flex-1 flex items-center justify-center">
         <div className="text-center space-y-3">
           {/* Funnel shapes */}
           <div className="flex flex-col items-center gap-1.5 opacity-15">
-            <div className="w-32 h-8 border-2 border-white/40 rounded-lg rotate-[-3deg]" />
-            <div className="w-24 h-8 border-2 border-white/40 rounded-lg rotate-[2deg]" />
-            <div className="w-16 h-8 border-2 border-white/40 rounded-lg rotate-[-1deg]" />
+            <div className="w-32 h-8 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
+            <div className="w-24 h-8 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
+            <div className="w-16 h-8 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
           </div>
-          <p className="text-xs text-white/25 mt-4">Add first invoice to view pipeline</p>
+          <p className="text-xs text-muted-foreground/50 mt-4">Add first invoice to view pipeline</p>
         </div>
       </div>
       {/* Floating mini-card */}
@@ -468,7 +468,7 @@ export default function BudgetCalculator() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center py-20 text-white/30">
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
         Faça login para acessar o orçamento.
       </div>
     );
@@ -477,13 +477,13 @@ export default function BudgetCalculator() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-white/30" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen -mx-6 -mt-6 px-6 pt-6 pb-12 bg-black/95 rounded-2xl space-y-6">
+    <div className="min-h-screen -mx-6 -mt-6 px-6 pt-6 pb-12 bg-background rounded-2xl space-y-6">
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
