@@ -267,61 +267,32 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     minHeight="100%"
                     placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
                   />
-                  <div className="flex items-center gap-2 px-4 py-2 border-t border-border/40 bg-secondary/20 shrink-0">
-                    <button onClick={() => setEditingDescription(false)}
-                      className="text-xs font-semibold px-4 py-1.5 text-white transition-colors"
-                      style={{ backgroundColor: roleColor, borderRadius: "var(--ios-radius-sm)" }}>
-                      Concluir edição
-                    </button>
-                    <span className="text-[10px] text-muted-foreground">Editando descrição...</span>
-                  </div>
                 </div>
               ) : (
-                <div className="flex-1 flex items-start justify-center p-6 cursor-pointer group" onClick={() => setEditingDescription(true)}>
-                  {/* Card 9:16 aspect ratio preview */}
-                  <div 
-                    className="relative w-full bg-card border border-border/40 overflow-hidden transition-shadow hover:shadow-lg"
-                    style={{ 
-                      maxWidth: "400px",
-                      aspectRatio: "9 / 16",
-                      borderRadius: "var(--ios-radius)",
-                      boxShadow: "var(--ios-shadow)",
-                    }}
-                  >
-                    {/* Inner content with scroll */}
-                    <div className="absolute inset-0 overflow-y-auto p-5">
-                      {description && description !== "<br>" && description.replace(/<[^>]*>/g, "").trim() ? (
-                        <div className="text-sm text-foreground prose prose-sm max-w-none
-                          [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3
-                          [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-2
-                          [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2
-                          [&_blockquote]:border-l-4 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
-                          [&_pre]:bg-secondary [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-xs
-                          [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
-                          [&_a]:text-primary [&_a]:underline
-                          [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-2
-                          [&_hr]:border-border/50 [&_hr]:my-3"
-                          dangerouslySetInnerHTML={{ __html: description }}
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/40">
-                          <Type className="h-10 w-10" />
-                          <p className="text-sm font-medium text-center">Clique para adicionar uma descrição</p>
-                          <p className="text-xs text-center">Use formatação rica como um editor de texto</p>
-                        </div>
-                      )}
+                <div 
+                  className="flex-1 overflow-y-auto cursor-pointer group relative"
+                  onClick={() => setEditingDescription(true)}
+                >
+                  <div className="p-5 h-full">
+                    {description && description !== "<br>" && description.replace(/<[^>]*>/g, "").trim() ? (
+                      <div className="text-sm text-foreground prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-2 [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2 [&_blockquote]:border-l-4 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_pre]:bg-secondary [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-xs [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-primary [&_a]:underline [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-2 [&_hr]:border-border/50 [&_hr]:my-3"
+                        dangerouslySetInnerHTML={{ __html: description }}
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center h-full gap-3 text-muted-foreground/40">
+                        <Type className="h-10 w-10" />
+                        <p className="text-sm font-medium text-center">Clique para editar</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/[0.03] transition-colors pointer-events-none flex items-center justify-center">
+                    <div className="opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:scale-100 scale-90 text-xs font-semibold text-foreground/80 bg-card border border-border/50 px-4 py-2 shadow-lg"
+                      style={{ borderRadius: "var(--ios-radius-sm)", backdropFilter: "blur(12px)", boxShadow: "var(--ios-shadow)" }}>
+                      ✏️ Editar
                     </div>
-                    {/* Hover overlay */}
-                    <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/5 transition-colors flex items-end justify-center pb-4 pointer-events-none">
-                      <span className="opacity-0 group-hover:opacity-100 transition-opacity text-[11px] font-medium text-foreground/70 bg-card/90 px-4 py-1.5 shadow-sm"
-                        style={{ borderRadius: "var(--ios-radius-sm)", backdropFilter: "blur(8px)" }}>
-                        ✏️ Clique para editar
-                      </span>
-                    </div>
-                    {/* Dimension label */}
-                    <div className="absolute top-2 right-2 text-[9px] font-mono text-muted-foreground/30 bg-card/60 px-1.5 py-0.5 rounded-md">
-                      9:16
-                    </div>
+                  </div>
+                  <div className="absolute top-3 right-3 text-[9px] font-mono text-muted-foreground/30 bg-secondary/50 px-1.5 py-0.5" style={{ borderRadius: "6px" }}>
+                    9:16
                   </div>
                 </div>
               )}
