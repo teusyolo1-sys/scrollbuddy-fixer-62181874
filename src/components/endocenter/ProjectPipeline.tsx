@@ -267,7 +267,7 @@ export default function ProjectPipeline() {
                         <>
                           <div className="flex items-center justify-between gap-2">
                             <p className="text-xs font-medium text-foreground">{task.name}</p>
-                            <StatusPill value={task.status} onChange={(s) => updatePipelineTask(project.id, task.id, { status: s })} />
+                            <StatusPill value={task.status} onChange={(s) => handleTaskStatus(project.id, task.id, s)} />
                           </div>
                           <p className="text-[11px] text-muted-foreground">
                             {task.responsible} · {task.hours}h · R$ {task.remuneration.toLocaleString("pt-BR")}

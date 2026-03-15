@@ -219,7 +219,7 @@ export default function DeadlineManagement() {
                   value={deadline.status}
                   isOpen={openStatusDeadlineId === deadline.id}
                   onOpenChange={(nextOpen) => setOpenStatusDeadlineId(nextOpen ? deadline.id : null)}
-                  onChange={(s) => updateDeadline(deadline.id, { status: s })}
+                  onChange={(s) => handleDeadlineStatus(deadline.id, s)}
                 />
               </div>
             </motion.div>
