@@ -812,7 +812,7 @@ function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: bool
 export default function BudgetCalculator({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
   const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries(companyId);
-  const [expandedCategories, setExpandedCategories] = useState<Set<BudgetCategory>>(new Set(["faturamento"]));
+  const [openPanel, setOpenPanel] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const totals = useMemo(() => {
@@ -822,15 +822,13 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
     }, {} as Record<BudgetCategory, number>);
   }, [entries]);
 
-  const toggleCat = (cat: BudgetCategory) => {
-    setExpandedCategories(prev => {
-      const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat); else next.add(cat);
-      return next;
-    });
+  const togglePanel = (panelKey: string) => {
+    setOpenPanel((prev) => (prev === panelKey ? null : panelKey));
   };
-  const expandCat = (cat: BudgetCategory) => {
-    setExpandedCategories(prev => new Set(prev).add(cat));
+
+  const openPanelAndAdd = (panelKey: string, cat: BudgetCategory) => {
+    addEntry(cat);
+    setOpenPanel(panelKey);
   };
 
   const catProps = (cat: BudgetCategory) => ({
@@ -838,9 +836,9 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
     config: categoryConfig[cat],
     entries: entries.filter(e => e.category === cat),
     total: totals[cat],
-    isExpanded: expandedCategories.has(cat),
-    onToggle: () => toggleCat(cat),
-    onAdd: () => { addEntry(cat); expandCat(cat); },
+    isExpanded: openPanel === cat,
+    onToggle: () => togglePanel(cat),
+    onAdd: () => openPanelAndAdd(cat, cat),
     onUpdate: updateEntry,
     onRemove: removeEntry,
     profiles,
