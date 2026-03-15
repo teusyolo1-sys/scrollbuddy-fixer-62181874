@@ -132,7 +132,7 @@ export default function LobbyPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.05, 0.15), type: "spring", damping: 26, stiffness: 340 }}
                 onClick={() => openCompany(company)}
-                className="ios-squircle p-0 text-left overflow-hidden group"
+                className="ios-glass border border-white/30 dark:border-white/10 rounded-3xl p-0 text-left overflow-hidden group"
               >
                 {/* Gradient header */}
                 <div className="h-28 relative" style={{ background: gradient }}>
@@ -172,8 +172,8 @@ export default function LobbyPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: companies.length * 0.08, type: "spring", damping: 22 }}
             onClick={addCompany}
-            className="ios-squircle flex flex-col items-center justify-center min-h-[220px] group"
-            style={{ border: "2px dashed hsl(var(--border))", background: "transparent", boxShadow: "none" }}
+            className="ios-glass border border-white/30 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group"
+            style={{ boxShadow: "none" }}
           >
             <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
               <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
