@@ -13,7 +13,7 @@ const roleIcons = {
 const typeOptions = ["entregável", "operação", "revisão", "análise", "planejamento", "reunião"];
 
 export default function MasterSchedule() {
-  const { scheduleWeeks, updateScheduleWeek, addScheduleTask, updateScheduleTask, removeScheduleTask } = useEndocenter();
+  const { scheduleWeeks, updateScheduleWeek, addScheduleTask, updateScheduleTask, removeScheduleTask, responsibilityRoles } = useEndocenter();
   const [activeWeekId, setActiveWeekId] = useState<string>(scheduleWeeks[0]?.id ?? "");
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
@@ -21,10 +21,11 @@ export default function MasterSchedule() {
   const week = scheduleWeeks.find((item) => item.id === activeWeekId) ?? scheduleWeeks[0];
 
   const groupedByRole = useMemo(() => {
-    if (!week) return [] as Array<{ role: string; color: string; tasks: typeof week.tasks }>;
+    if (!week) return [] as Array<{ role: string; color: string; tasks: Array<{ id: string; role: string; task: string; type: string; hours: number; color: string; fromResponsibility?: boolean }> }>;
 
-    const roleMap = new Map<string, { role: string; color: string; tasks: typeof week.tasks }>();
+    const roleMap = new Map<string, { role: string; color: string; tasks: Array<{ id: string; role: string; task: string; type: string; hours: number; color: string; fromResponsibility?: boolean }> }>();
 
+    // Add schedule tasks
     for (const task of week.tasks) {
       if (!roleMap.has(task.role)) {
         roleMap.set(task.role, { role: task.role, color: task.color, tasks: [] });
@@ -32,8 +33,34 @@ export default function MasterSchedule() {
       roleMap.get(task.role)?.tasks.push(task);
     }
 
+    // Merge responsibility items (weekly tab, not done)
+    for (const role of responsibilityRoles) {
+      const pendingTasks = role.weekly.filter((item) => !item.done);
+      if (pendingTasks.length === 0) continue;
+
+      if (!roleMap.has(role.role)) {
+        roleMap.set(role.role, { role: role.role, color: role.color, tasks: [] });
+      }
+      const group = roleMap.get(role.role)!;
+      const existingIds = new Set(group.tasks.map((t) => t.id));
+
+      for (const item of pendingTasks) {
+        if (!existingIds.has(item.id)) {
+          group.tasks.push({
+            id: item.id,
+            role: role.role,
+            task: item.task,
+            type: item.critical ? "crítico" : "entregável",
+            hours: 0,
+            color: role.color,
+            fromResponsibility: true,
+          });
+        }
+      }
+    }
+
     return Array.from(roleMap.values());
-  }, [week]);
+  }, [week, responsibilityRoles]);
 
   if (!week) return null;
 
@@ -220,9 +247,14 @@ export default function MasterSchedule() {
                               </>
                             ) : (
                               <div className="flex items-center justify-between gap-2">
-                                <p className="text-sm text-foreground">{task.task}</p>
+                                <div className="flex items-center gap-2">
+                                  {(task as any).fromResponsibility && (
+                                    <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-primary/10 text-primary shrink-0">RESP</span>
+                                  )}
+                                  <p className="text-sm text-foreground">{task.task}</p>
+                                </div>
                                 <span className="text-xs text-muted-foreground whitespace-nowrap">
-                                  {task.type} · {task.hours}h
+                                  {task.type}{task.hours > 0 ? ` · ${task.hours}h` : ""}
                                 </span>
                               </div>
                             )}
