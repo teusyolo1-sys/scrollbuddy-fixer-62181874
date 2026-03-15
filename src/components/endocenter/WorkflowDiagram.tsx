@@ -206,7 +206,7 @@ export default function WorkflowDiagram() {
                 setCtxMenu(null);
               }},
               { label: "Editar etapa", icon: Edit3, action: () => { setEditMode(true); setCtxMenu(null); }},
-              { label: "Remover etapa", icon: Trash2, action: () => { removeWorkflowStep(ctxMenu.stepId); setCtxMenu(null); }, danger: true },
+              { label: "Remover etapa", icon: Trash2, action: () => { const s = workflowSteps.find((x) => x.id === ctxMenu.stepId); addNotification({ title: "Fluxo: etapa removida", description: s?.title || "Etapa", icon: "delete" }); removeWorkflowStep(ctxMenu.stepId); setCtxMenu(null); }, danger: true },
             ].map((item) => (
               <button
                 key={item.label}

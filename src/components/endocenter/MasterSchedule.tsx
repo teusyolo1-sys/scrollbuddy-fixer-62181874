@@ -325,7 +325,7 @@ export default function MasterSchedule() {
                                     ))}
                                   </select>
                                   <button
-                                    onClick={() => removeScheduleTask(week.id, task.id)}
+                                    onClick={() => { addNotification({ title: "Cronograma: tarefa removida", description: task.task, icon: "delete" }); removeScheduleTask(week.id, task.id); }}
                                     className="rounded-md p-1 text-destructive hover:bg-destructive/10"
                                   >
                                     <Trash2 className="h-3 w-3" />
