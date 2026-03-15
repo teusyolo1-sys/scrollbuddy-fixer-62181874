@@ -271,6 +271,7 @@ interface EndocenterStore {
   removeBudgetEntry: (id: string) => void;
 }
 
+const getStorageKey = (companyId?: string) => companyId ? `endocenter_${companyId}` : "endocenter_settings";
 const STORAGE_KEY = "endocenter_settings";
 
 const createId = (prefix: string) => `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
@@ -743,24 +744,31 @@ interface PersistedData {
   budgetEntries: BudgetEntry[];
 }
 
-const loadFromStorage = (): Partial<PersistedData> | null => {
+const loadFromStorage = (companyId?: string): Partial<PersistedData> | null => {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const key = getStorageKey(companyId);
+    const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw);
+    // Fallback to legacy key for the default company
+    if (companyId) {
+      const legacyRaw = localStorage.getItem(STORAGE_KEY);
+      if (legacyRaw) return JSON.parse(legacyRaw);
+    }
   } catch {
     return null;
   }
   return null;
 };
 
-const saveToStorage = (data: PersistedData) => {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+const saveToStorage = (data: PersistedData, companyId?: string) => {
+  const key = getStorageKey(companyId);
+  localStorage.setItem(key, JSON.stringify(data));
 };
 
 const EndocenterContext = createContext<EndocenterStore | null>(null);
 
-export function EndocenterProvider({ children }: { children: ReactNode }) {
-  const stored = loadFromStorage();
+export function EndocenterProvider({ children, companyId }: { children: ReactNode; companyId?: string }) {
+  const stored = loadFromStorage(companyId);
 
   const [company, setCompanyState] = useState<CompanyInfo>(stored?.company ?? defaultCompany);
   const [team, setTeamState] = useState<TeamMember[]>(
@@ -818,8 +826,8 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
       deadlines,
       crisisScenarios,
       budgetEntries,
-    });
-  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios, budgetEntries]);
+    }, companyId);
+  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios, budgetEntries, companyId]);
 
   const updateMember = (id: string, updates: Partial<TeamMember>) => {
     setTeamState((prev) =>

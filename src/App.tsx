@@ -77,6 +77,7 @@ const App = () => {
           <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
           <Route path="/editor" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
           <Route path="/" element={<LobbyPage />} />
+          <Route path="/endocenter/:companyId" element={<ProtectedRoute><EndocenterDashboard /></ProtectedRoute>} />
           <Route path="/endocenter" element={<ProtectedRoute><EndocenterDashboard /></ProtectedRoute>} />
           <Route path="/permissions" element={<ProtectedRoute><AdminRoute><PermissionsPage /></AdminRoute></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminPage /></AdminRoute></ProtectedRoute>} />
