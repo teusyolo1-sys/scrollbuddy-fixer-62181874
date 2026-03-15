@@ -371,11 +371,11 @@ function CompanyCardItem({
         )}
         <div className="absolute inset-0 bg-black/5" />
 
-        {/* Admin: banner upload button — always visible */}
+        {/* Admin: banner upload button — visible on hover only */}
         {isAdmin && (
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); bannerUpload.trigger(); }}
-            className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all"
+            className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100"
             title="Alterar banner"
           >
             <ImagePlus className="h-4 w-4" />
@@ -397,7 +397,7 @@ function CompanyCardItem({
             {isAdmin && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); logoUpload.trigger(); }}
-                className="absolute -bottom-1 -right-1 z-10 w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
+                className="absolute -bottom-1 -right-1 z-10 w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100"
                 title="Alterar logo"
               >
                 <Pencil className="h-3 w-3" />
