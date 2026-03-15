@@ -201,9 +201,7 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
           )}
 
           {/* Chart */}
-          <ResponsiveContainer width="100%" height={160}>
-            <RenderChart style={chartStyle} data={data} color={cfg.color} type={type} />
-          </ResponsiveContainer>
+          <ChartByStyle style={chartStyle} data={data} color={cfg.color} type={type} />
 
           {/* Style indicator */}
           <div className="mt-2 text-[10px] text-muted-foreground/50 text-right">
