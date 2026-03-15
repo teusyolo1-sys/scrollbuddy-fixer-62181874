@@ -493,7 +493,6 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                   </div>
                 </div>
               </div>
-            </div>
           </div>
         </motion.div>
       </motion.div>
