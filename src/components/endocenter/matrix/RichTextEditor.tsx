@@ -164,6 +164,21 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
     if (url) exec("insertImage", url);
   }, [exec]);
 
+  const toggleBlock = useCallback((tag: string) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const node = sel.anchorNode;
+      const block = node?.nodeType === 1 ? node as HTMLElement : node?.parentElement;
+      const current = block?.closest("blockquote, pre, h1, h2, h3");
+      if (current && current.tagName.toLowerCase() === tag.replace(/[<>]/g, "")) {
+        exec("formatBlock", "<p>");
+        return;
+      }
+    }
+    exec("formatBlock", tag);
+  }, [restoreSelection, exec]);
+
   const handleInput = useCallback(() => {
     emitChange();
   }, [emitChange]);
