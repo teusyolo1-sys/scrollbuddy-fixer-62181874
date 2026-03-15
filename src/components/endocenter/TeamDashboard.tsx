@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useTeamRole } from "@/hooks/useTeamRole";
+import { useSectionPermissions } from "@/hooks/useSectionPermissions";
+import { useAuth } from "@/hooks/useAuth";
 
 const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
 
@@ -203,16 +205,31 @@ export default function TeamDashboard() {
   const { team, company, metricEntries } = useEndocenter();
   const { isAdmin } = useUserRole();
   const { teamRole } = useTeamRole();
+  const { canViewSection } = useSectionPermissions();
+  const { user } = useAuth();
   const [selectedMember, setSelectedMember] = useState<typeof team[number] | null>(null);
   const [periodFilter, setPeriodFilter] = useState<MetricPeriod | "Todas">("Todas");
 
-  // Filter team: non-admin users only see members matching their role
+  // Check if user is restricted to own profile only
+  const ownProfileOnly = !isAdmin && canViewSection('team', 'own_profile_only');
+
+  // Filter team: if own_profile_only is enabled, show only own profile
   const visibleTeam = useMemo(() => {
-    if (isAdmin || !teamRole) return team;
+    if (isAdmin) return team;
+    if (ownProfileOnly && user?.email) {
+      const own = team.filter((m) => {
+        // Match by email from profile or by display_name
+        const userDisplayName = user.user_metadata?.display_name || user.email?.split('@')[0];
+        return m.name?.toLowerCase() === userDisplayName?.toLowerCase();
+      });
+      if (own.length > 0) return own;
+      // Fallback: show first member (self) if no name match
+      return team.slice(0, 1);
+    }
+    if (!teamRole) return team;
     const filtered = team.filter((m) => m.role === teamRole);
-    // If no match found, show all (role name might differ)
     return filtered.length > 0 ? filtered : team;
-  }, [team, isAdmin, teamRole]);
+  }, [team, isAdmin, teamRole, ownProfileOnly, user]);
 
   const totalRemuneration = useMemo(() => visibleTeam.reduce((sum, m) => sum + m.remuneration, 0), [visibleTeam]);
   const totalHours = useMemo(() => visibleTeam.reduce((sum, m) => sum + m.hours, 0), [visibleTeam]);
