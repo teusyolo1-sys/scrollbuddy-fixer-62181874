@@ -2,11 +2,11 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Image, Link2, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
-  ChevronDown, ChevronRight, Settings2, Pencil
+  ChevronDown, ChevronRight, Settings2, Pencil, ImagePlus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } from "@/store/endocenterStore";
-import RichTextEditor from "./RichTextEditor";
+import RichTextEditor, { type RichTextEditorHandle } from "./RichTextEditor";
 
 const priorityOptions = [
   { value: "low" as const, label: "Baixa", color: "hsl(var(--muted-foreground))" },
