@@ -228,7 +228,7 @@ export default function ProjectPipeline() {
                       {open ? "Ocultar" : "Tarefas"}
                     </button>
                     {editMode && (
-                      <button onClick={() => removePipelineProject(project.id)}
+                      <button onClick={() => { addNotification({ title: "Pipeline: projeto removido", description: project.name, icon: "delete" }); removePipelineProject(project.id); }}
                         className="rounded-lg p-1.5 text-destructive hover:bg-destructive/10">
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -257,7 +257,7 @@ export default function ProjectPipeline() {
                               onChange={(e) => updatePipelineTask(project.id, task.id, { remuneration: Number(e.target.value) })} placeholder="R$" />
                             <input className="ios-input px-2 py-1.5 text-xs" value={task.week}
                               onChange={(e) => updatePipelineTask(project.id, task.id, { week: e.target.value })} placeholder="Semana" />
-                            <button onClick={() => removePipelineTask(project.id, task.id)}
+                            <button onClick={() => { addNotification({ title: "Pipeline: tarefa removida", description: task.name, icon: "delete" }); removePipelineTask(project.id, task.id); }}
                               className="rounded-md p-1 text-destructive hover:bg-destructive/10">
                               <Trash2 className="h-3 w-3" />
                             </button>

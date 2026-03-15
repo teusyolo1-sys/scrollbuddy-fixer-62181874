@@ -68,7 +68,9 @@ export default function ResponsibilityMatrix() {
   };
 
   const handleDeleteItem = (itemId: string) => {
+    const item = currentItems.find((i) => i.id === itemId);
     removeResponsibilityRoleItem(role.id, activeTab, itemId);
+    addNotification({ title: `${role.role} deletou tarefa`, description: item?.task || "Tarefa removida", icon: "delete", meta: { roleId: role.id, tab: activeTab, itemId } });
     setSelectedItem(null);
   };
 

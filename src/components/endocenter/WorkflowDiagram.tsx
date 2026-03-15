@@ -61,6 +61,8 @@ export default function WorkflowDiagram() {
   const removeTask = (stepId: string, taskId: string) => {
     const step = workflowSteps.find((s) => s.id === stepId);
     if (!step) return;
+    const task = (step.tasks || []).find((t) => t.id === taskId);
+    addNotification({ title: "Fluxo: tarefa removida", description: `${task?.name || "Tarefa"} — ${step.title}`, icon: "delete" });
     updateWorkflowStep(stepId, { tasks: (step.tasks || []).filter((t) => t.id !== taskId) });
   };
 
@@ -114,7 +116,7 @@ export default function WorkflowDiagram() {
                         onChange={(e) => updateWorkflowStep(step.id, { owner: e.target.value })} />
                       <input className="ios-input px-2 py-2 text-xs" value={step.duration}
                         onChange={(e) => updateWorkflowStep(step.id, { duration: e.target.value })} />
-                      <button onClick={() => removeWorkflowStep(step.id)}
+                      <button onClick={() => { addNotification({ title: "Fluxo: etapa removida", description: step.title, icon: "delete" }); removeWorkflowStep(step.id); }}
                         className="rounded-md p-1 text-destructive hover:bg-destructive/10">
                         <Trash2 className="h-3 w-3" />
                       </button>
@@ -204,7 +206,7 @@ export default function WorkflowDiagram() {
                 setCtxMenu(null);
               }},
               { label: "Editar etapa", icon: Edit3, action: () => { setEditMode(true); setCtxMenu(null); }},
-              { label: "Remover etapa", icon: Trash2, action: () => { removeWorkflowStep(ctxMenu.stepId); setCtxMenu(null); }, danger: true },
+              { label: "Remover etapa", icon: Trash2, action: () => { const s = workflowSteps.find((x) => x.id === ctxMenu.stepId); addNotification({ title: "Fluxo: etapa removida", description: s?.title || "Etapa", icon: "delete" }); removeWorkflowStep(ctxMenu.stepId); setCtxMenu(null); }, danger: true },
             ].map((item) => (
               <button
                 key={item.label}
