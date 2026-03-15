@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet, TrendingUp, TrendingDown, DollarSign, Plus, Trash2,
   ArrowLeft, Building2, PieChart, BarChart3, Receipt, Tag, ChevronDown,
-  Target, AlertTriangle, CheckCircle2, Clock, CreditCard, Percent
+  Target, AlertTriangle, CheckCircle2, Clock, CreditCard, Percent,
+  Sun, Moon
 } from "lucide-react";
 import {
   PieChart as RPieChart, Pie, Cell, ResponsiveContainer,
@@ -13,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useAgencyWallet } from "@/hooks/useAgencyWallet";
 import { useAgencyInvoices, type AgencyInvoice, type PaymentStatus } from "@/hooks/useAgencyInvoices";
 import { useAgencyGoals } from "@/hooks/useAgencyGoals";
+import { useTheme } from "@/hooks/useTheme";
 
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
@@ -202,6 +204,7 @@ export default function AgencyWalletPage() {
   } = useAgencyInvoices();
 
   const { currentGoal } = useAgencyGoals();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const [expensesOpen, setExpensesOpen] = useState(false);
   const [revenuesOpen, setRevenuesOpen] = useState(false);
@@ -269,8 +272,15 @@ export default function AgencyWalletPage() {
                 Caixa da Agência
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">Visão consolidada do fluxo financeiro</p>
-            </div>
           </div>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/50 border border-border hover:bg-secondary transition-colors"
+          >
+            {resolvedTheme === "dark" ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-foreground" />}
+          </motion.button>
+        </div>
         </div>
 
         {/* KPI Cards */}
@@ -457,7 +467,7 @@ export default function AgencyWalletPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); addInvoice(); }}
+                <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); addInvoice(); setInvoicesOpen(true); }}
                   className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-500/20 text-blue-500">
                   <Plus className="h-3.5 w-3.5" />
                 </motion.button>
@@ -501,7 +511,7 @@ export default function AgencyWalletPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); addExpense(); }}
+                  <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); addExpense(); setExpensesOpen(true); }}
                     className="w-7 h-7 rounded-lg flex items-center justify-center bg-destructive/20 text-destructive">
                     <Plus className="h-3.5 w-3.5" />
                   </motion.button>
@@ -543,7 +553,7 @@ export default function AgencyWalletPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); addRevenue(); }}
+                  <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); addRevenue(); setRevenuesOpen(true); }}
                     className="w-7 h-7 rounded-lg flex items-center justify-center bg-amber-500/20 text-amber-500">
                     <Plus className="h-3.5 w-3.5" />
                   </motion.button>

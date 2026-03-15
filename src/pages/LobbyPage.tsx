@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil, Wallet } from "lucide-react";
+import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil, Wallet, Sun, Moon } from "lucide-react";
+import { useTheme } from "@/hooks/useTheme";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -178,6 +179,7 @@ export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const { profit, totalRevenue, loading: walletLoading } = useAgencyWallet();
+  const { resolvedTheme, setTheme } = useTheme();
   const [walletHovered, setWalletHovered] = useState(false);
   const [companies, setCompanies] = useState<CompanyCard[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
@@ -350,6 +352,13 @@ export default function LobbyPage() {
                       </button>
                     </>
                   )}
+                  <button
+                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                    title="Alternar tema"
+                  >
+                    {resolvedTheme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
+                  </button>
                   <button
                     onClick={async () => { await signOut(); }}
                     className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
