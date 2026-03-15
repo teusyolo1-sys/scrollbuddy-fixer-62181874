@@ -5,7 +5,7 @@ import {
   Minus, Link2, Image, Undo2, Redo2, ChevronDown,
   Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2,
   RectangleHorizontal, Square, Maximize, PanelLeft, PanelRight, Columns2,
-  CircleDot, BoxSelect, Trash2
+  CircleDot, BoxSelect, Trash2, Check
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -574,6 +574,16 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
                     title="Remover imagem"
                   >
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  </ImgToolBtn>
+
+                  <Sep />
+
+                  {/* Confirm / deselect */}
+                  <ImgToolBtn
+                    onClick={() => setSelectedImg(null)}
+                    title="Concluir edição"
+                  >
+                    <Check className="h-3.5 w-3.5 text-emerald-500" />
                   </ImgToolBtn>
                 </div>
               </motion.div>
