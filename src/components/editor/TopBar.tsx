@@ -1,6 +1,6 @@
 import { useRef, useCallback } from 'react';
 import { useEditorStore } from '@/store/editorStore';
-import { FolderOpen, Edit3, Check, Plus, Box, Code, X, Undo2, Monitor, Tablet, Smartphone, Palette, Type, Download, SlidersHorizontal, LayoutGrid } from 'lucide-react';
+import { FolderOpen, Edit3, Check, Plus, Box, Code, X, Undo2, Monitor, Tablet, Smartphone, Palette, Type, FileCode, Download, SlidersHorizontal, LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 import { loadZipFile } from '@/lib/zipLoader';
 import JSZip from 'jszip';
