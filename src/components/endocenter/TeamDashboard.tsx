@@ -612,18 +612,20 @@ function ProfileModal({ member, onClose, isAdmin = false }: { member: ReturnType
                 }`}>{form.status}</span>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { label: "Remuneração", value: `R$ ${form.remuneration.toLocaleString("pt-BR")}` },
-                  { label: "Carga Horária", value: `${form.hours}h/mês` },
-                  { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}` },
-                ].map((s) => (
-                  <div key={s.label} className="p-3 text-center rounded-2xl bg-secondary/40">
-                    <div className="text-[10px] font-medium text-muted-foreground">{s.label}</div>
-                    <div className="text-sm font-bold text-foreground mt-0.5">{s.value}</div>
-                  </div>
-                ))}
-              </div>
+              {isAdmin && (
+                <div className="grid grid-cols-3 gap-3">
+                  {[
+                    { label: "Remuneração", value: `R$ ${form.remuneration.toLocaleString("pt-BR")}` },
+                    { label: "Carga Horária", value: `${form.hours}h/mês` },
+                    { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}` },
+                  ].map((s) => (
+                    <div key={s.label} className="p-3 text-center rounded-2xl bg-secondary/40">
+                      <div className="text-[10px] font-medium text-muted-foreground">{s.label}</div>
+                      <div className="text-sm font-bold text-foreground mt-0.5">{s.value}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div>
                 <div className="text-[10px] font-bold tracking-widest text-muted-foreground uppercase mb-1.5">Especialidade</div>
@@ -661,9 +663,11 @@ function ProfileModal({ member, onClose, isAdmin = false }: { member: ReturnType
                 </div>
               )}
 
-              <p className="text-[11px] text-muted-foreground text-center">
-                R$ {form.remuneration.toLocaleString("pt-BR")} ÷ {form.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora
-              </p>
+              {isAdmin && (
+                <p className="text-[11px] text-muted-foreground text-center">
+                  R$ {form.remuneration.toLocaleString("pt-BR")} ÷ {form.hours}h = R$ {hourlyRate.toFixed(2).replace(".", ",")}/hora
+                </p>
+              )}
             </>
           )}
         </div>
