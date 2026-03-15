@@ -399,15 +399,24 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
         {/* Header with color band */}
         <div className="relative h-24 flex items-end px-6 pb-4" style={{ background: `linear-gradient(135deg, ${form.color}, ${form.color}AA)` }}>
           <div className="absolute top-4 right-4 flex items-center gap-2">
-            <button
+            <motion.button
               onClick={() => { if (editing) handleSave(); else setEditing(true); }}
               className="w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors"
+              whileHover={{ scale: 1.15, rotate: editing ? 0 : -15 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", damping: 12, stiffness: 400 }}
             >
               <Pencil className="h-3.5 w-3.5" />
-            </button>
-            <button onClick={onClose} className="w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors">
+            </motion.button>
+            <motion.button
+              onClick={onClose}
+              className="w-8 h-8 rounded-full bg-black/20 text-white flex items-center justify-center hover:bg-black/30 transition-colors"
+              whileHover={{ scale: 1.15, rotate: 90 }}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: "spring", damping: 12, stiffness: 400 }}
+            >
               <X className="h-4 w-4" />
-            </button>
+            </motion.button>
           </div>
         </div>
 
