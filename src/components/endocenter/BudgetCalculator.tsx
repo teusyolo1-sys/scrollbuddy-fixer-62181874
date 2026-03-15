@@ -343,8 +343,8 @@ function DonutPanel({ entries }: { entries: any[] }) {
       className={`${glassCard} ${glassCardBg} p-5`}
     >
       <div className="flex items-center gap-2 mb-3">
-        <PieChart className="h-4 w-4 text-white/40" />
-        <h3 className="text-sm font-bold text-white/70">Composição</h3>
+        <PieChart className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-bold text-foreground/70">Composição</h3>
       </div>
       <div className="flex items-center justify-center">
         <ResponsiveContainer width={120} height={120}>
