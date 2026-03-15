@@ -217,6 +217,45 @@ export type Database = {
         }
         Relationships: []
       }
+      invites: {
+        Row: {
+          code: string
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          max_uses: number
+          note: string | null
+          use_count: number
+          used_at: string | null
+          used_by: string | null
+        }
+        Insert: {
+          code?: string
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          max_uses?: number
+          note?: string | null
+          use_count?: number
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          max_uses?: number
+          note?: string | null
+          use_count?: number
+          used_at?: string | null
+          used_by?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -505,6 +544,11 @@ export type Database = {
         Args: { _entry_id: string; _user_id: string }
         Returns: boolean
       }
+      use_invite: {
+        Args: { _code: string; _user_id: string }
+        Returns: boolean
+      }
+      validate_invite: { Args: { _code: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "staff" | "cliente" | "visitante"

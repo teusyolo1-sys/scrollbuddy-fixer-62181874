@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, ShieldAlert, ShieldX, Ticket } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -53,11 +53,16 @@ const strengthIcons: Record<PasswordStrength, typeof ShieldCheck> = {
 };
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const inviteCodeFromUrl = searchParams.get('invite') || '';
+  const [isLogin, setIsLogin] = useState(!inviteCodeFromUrl);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [inviteCode, setInviteCode] = useState(inviteCodeFromUrl);
+  const [inviteValid, setInviteValid] = useState<boolean | null>(null);
+  const [inviteChecking, setInviteChecking] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -66,6 +71,18 @@ const AuthPage = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+
+  // Validate invite code
+  useEffect(() => {
+    if (!inviteCode || inviteCode.length < 8) { setInviteValid(null); return; }
+    const timer = setTimeout(async () => {
+      setInviteChecking(true);
+      const { data } = await supabase.rpc('validate_invite', { _code: inviteCode });
+      setInviteValid(!!data);
+      setInviteChecking(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [inviteCode]);
 
   const strength = useMemo(() => getPasswordStrength(password), [password]);
   const passwordsMatch = confirmPassword === '' || password === confirmPassword;
@@ -76,6 +93,11 @@ const AuthPage = () => {
     setLoading(true);
 
     if (!isLogin) {
+      if (!inviteValid) {
+        toast.error('Código de convite inválido ou expirado');
+        setLoading(false);
+        return;
+      }
       if (password !== confirmPassword) {
         toast.error('As senhas não coincidem');
         setLoading(false);
@@ -102,6 +124,9 @@ const AuthPage = () => {
       if (error) {
         toast.error(error.message);
       } else {
+        // Consume the invite after signup — we'll call use_invite via RPC
+        // The user might not be fully confirmed yet, so we store the code for later consumption
+        localStorage.setItem('pending_invite_code', inviteCode);
         toast.success('Conta criada! Verifique seu e-mail para confirmar.');
       }
     }
@@ -237,6 +262,43 @@ const AuthPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Invite code field — only on signup */}
+            <AnimatePresence>
+              {!isLogin && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <div className="relative">
+                    <Ticket size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Código de convite"
+                      value={inviteCode}
+                      onChange={(e) => setInviteCode(e.target.value.trim())}
+                      required
+                      className={`w-full pl-10 pr-10 py-3 bg-secondary/50 border rounded-xl text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                        inviteValid === true ? 'border-green-500' : inviteValid === false ? 'border-destructive' : 'border-border'
+                      }`}
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      {inviteChecking ? (
+                        <Loader2 size={14} className="animate-spin text-muted-foreground" />
+                      ) : inviteValid === true ? (
+                        <ShieldCheck size={14} className="text-green-500" />
+                      ) : inviteValid === false ? (
+                        <ShieldX size={14} className="text-destructive" />
+                      ) : null}
+                    </div>
+                  </div>
+                  {inviteValid === false && (
+                    <p className="text-[11px] text-destructive mt-1 ml-1">Convite inválido ou expirado</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <AnimatePresence>
               {!isLogin && (
                 <motion.div
@@ -393,7 +455,7 @@ const AuthPage = () => {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.97 }}
               type="submit"
-              disabled={loading || (!isLogin && !passwordsMatch)}
+              disabled={loading || (!isLogin && (!passwordsMatch || !inviteValid))}
               className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {loading ? (
@@ -407,13 +469,18 @@ const AuthPage = () => {
             </motion.button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
             <button
               onClick={() => { setIsLogin(!isLogin); setLoginError(false); setConfirmPassword(''); }}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              {isLogin ? 'Não tem conta? Criar conta' : 'Já tem conta? Entrar'}
+              {isLogin ? 'Tem um convite? Criar conta' : 'Já tem conta? Entrar'}
             </button>
+            {!isLogin && (
+              <p className="text-[11px] text-muted-foreground">
+                O cadastro requer um link de convite válido
+              </p>
+            )}
           </div>
         </motion.div>
 

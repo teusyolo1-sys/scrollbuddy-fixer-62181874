@@ -19,10 +19,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+
+      // Consume pending invite code after signup confirmation
+      if (session?.user && _event === 'SIGNED_IN') {
+        const pendingCode = localStorage.getItem('pending_invite_code');
+        if (pendingCode) {
+          localStorage.removeItem('pending_invite_code');
+          await supabase.rpc('use_invite', { _code: pendingCode, _user_id: session.user.id });
+        }
+      }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {

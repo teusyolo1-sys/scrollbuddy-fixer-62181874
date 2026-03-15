@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import InviteManager from '@/components/admin/InviteManager';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -163,6 +164,11 @@ const AdminPage = () => {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Invite Manager */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <InviteManager />
         </div>
 
         {/* Search + Stats */}
