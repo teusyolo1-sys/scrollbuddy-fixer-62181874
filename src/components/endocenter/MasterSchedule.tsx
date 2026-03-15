@@ -68,11 +68,21 @@ export default function MasterSchedule() {
                 setExpandedRole(null);
               }}
               whileTap={{ scale: 0.97 }}
-              className="ios-card p-4 text-left transition-all overflow-hidden relative"
-              style={{
-                background: selected ? item.themeColor : undefined,
-                borderColor: selected ? item.themeColor : undefined,
-              }}
+              className={`p-4 text-left transition-all overflow-hidden relative ${
+                selected ? "" : "ios-card"
+              }`}
+              style={
+                selected
+                  ? {
+                      background: `${item.themeColor}cc`,
+                      backdropFilter: "blur(20px) saturate(180%)",
+                      WebkitBackdropFilter: "blur(20px) saturate(180%)",
+                      borderRadius: "var(--ios-radius-lg)",
+                      border: `1px solid ${item.themeColor}40`,
+                      boxShadow: `0 8px 32px ${item.themeColor}30, 0 0 0 1px ${item.themeColor}20`,
+                    }
+                  : undefined
+              }
             >
               <div className={`text-xs font-medium ${selected ? "text-white/70" : "text-muted-foreground"}`}>
                 Dias {item.dates}
@@ -83,14 +93,6 @@ export default function MasterSchedule() {
               <div className={`text-xs mt-1 ${selected ? "text-white/80" : "text-muted-foreground"}`}>
                 {item.theme}
               </div>
-              {selected && (
-                <motion.div
-                  layoutId="weekHighlight"
-                  className="absolute inset-0 rounded-[inherit]"
-                  style={{ border: `2.5px solid ${item.themeColor}`, pointerEvents: "none" }}
-                  transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                />
-              )}
             </motion.button>
           );
         })}
