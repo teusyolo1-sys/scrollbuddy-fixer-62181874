@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { DollarSign, Plus, Trash2, TrendingUp, TrendingDown, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { DollarSign, Plus, Trash2, TrendingUp, TrendingDown, Users, ChevronDown, ChevronUp, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useEndocenter, type BudgetCategory } from "@/store/endocenterStore";
+import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
+import { useAuth } from "@/hooks/useAuth";
 
 const categoryConfig: Record<BudgetCategory, { label: string; color: string; icon: "up" | "down" }> = {
   investimento: { label: "Investimentos", color: "#1E6FD9", icon: "down" },
@@ -17,17 +18,52 @@ const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
 export default function BudgetCalculator() {
-  const { budgetEntries, addBudgetEntry, updateBudgetEntry, removeBudgetEntry, team } = useEndocenter();
+  const { user } = useAuth();
+  const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries();
   const [expandedCategory, setExpandedCategory] = useState<BudgetCategory | null>("faturamento");
 
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
+        Faça login para acessar o orçamento.
+      </div>
+    );
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
   const totals = categories.reduce((acc, cat) => {
-    acc[cat] = budgetEntries.filter((e) => e.category === cat).reduce((s, e) => s + e.amount, 0);
+    acc[cat] = entries.filter((e) => e.category === cat).reduce((s, e) => s + e.amount, 0);
     return acc;
   }, {} as Record<BudgetCategory, number>);
 
   const totalIn = totals.faturamento + totals.receita;
   const totalOut = totals.investimento + totals.gasto + totals.despesa;
   const balance = totalIn - totalOut;
+
+  const getProfileInitial = (profile: { display_name: string | null; email: string | null }) => {
+    const name = profile.display_name || profile.email || "?";
+    return name[0].toUpperCase();
+  };
+
+  const getProfileName = (profile: { display_name: string | null; email: string | null }) => {
+    const name = profile.display_name || profile.email || "Usuário";
+    return name.split(" ")[0];
+  };
+
+  // Generate consistent color from user id
+  const getColor = (id: string) => {
+    const colors = ["#1E6FD9", "#059669", "#7C3AED", "#DC2626", "#F59E0B", "#EC4899", "#14B8A6", "#F97316"];
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    return colors[Math.abs(hash) % colors.length];
+  };
 
   return (
     <div className="space-y-6">
@@ -62,12 +98,11 @@ export default function BudgetCalculator() {
       <div className="space-y-3">
         {categories.map((cat) => {
           const config = categoryConfig[cat];
-          const entries = budgetEntries.filter((e) => e.category === cat);
+          const catEntries = entries.filter((e) => e.category === cat);
           const isExpanded = expandedCategory === cat;
 
           return (
             <div key={cat} className="ios-card overflow-hidden">
-              {/* Category header */}
               <button
                 onClick={() => setExpandedCategory(isExpanded ? null : cat)}
                 className="w-full flex items-center justify-between p-4 hover:bg-muted/30 transition-colors"
@@ -86,7 +121,7 @@ export default function BudgetCalculator() {
                   <div className="text-left">
                     <p className="text-sm font-semibold text-foreground">{config.label}</p>
                     <p className="text-xs text-muted-foreground">
-                      {entries.length} {entries.length === 1 ? "item" : "itens"} · {formatCurrency(totals[cat])}
+                      {catEntries.length} {catEntries.length === 1 ? "item" : "itens"} · {formatCurrency(totals[cat])}
                     </p>
                   </div>
                 </div>
@@ -95,7 +130,7 @@ export default function BudgetCalculator() {
                     whileTap={{ scale: 0.9 }}
                     onClick={(e) => {
                       e.stopPropagation();
-                      addBudgetEntry(cat);
+                      addEntry(cat);
                       setExpandedCategory(cat);
                     }}
                     className="w-7 h-7 rounded-lg flex items-center justify-center hover:bg-muted/50"
@@ -111,7 +146,6 @@ export default function BudgetCalculator() {
                 </div>
               </button>
 
-              {/* Entries */}
               <AnimatePresence>
                 {isExpanded && (
                   <motion.div
@@ -122,12 +156,12 @@ export default function BudgetCalculator() {
                     className="overflow-hidden"
                   >
                     <div className="px-4 pb-4 space-y-2">
-                      {entries.length === 0 && (
+                      {catEntries.length === 0 && (
                         <p className="text-xs text-muted-foreground text-center py-4">
                           Nenhum item ainda. Clique em + para adicionar.
                         </p>
                       )}
-                      {entries.map((entry) => (
+                      {catEntries.map((entry) => (
                         <motion.div
                           key={entry.id}
                           initial={{ opacity: 0, y: -10 }}
@@ -139,7 +173,7 @@ export default function BudgetCalculator() {
                             <input
                               className="ios-input px-3 py-2 text-sm"
                               value={entry.description}
-                              onChange={(e) => updateBudgetEntry(entry.id, { description: e.target.value })}
+                              onChange={(e) => updateEntry(entry.id, { description: e.target.value })}
                               placeholder="Descrição"
                             />
                             <div className="relative">
@@ -148,7 +182,7 @@ export default function BudgetCalculator() {
                                 type="number"
                                 className="ios-input px-3 py-2 text-sm pl-8"
                                 value={entry.amount || ""}
-                                onChange={(e) => updateBudgetEntry(entry.id, { amount: Number(e.target.value) })}
+                                onChange={(e) => updateEntry(entry.id, { amount: Number(e.target.value) })}
                                 placeholder="0,00"
                                 min={0}
                                 step={0.01}
@@ -161,52 +195,48 @@ export default function BudgetCalculator() {
                               type="date"
                               className="ios-input px-3 py-2 text-sm"
                               value={entry.date}
-                              onChange={(e) => updateBudgetEntry(entry.id, { date: e.target.value })}
+                              onChange={(e) => updateEntry(entry.id, { date: e.target.value })}
                             />
                             <input
                               className="ios-input px-3 py-2 text-sm"
                               value={entry.notes}
-                              onChange={(e) => updateBudgetEntry(entry.id, { notes: e.target.value })}
+                              onChange={(e) => updateEntry(entry.id, { notes: e.target.value })}
                               placeholder="Observações"
                             />
                           </div>
 
-                          {/* Participants */}
+                          {/* Participants - real users from profiles */}
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-1.5">
                               <Users className="h-3 w-3 text-muted-foreground" />
                               <span className="text-[11px] text-muted-foreground font-medium">Participantes</span>
                             </div>
                             <div className="flex flex-wrap gap-1.5">
-                              {team.map((member) => {
-                                const isSelected = entry.participants.includes(member.id);
+                              {profiles.map((profile) => {
+                                const isSelected = entry.participants.includes(profile.id);
+                                const color = getColor(profile.id);
                                 return (
                                   <button
-                                    key={member.id}
-                                    onClick={() => {
-                                      const next = isSelected
-                                        ? entry.participants.filter((p) => p !== member.id)
-                                        : [...entry.participants, member.id];
-                                      updateBudgetEntry(entry.id, { participants: next });
-                                    }}
+                                    key={profile.id}
+                                    onClick={() => toggleParticipant(entry.id, profile.id)}
                                     className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium transition-all"
                                     style={{
-                                      backgroundColor: isSelected ? `${member.color}20` : "transparent",
-                                      color: isSelected ? member.color : "var(--muted-foreground)",
-                                      border: `1px solid ${isSelected ? member.color + "40" : "var(--border)"}`,
+                                      backgroundColor: isSelected ? `${color}20` : "transparent",
+                                      color: isSelected ? color : "var(--muted-foreground)",
+                                      border: `1px solid ${isSelected ? color + "40" : "var(--border)"}`,
                                     }}
                                   >
-                                    {member.photoUrl ? (
-                                      <img src={member.photoUrl} alt="" className="w-3.5 h-3.5 rounded-full" />
+                                    {profile.avatar_url ? (
+                                      <img src={profile.avatar_url} alt="" className="w-3.5 h-3.5 rounded-full" />
                                     ) : (
                                       <div
                                         className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[8px] text-white font-bold"
-                                        style={{ backgroundColor: member.color }}
+                                        style={{ backgroundColor: color }}
                                       >
-                                        {member.name[0]}
+                                        {getProfileInitial(profile)}
                                       </div>
                                     )}
-                                    {member.name.split(" ")[0]}
+                                    {getProfileName(profile)}
                                   </button>
                                 );
                               })}
@@ -215,7 +245,7 @@ export default function BudgetCalculator() {
 
                           <div className="flex justify-end">
                             <button
-                              onClick={() => removeBudgetEntry(entry.id)}
+                              onClick={() => removeEntry(entry.id)}
                               className="rounded-lg p-1.5 text-destructive hover:bg-destructive/10 transition-colors"
                             >
                               <Trash2 className="h-3.5 w-3.5" />
