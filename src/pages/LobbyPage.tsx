@@ -176,30 +176,62 @@ function useFileUpload(onLoad: (dataUrl: string) => void) {
 export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
-  const [companies, setCompanies] = useState<CompanyCard[]>(loadCompanies);
-  const [allowedCompanyIds, setAllowedCompanyIds] = useState<string[] | null>(null);
+  const [companies, setCompanies] = useState<CompanyCard[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
   const navigate = useNavigate();
 
+  // Load companies from backend
   useEffect(() => {
-    if (!user || isAdmin) { setAllowedCompanyIds(null); return; }
-    const fetchPerms = async () => {
+    if (!user) return;
+    const fetchCompanies = async () => {
       const { data } = await supabase
-        .from('company_permissions')
-        .select('company_id, granted')
-        .eq('user_id', user.id)
-        .eq('granted', true) as { data: { company_id: string; granted: boolean }[] | null };
-      setAllowedCompanyIds((data || []).map(d => d.company_id));
+        .from('companies')
+        .select('*')
+        .order('created_at', { ascending: true }) as { data: any[] | null };
+      
+      if (data && data.length > 0) {
+        setCompanies(data.map((c: any) => ({
+          id: c.id,
+          name: c.name,
+          subtitle: c.subtitle,
+          month: c.month,
+          memberCount: 0,
+          color: c.color,
+          bannerUrl: c.banner_url,
+          logoUrl: c.logo_url,
+        })));
+      } else {
+        // Migrate from localStorage on first load (admin only)
+        if (isAdmin) {
+          const legacy = loadCompanies();
+          for (const c of legacy) {
+            const { data: inserted } = await supabase
+              .from('companies')
+              .insert({
+                name: c.name,
+                subtitle: c.subtitle,
+                month: c.month,
+                color: c.color,
+                banner_url: c.bannerUrl,
+                logo_url: c.logoUrl,
+                created_by: user.id,
+              } as any)
+              .select()
+              .single() as { data: any };
+            if (inserted) {
+              c.id = inserted.id;
+            }
+          }
+          setCompanies(legacy.map(c => ({ ...c })));
+        }
+      }
+      setLoadingCompanies(false);
     };
-    fetchPerms();
+    fetchCompanies();
   }, [user, isAdmin]);
 
-  const visibleCompanies = useMemo(() => {
-    if (isAdmin || allowedCompanyIds === null) return companies;
-    return companies.filter(c => allowedCompanyIds.includes(c.id));
-  }, [companies, allowedCompanyIds, isAdmin]);
-
   if (!authLoading && !user) { navigate("/auth", { replace: true }); return null; }
-  if (authLoading) {
+  if (authLoading || loadingCompanies) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-muted-foreground text-sm">Carregando...</div>
@@ -207,27 +239,50 @@ export default function LobbyPage() {
     );
   }
 
-  const updateCompany = (id: string, updates: Partial<CompanyCard>) => {
-    const updated = companies.map(c => c.id === id ? { ...c, ...updates } : c);
-    setCompanies(updated);
-    saveCompanies(updated);
+  const updateCompany = async (id: string, updates: Partial<CompanyCard>) => {
+    setCompanies(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
+    // Persist to DB
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.subtitle !== undefined) dbUpdates.subtitle = updates.subtitle;
+    if (updates.bannerUrl !== undefined) dbUpdates.banner_url = updates.bannerUrl;
+    if (updates.logoUrl !== undefined) dbUpdates.logo_url = updates.logoUrl;
+    if (updates.color !== undefined) dbUpdates.color = updates.color;
+    if (Object.keys(dbUpdates).length > 0) {
+      await supabase.from('companies').update(dbUpdates).eq('id', id);
+    }
   };
 
-  const addCompany = () => {
-    const newCompany: CompanyCard = {
-      id: `company_${Date.now()}`,
-      name: "Nova Empresa",
-      subtitle: "Gestão operacional",
-      month: new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
-      memberCount: 0,
-      color: ["#007AFF", "#AF52DE", "#FF3B30", "#30D158", "#FF9500", "#00C7BE"][companies.length % 6],
-    };
-    const updated = [...companies, newCompany];
-    setCompanies(updated);
-    saveCompanies(updated);
+  const addCompany = async () => {
+    const month = new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
+    const color = ["#007AFF", "#AF52DE", "#FF3B30", "#30D158", "#FF9500", "#00C7BE"][companies.length % 6];
+    const { data } = await supabase
+      .from('companies')
+      .insert({
+        name: "Nova Empresa",
+        subtitle: "Gestão operacional",
+        month,
+        color,
+        created_by: user!.id,
+      } as any)
+      .select()
+      .single() as { data: any };
+    
+    if (data) {
+      setCompanies(prev => [...prev, {
+        id: data.id,
+        name: data.name,
+        subtitle: data.subtitle,
+        month: data.month,
+        memberCount: 0,
+        color: data.color,
+        bannerUrl: data.banner_url,
+        logoUrl: data.logo_url,
+      }]);
+    }
   };
 
-  const openCompany = (company: CompanyCard) => navigate("/endocenter");
+  const openCompany = (company: CompanyCard) => navigate(`/endocenter/${company.id}`);
 
   return (
     <div className="min-h-screen relative" style={{ isolation: "isolate" }}>
