@@ -23,7 +23,7 @@ const tabDefs = [
 ];
 
 function DashboardContent() {
-  const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["id"]>("dashboard");
+  const [activeTab, setActiveTab] = useState<(typeof tabDefs)[number]["id"]>("dashboard");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { company } = useEndocenter();
   const { resolvedTheme, setTheme } = useTheme();
