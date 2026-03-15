@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Wallet, TrendingUp, TrendingDown, DollarSign, Plus, Trash2,
   ArrowLeft, Building2, PieChart, BarChart3, Receipt, Tag, ChevronDown,
-  Target, AlertTriangle, CheckCircle2, Clock, CreditCard, Percent
+  Target, AlertTriangle, CheckCircle2, Clock, CreditCard, Percent,
+  Sun, Moon
 } from "lucide-react";
 import {
   PieChart as RPieChart, Pie, Cell, ResponsiveContainer,
@@ -13,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useAgencyWallet } from "@/hooks/useAgencyWallet";
 import { useAgencyInvoices, type AgencyInvoice, type PaymentStatus } from "@/hooks/useAgencyInvoices";
 import { useAgencyGoals } from "@/hooks/useAgencyGoals";
+import { useTheme } from "@/hooks/useTheme";
 
 const formatCurrency = (v: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
