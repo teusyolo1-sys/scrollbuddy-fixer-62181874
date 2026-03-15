@@ -149,27 +149,27 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
-    cursor: url('/cursors/default.svg') 3 1, default;
+    cursor: url('/cursors/default.svg') 1 1, default;
   }
 
   /* ── macOS Custom Cursors ── */
   a, button, [role="button"], label[for], select, summary,
   .cursor-pointer, [onclick], [tabindex]:not([tabindex="-1"]) {
-    cursor: url('/cursors/pointer.svg') 10 4, pointer !important;
+    cursor: url('/cursors/pointer.svg') 5 1, pointer !important;
   }
 
   input[type="text"], input[type="email"], input[type="password"],
   input[type="number"], input[type="search"], input[type="url"],
   input[type="tel"], textarea, [contenteditable="true"] {
-    cursor: url('/cursors/text.svg') 8 16, text !important;
+    cursor: url('/cursors/text.svg') 4 8, text !important;
   }
 
   [draggable="true"], .drag-handle {
-    cursor: url('/cursors/grab.svg') 13 15, grab !important;
+    cursor: url('/cursors/grab.svg') 8 8, grab !important;
   }
 
   .cursor-move, [style*="cursor: move"] {
-    cursor: url('/cursors/move.svg') 14 14, move !important;
+    cursor: url('/cursors/move.svg') 7 7, move !important;
   }
 
   /* iOS-style thin scrollbar */
