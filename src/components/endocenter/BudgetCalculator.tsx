@@ -79,7 +79,7 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
     return c[Math.abs(h) % c.length];
   };
 
-  if (entries.length === 0) return <p className="text-xs text-muted-foreground text-center py-6">Nenhum item ainda.</p>;
+  if (entries.length === 0) return <p className="text-xs text-muted-foreground text-center py-4">Nenhum item ainda.</p>;
 
   return (
     <div className="border border-border/50 rounded-xl overflow-hidden">
@@ -89,7 +89,7 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
       {entries.map((entry: any, idx: number) => (
         <div key={entry.id} className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 items-center ${idx % 2 ? "bg-muted/20" : ""} hover:bg-accent/20 transition-colors group`}>
           <div className="space-y-1">
-            <input className="w-full bg-transparent text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground/40"
+            <input className="w-full bg-transparent text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground/60 border-b border-border/30 focus:border-primary/40 transition-colors py-1"
               value={entry.description} onChange={(e) => onUpdate(entry.id, { description: e.target.value })} placeholder="Descrição" />
             <div className="flex items-center gap-0.5 flex-wrap">
               {profiles.map((p: any) => {
@@ -109,10 +109,10 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
             </div>
           </div>
           <div className="w-20">
-            <input type="number" className="w-full bg-transparent text-xs font-bold text-right outline-none" value={entry.amount || ""} onChange={(e) => onUpdate(entry.id, { amount: Number(e.target.value) })} placeholder="0" style={{ color: config.color }} />
+            <input type="number" className="w-full bg-transparent text-xs font-bold text-right outline-none border-b border-border/30 focus:border-primary/40 transition-colors py-1" value={entry.amount || ""} onChange={(e) => onUpdate(entry.id, { amount: Number(e.target.value) })} placeholder="0,00" style={{ color: config.color }} />
           </div>
           <div className="w-20">
-            <input type="date" className="w-full bg-transparent text-[10px] text-muted-foreground outline-none text-center" value={entry.date} onChange={(e) => onUpdate(entry.id, { date: e.target.value })} />
+            <input type="date" className="w-full bg-transparent text-[10px] text-muted-foreground outline-none text-center border-b border-border/30 focus:border-primary/40 transition-colors py-1" value={entry.date} onChange={(e) => onUpdate(entry.id, { date: e.target.value })} />
           </div>
           <button onClick={() => onRemove(entry.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-destructive/30 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100">
             <Trash2 className="h-3 w-3" />
