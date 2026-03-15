@@ -767,8 +767,8 @@ const saveToStorage = (data: PersistedData, companyId?: string) => {
 
 const EndocenterContext = createContext<EndocenterStore | null>(null);
 
-export function EndocenterProvider({ children }: { children: ReactNode }) {
-  const stored = loadFromStorage();
+export function EndocenterProvider({ children, companyId }: { children: ReactNode; companyId?: string }) {
+  const stored = loadFromStorage(companyId);
 
   const [company, setCompanyState] = useState<CompanyInfo>(stored?.company ?? defaultCompany);
   const [team, setTeamState] = useState<TeamMember[]>(
