@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { AlertTriangle, CheckCircle, ChevronDown, Plus, Trash2, XCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type DeadlinePriority, type DeadlineStatus } from "@/store/endocenterStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const priorityConfig: Record<DeadlinePriority, { label: string; className: string }> = {
   critical: { label: "Crítico", className: "bg-destructive/10 text-destructive" },
