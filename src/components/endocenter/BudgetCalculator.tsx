@@ -468,7 +468,7 @@ export default function BudgetCalculator() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center py-20 text-white/30">
+      <div className="flex items-center justify-center py-20 text-muted-foreground">
         Faça login para acessar o orçamento.
       </div>
     );
