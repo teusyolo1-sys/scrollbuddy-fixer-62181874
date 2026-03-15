@@ -351,7 +351,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
   };
 
   const startColumnDrag = (startIndex: number) => {
-    let latestOverIdx: number | null = null;
+    let currentIdx = startIndex;
 
     setDraggingColIdx(startIndex);
     setDragOverColIdx(null);
@@ -380,23 +380,20 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
         }
       });
 
-      latestOverIdx = bestIdx !== null && bestIdx !== startIndex ? bestIdx : null;
-      setDragOverColIdx(latestOverIdx);
+      // Live reorder: swap columns in real-time so layout animation triggers
+      if (bestIdx !== null && bestIdx !== currentIdx) {
+        setColumns((prev) => {
+          const next = [...prev];
+          const [moved] = next.splice(currentIdx, 1);
+          next.splice(bestIdx!, 0, moved);
+          return next;
+        });
+        setDraggingColIdx(bestIdx);
+        currentIdx = bestIdx;
+      }
     };
 
     const finishDrag = () => {
-      if (latestOverIdx !== null && latestOverIdx !== startIndex) {
-        setColumns((prev) => {
-          if (startIndex < 0 || startIndex >= prev.length || latestOverIdx === null || latestOverIdx >= prev.length) {
-            return prev;
-          }
-          const next = [...prev];
-          const [moved] = next.splice(startIndex, 1);
-          next.splice(latestOverIdx, 0, moved);
-          return next;
-        });
-      }
-
       setDraggingColIdx(null);
       setDragOverColIdx(null);
       clearGlobalDraggingCursor();
