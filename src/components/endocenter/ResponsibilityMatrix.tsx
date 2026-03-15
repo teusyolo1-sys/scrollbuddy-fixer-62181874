@@ -610,7 +610,9 @@ function SortableTaskCard({ item, roleColor, onClick, onToggleDone }: {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition,
     opacity: isDragging ? 0.4 : 1,
-    cursor: "grab",
+    cursor: isDragging
+      ? "url('/cursors/move.svg') 7 7, grabbing"
+      : "url('/cursors/grab.svg') 8 8, grab",
   };
 
   return (
