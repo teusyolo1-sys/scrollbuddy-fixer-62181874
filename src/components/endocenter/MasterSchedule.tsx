@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Calendar as CalendarIcon } from "lucide-react";
 import { Brain, ChevronDown, PenTool, Plus, Radio, Palette, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter } from "@/store/endocenterStore";
@@ -20,6 +21,40 @@ export default function MasterSchedule() {
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
   const [prevWeekId, setPrevWeekId] = useState(activeWeekId);
+  const [now, setNow] = useState(new Date());
+
+  // Auto-update clock every minute
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Parse week date ranges and find current week
+  const currentWeekId = useMemo(() => {
+    const today = now.getDate();
+    for (const w of scheduleWeeks) {
+      const match = w.dates.match(/(\d+)\s*[–-]\s*(\d+)/);
+      if (match) {
+        const start = parseInt(match[1]);
+        const end = parseInt(match[2]);
+        if (today >= start && today <= end) return w.id;
+      }
+    }
+    return null;
+  }, [now, scheduleWeeks]);
+
+  // Auto-select current week on mount
+  useEffect(() => {
+    if (currentWeekId && activeWeekId === scheduleWeeks[0]?.id && currentWeekId !== activeWeekId) {
+      setActiveWeekId(currentWeekId);
+      setPrevWeekId(currentWeekId);
+    }
+  }, [currentWeekId]);
+
+  const monthProgress = useMemo(() => {
+    const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    return Math.round((now.getDate() / daysInMonth) * 100);
+  }, [now]);
 
   const week = scheduleWeeks.find((item) => item.id === activeWeekId) ?? scheduleWeeks[0];
 
@@ -76,20 +111,56 @@ export default function MasterSchedule() {
           <p className="text-sm text-muted-foreground mt-0.5">Distribuição detalhada de tarefas por profissional</p>
         </div>
 
-        <button
-          onClick={() => setEditMode((current) => !current)}
-          className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
-            editMode ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-          }`}
-        >
-          {editMode ? "Finalizar edição" : "Editar cronograma"}
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Calendar counter */}
+          <div className="ios-card px-4 py-2.5 flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
+                <span className="text-[8px] font-bold text-primary uppercase leading-none">
+                  {now.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
+                </span>
+                <span className="text-sm font-extrabold text-primary leading-tight">
+                  {now.getDate()}
+                </span>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-foreground">
+                  {now.toLocaleDateString("pt-BR", { weekday: "long" })}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Dia {now.getDate()} de {new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}
+                </p>
+              </div>
+            </div>
+            <div className="w-20">
+              <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-primary"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${monthProgress}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground text-center mt-0.5">{monthProgress}% do mês</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setEditMode((current) => !current)}
+            className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+              editMode ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+            }`}
+          >
+            {editMode ? "Finalizar edição" : "Editar cronograma"}
+          </button>
+        </div>
       </div>
 
       {/* Week selector — colorful active cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {scheduleWeeks.map((item) => {
           const selected = item.id === week.id;
+          const isCurrent = item.id === currentWeekId;
           return (
             <motion.button
               key={item.id}
@@ -114,9 +185,18 @@ export default function MasterSchedule() {
                       border: `1px solid ${item.themeColor}`,
                       boxShadow: `0 6px 24px ${item.themeColor}40`,
                     }
+                  : isCurrent
+                  ? { borderColor: item.themeColor, boxShadow: `0 0 0 2px ${item.themeColor}30` }
                   : undefined
               }
             >
+              {isCurrent && (
+                <span className={`absolute top-2 right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-md ${
+                  selected ? "bg-white/25 text-white" : "bg-primary/10 text-primary"
+                }`}>
+                  HOJE
+                </span>
+              )}
               <div className={`text-xs font-medium ${selected ? "text-white/70" : "text-muted-foreground"}`}>
                 Dias {item.dates}
               </div>
