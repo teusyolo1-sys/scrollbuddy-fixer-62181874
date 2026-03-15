@@ -183,9 +183,9 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                   Nenhum item ainda. Clique em + para adicionar.
                 </p>
               ) : (
-                <div className="border border-white/[0.06] rounded-xl overflow-hidden">
+                <div className="border border-border rounded-xl overflow-hidden">
                   {/* Table header */}
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-white/[0.03] text-[10px] font-semibold text-white/30 uppercase tracking-wider">
+                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-muted/50 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                     <span>Descrição</span>
                     <span className="w-24 text-right">Valor</span>
                     <span className="w-24 text-center">Data</span>
