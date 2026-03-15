@@ -66,45 +66,40 @@ const gradients = [
 
 /* ── Framer-inspired animated mesh background ── */
 function AnimatedBackground() {
+  const isDark = document.documentElement.classList.contains("dark");
+
+  const base = isDark
+    ? "linear-gradient(180deg, hsl(220 20% 10%) 0%, hsl(220 18% 8%) 30%, hsl(220 15% 7%) 60%, hsl(220 20% 9%) 100%)"
+    : "linear-gradient(180deg, hsl(210 40% 97%) 0%, hsl(215 35% 95%) 30%, hsl(220 30% 93%) 60%, hsl(210 25% 96%) 100%)";
+
+  const haze = isDark
+    ? "radial-gradient(ellipse 120% 80% at 50% 0%, hsl(220 40% 15% / 0.4), transparent 70%)"
+    : "radial-gradient(ellipse 120% 80% at 50% 0%, hsl(210 60% 88% / 0.4), transparent 70%)";
+
+  const cloudOpacity = isDark ? 0.15 : 0.6;
+  const wispOpacity = isDark ? 0.1 : 0.35;
+  const orbOpacity = isDark ? 0.06 : 0.12;
+
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
-      {/* Sky gradient base — very subtle, subliminal */}
-      <div
-        className="absolute inset-0"
-        style={{
-          background: "linear-gradient(180deg, hsl(210 40% 97%) 0%, hsl(215 35% 95%) 30%, hsl(220 30% 93%) 60%, hsl(210 25% 96%) 100%)",
-        }}
-      />
-
-      {/* Atmospheric haze — top area, barely visible blue wash */}
-      <div
-        className="absolute inset-x-0 top-0 h-[60%]"
-        style={{
-          background: "radial-gradient(ellipse 120% 80% at 50% 0%, hsl(210 60% 88% / 0.4), transparent 70%)",
-        }}
-      />
-
-      {/* Soft cloud layers — bottom area, ethereal wisps */}
+      <div className="absolute inset-0" style={{ background: base }} />
+      <div className="absolute inset-x-0 top-0 h-[60%]" style={{ background: haze }} />
       <div
         className="absolute inset-x-0 bottom-0 h-[45%]"
         style={{
           background: `
-            radial-gradient(ellipse 80% 40% at 20% 90%, hsl(0 0% 100% / 0.6), transparent 60%),
-            radial-gradient(ellipse 60% 35% at 75% 85%, hsl(0 0% 100% / 0.5), transparent 55%),
-            radial-gradient(ellipse 90% 30% at 50% 95%, hsl(0 0% 100% / 0.45), transparent 50%)
+            radial-gradient(ellipse 80% 40% at 20% 90%, hsl(0 0% ${isDark ? '100%' : '100%'} / ${cloudOpacity}), transparent 60%),
+            radial-gradient(ellipse 60% 35% at 75% 85%, hsl(0 0% 100% / ${cloudOpacity * 0.83}), transparent 55%),
+            radial-gradient(ellipse 90% 30% at 50% 95%, hsl(0 0% 100% / ${cloudOpacity * 0.75}), transparent 50%)
           `,
         }}
       />
-
-      {/* Drifting cloud wisps — ultra subtle motion */}
       <motion.div
         className="absolute"
         style={{
-          width: "60%", height: "25%",
-          bottom: "5%", left: "-5%",
-          background: "radial-gradient(ellipse, hsl(0 0% 100% / 0.35), transparent 65%)",
-          filter: "blur(40px)",
-          willChange: "transform",
+          width: "60%", height: "25%", bottom: "5%", left: "-5%",
+          background: `radial-gradient(ellipse, hsl(0 0% 100% / ${wispOpacity}), transparent 65%)`,
+          filter: "blur(40px)", willChange: "transform",
         }}
         animate={{ x: [0, 60, 0] }}
         transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
@@ -112,11 +107,9 @@ function AnimatedBackground() {
       <motion.div
         className="absolute"
         style={{
-          width: "50%", height: "20%",
-          bottom: "12%", right: "-8%",
-          background: "radial-gradient(ellipse, hsl(0 0% 100% / 0.3), transparent 60%)",
-          filter: "blur(35px)",
-          willChange: "transform",
+          width: "50%", height: "20%", bottom: "12%", right: "-8%",
+          background: `radial-gradient(ellipse, hsl(0 0% 100% / ${wispOpacity * 0.85}), transparent 60%)`,
+          filter: "blur(35px)", willChange: "transform",
         }}
         animate={{ x: [0, -50, 0] }}
         transition={{ duration: 55, repeat: Infinity, ease: "linear" }}
@@ -124,31 +117,23 @@ function AnimatedBackground() {
       <motion.div
         className="absolute"
         style={{
-          width: "40%", height: "15%",
-          bottom: "20%", left: "20%",
-          background: "radial-gradient(ellipse, hsl(210 30% 96% / 0.25), transparent 60%)",
-          filter: "blur(30px)",
-          willChange: "transform",
+          width: "40%", height: "15%", bottom: "20%", left: "20%",
+          background: `radial-gradient(ellipse, hsl(210 30% ${isDark ? '20%' : '96%'} / ${wispOpacity * 0.7}), transparent 60%)`,
+          filter: "blur(30px)", willChange: "transform",
         }}
         animate={{ x: [0, 30, -20, 0] }}
         transition={{ duration: 38, repeat: Infinity, ease: "linear" }}
       />
-
-      {/* Very faint blue orb — sky depth, almost invisible */}
       <motion.div
         className="absolute rounded-full"
         style={{
           width: 600, height: 600,
-          background: "radial-gradient(circle, hsl(215 50% 80% / 0.12), transparent 65%)",
-          filter: "blur(80px)",
-          top: "-10%", right: "10%",
-          willChange: "transform",
+          background: `radial-gradient(circle, hsl(215 50% ${isDark ? '25%' : '80%'} / ${orbOpacity}), transparent 65%)`,
+          filter: "blur(80px)", top: "-10%", right: "10%", willChange: "transform",
         }}
         animate={{ x: [0, -30, 15, 0], y: [0, 20, -10, 0] }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
       />
-
-      {/* Noise texture — extremely subtle grain */}
       <div
         className="absolute inset-0 opacity-[0.02]"
         style={{
