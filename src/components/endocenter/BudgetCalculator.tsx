@@ -135,20 +135,16 @@ function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd
   onUpdate: (id: string, u: any) => void; onRemove: (id: string) => void;
   profiles: any[]; onToggleParticipant: (eid: string, uid: string) => void; delay: number;
 }) {
+  const showTable = isExpanded && entries.length > 0;
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} overflow-hidden`} style={{ borderLeft: `3px solid ${config.color}30` }}>
+      className={`${gc}`} style={{ borderLeft: `3px solid ${config.color}30` }}>
       <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle} />
-      <AnimatePresence>
-        {isExpanded && entries.length > 0 && (
-          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden">
-            <div className="px-4 pb-4">
-              <EntryTable entries={entries} config={config} total={total} onUpdate={onUpdate} onRemove={onRemove} profiles={profiles} onToggleParticipant={onToggleParticipant} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {showTable && (
+        <div className="px-4 pb-4">
+          <EntryTable entries={entries} config={config} total={total} onUpdate={onUpdate} onRemove={onRemove} profiles={profiles} onToggleParticipant={onToggleParticipant} />
+        </div>
+      )}
     </motion.div>
   );
 }
