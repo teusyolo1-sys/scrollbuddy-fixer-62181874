@@ -11,6 +11,7 @@ import CheckoutResultPage from "./pages/CheckoutResultPage";
 import PixPaymentPage from "./pages/PixPaymentPage";
 import EndocenterDashboard from "./pages/EndocenterDashboard";
 import LobbyPage from "./pages/LobbyPage";
+import PermissionsPage from "./pages/PermissionsPage";
 
 const SetupNotice = () => (
   <div className="min-h-screen flex items-center justify-center bg-background p-6">
@@ -46,9 +47,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) return <Navigate to="/auth" replace />;
 
-  if (isAdmin && !location.pathname.startsWith('/admin')) {
-    return <Navigate to="/admin" replace />;
-  }
+  // Admin redirect removed — admin uses same lobby but has extra features
 
   return <>{children}</>;
 };
@@ -77,7 +76,8 @@ const App = () => {
           <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
           <Route path="/editor" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
           <Route path="/" element={<LobbyPage />} />
-          <Route path="/endocenter" element={<EndocenterDashboard />} />
+          <Route path="/endocenter" element={<ProtectedRoute><EndocenterDashboard /></ProtectedRoute>} />
+          <Route path="/permissions" element={<ProtectedRoute><AdminRoute><PermissionsPage /></AdminRoute></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminPage /></AdminRoute></ProtectedRoute>} />
           <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/checkout/pix" element={<ProtectedRoute><PixPaymentPage /></ProtectedRoute>} />

@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Moon, RefreshCw, Rocket, Settings, Sun } from "lucide-react";
+import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Moon, RefreshCw, Rocket, Settings, Shield, Sun } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { EndocenterProvider, useEndocenter, defaultTabLabels } from "@/store/endocenterStore";
 import { useTheme } from "@/hooks/useTheme";
+import { useTabPermissions, type TabKey } from "@/hooks/useTabPermissions";
+import { useUserRole } from "@/hooks/useUserRole";
 import TeamDashboard from "@/components/endocenter/TeamDashboard";
 import MasterSchedule from "@/components/endocenter/MasterSchedule";
 import ProjectPipeline from "@/components/endocenter/ProjectPipeline";
@@ -25,19 +27,51 @@ const tabDefs = [
 ];
 
 function DashboardContent() {
-  const [activeTab, setActiveTab] = useState<(typeof tabDefs)[number]["id"]>("dashboard");
+  const { allowedTabs, loading: permLoading } = useTabPermissions();
+  const { isAdmin } = useUserRole();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { company } = useEndocenter();
   const tabLabels = company.tabLabels ?? defaultTabLabels;
   const { resolvedTheme, setTheme } = useTheme();
   const navigate = useNavigate();
 
+  const visibleTabs = tabDefs.filter(t => allowedTabs.includes(t.id));
+  const [activeTab, setActiveTab] = useState<TabKey>(visibleTabs[0]?.id || "dashboard");
+
+  // Ensure activeTab is valid when permissions load
+  if (!permLoading && visibleTabs.length > 0 && !visibleTabs.find(t => t.id === activeTab)) {
+    setActiveTab(visibleTabs[0].id);
+  }
+
+  if (permLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">
+        Carregando...
+      </div>
+    );
+  }
+
+  if (visibleTabs.length === 0) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-6">
+        <div className="text-center space-y-3">
+          <Shield className="h-12 w-12 text-muted-foreground mx-auto" />
+          <h2 className="text-lg font-semibold text-foreground">Sem permissões</h2>
+          <p className="text-sm text-muted-foreground max-w-sm">
+            Você ainda não tem acesso a nenhuma aba. Peça ao administrador para liberar suas permissões.
+          </p>
+          <button onClick={() => navigate("/")} className="text-sm text-primary hover:underline mt-4">
+            Voltar ao início
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Header — iOS 26 frosted glass dark bar */}
       <header className="liquid-glass-navbar sticky top-0 w-full z-30 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-5 sm:px-6">
-          {/* Top row */}
           <div className="flex items-center justify-between py-4">
             <div className="flex items-center gap-3">
               <motion.button
@@ -65,6 +99,19 @@ function DashboardContent() {
 
             <div className="flex items-center gap-2">
               <NotificationCenter onNavigateToTask={() => setActiveTab("matrix")} />
+
+              {isAdmin && (
+                <motion.button
+                  whileTap={{ scale: 0.88 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                  onClick={() => navigate("/permissions")}
+                  className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                  title="Gerenciar permissões"
+                >
+                  <Shield className="h-4 w-4 text-white/80" />
+                </motion.button>
+              )}
+
               <motion.button
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: "spring", stiffness: 500, damping: 15 }}
@@ -99,9 +146,8 @@ function DashboardContent() {
             </div>
           </div>
 
-          {/* Navigation tabs — pill style */}
           <nav className="flex gap-1.5 overflow-x-auto pb-3 -mb-px">
-            {tabDefs.map((tab) => {
+            {visibleTabs.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
               return (
@@ -136,7 +182,6 @@ function DashboardContent() {
         </div>
       </header>
 
-      {/* Main content */}
       <main className="relative max-w-7xl mx-auto px-5 sm:px-6 py-7">
         <motion.div
           key={activeTab}

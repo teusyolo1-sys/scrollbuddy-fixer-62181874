@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
-import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, User } from "lucide-react";
+import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, User, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface CompanyCard {
   id: string;
@@ -67,6 +68,7 @@ const gradients = [
 
 export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const [companies, setCompanies] = useState<CompanyCard[]>(loadCompanies);
   const navigate = useNavigate();
 
@@ -137,10 +139,19 @@ export default function LobbyPage() {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
               {!authLoading && (
                 user ? (
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
                     <span className="text-sm text-muted-foreground hidden sm:inline">
                       {user.user_metadata?.display_name || user.email?.split("@")[0]}
                     </span>
+                    {isAdmin && (
+                      <button
+                        onClick={() => navigate("/permissions")}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+                        title="Gerenciar permissões"
+                      >
+                        <Shield className="h-4 w-4" />
+                      </button>
+                    )}
                     <button
                       onClick={async () => { await signOut(); }}
                       className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
