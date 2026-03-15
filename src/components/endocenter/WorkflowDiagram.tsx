@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { CheckCircle2, Circle, Edit3, Eye, Plus, Trash2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type WorkflowStep } from "@/store/endocenterStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const splitLines = (value: string) =>
   value.split("\n").map((l) => l.trim()).filter(Boolean);
