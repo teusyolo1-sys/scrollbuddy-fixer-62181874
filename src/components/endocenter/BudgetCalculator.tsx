@@ -470,6 +470,10 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
 function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
   const [chartStyle, setChartStyle] = useState<ChartStyle>("column");
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [customLabel, setCustomLabel] = useState("Resumo");
+  const [renameValue, setRenameValue] = useState("Resumo");
   const menuRef = useRef<HTMLDivElement>(null);
 
   const legendItems = [
@@ -507,144 +511,108 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
 
   const closeMenu = useCallback(() => setCtxMenu(null), []);
 
-  // Flatten data for pie/radar
   const pieData = useMemo(() => catColors.map(c => ({
     name: c.name,
     value: chartData.reduce((s, row) => s + ((row[c.name] as number) || 0), 0),
     color: c.color,
   })).filter(d => d.value > 0), [chartData, catColors]);
 
-  const renderChart = () => {
-    const h = 110;
+  const renderChart = (h = 110) => {
     switch (chartStyle) {
       case "line":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Line key={i} type="monotone" dataKey={d.name} stroke={d.color} strokeWidth={2} dot={false} />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />{catColors.map((d, i) => <Line key={i} type="monotone" dataKey={d.name} stroke={d.color} strokeWidth={2} dot={false} />)}</LineChart></ResponsiveContainer>);
       case "area":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Area key={i} type="monotone" dataKey={d.name} stroke={d.color} fill={d.color} fillOpacity={0.2} strokeWidth={2} />
-              ))}
-            </AreaChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><AreaChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />{catColors.map((d, i) => <Area key={i} type="monotone" dataKey={d.name} stroke={d.color} fill={d.color} fillOpacity={0.2} strokeWidth={2} />)}</AreaChart></ResponsiveContainer>);
       case "bar":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <BarChart data={chartData} layout="vertical" barSize={10}>
-              <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" hide />
-              {catColors.map((d, i) => (
-                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85} radius={[0, 4, 4, 0]} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><BarChart data={chartData} layout="vertical" barSize={10}><XAxis type="number" hide /><YAxis type="category" dataKey="name" hide />{catColors.map((d, i) => <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85} radius={[0, 4, 4, 0]} />)}</BarChart></ResponsiveContainer>);
       case "pie":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <RPieChart>
-              <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={20} outerRadius={45} stroke="none">
-                {pieData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
-              </Pie>
-            </RPieChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><RPieChart><Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={h * 0.18} outerRadius={h * 0.4} stroke="none">{pieData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}</Pie></RPieChart></ResponsiveContainer>);
       case "radar":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <RadarChart data={pieData} cx="50%" cy="50%" outerRadius={38}>
-              <PolarGrid stroke="hsl(var(--border))" />
-              <PolarAngleAxis dataKey="name" tick={{ fontSize: 7 }} />
-              <Radar dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
-            </RadarChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><RadarChart data={pieData} cx="50%" cy="50%" outerRadius={h * 0.35}><PolarGrid stroke="hsl(var(--border))" /><PolarAngleAxis dataKey="name" tick={{ fontSize: 7 }} /><Radar dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} /></RadarChart></ResponsiveContainer>);
       case "pareto":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <ComposedChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} barSize={20} radius={[3, 3, 0, 0]} />
-              ))}
-            </ComposedChart>
-          </ResponsiveContainer>
-        );
-      default: // column
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <BarChart data={chartData} barSize={16} barGap={2}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85}
-                  radius={i === catColors.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><ComposedChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />{catColors.map((d, i) => <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} barSize={20} radius={[3, 3, 0, 0]} />)}</ComposedChart></ResponsiveContainer>);
+      default:
+        return (<ResponsiveContainer width="100%" height={h}><BarChart data={chartData} barSize={16} barGap={2}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />{catColors.map((d, i) => <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85} radius={i === catColors.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />)}</BarChart></ResponsiveContainer>);
     }
   };
 
-  // Supported styles for this chart
   const supportedStyles: ChartStyle[] = ["column", "bar", "line", "area", "pie", "radar", "pareto"];
   const filteredStyles = CHART_STYLES.filter(s => supportedStyles.includes(s.key));
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} p-4`}>
-      <div className="flex items-start gap-4">
-        {/* Legend */}
-        <div className="space-y-1.5 shrink-0 pt-1">
-          {legendItems.map((item, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="text-[10px] text-muted-foreground">{item.label}</span>
-            </div>
-          ))}
-        </div>
-        {/* Chart with context menu */}
-        <div className="flex-1 min-w-0" onContextMenu={handleContextMenu}>
-          {renderChart()}
-        </div>
-      </div>
-
-      {/* Context menu */}
-      {ctxMenu && (
-        <>
-          <div className="fixed inset-0 z-[9998]" onClick={closeMenu} onContextMenu={(e) => { e.preventDefault(); closeMenu(); }} />
-          <div
-            ref={menuRef}
-            className="fixed z-[9999] bg-card border border-border/60 rounded-xl shadow-xl py-1.5 px-1 min-w-[200px] backdrop-blur-xl"
-            style={{
-              left: Math.min(ctxMenu.x, window.innerWidth - 220),
-              top: Math.min(ctxMenu.y, window.innerHeight - 400),
-            }}
-          >
-            <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Estilo do Gráfico</div>
-            {filteredStyles.map(config => (
-              <ChartStyleMenuItem
-                key={config.key}
-                config={config}
-                isActive={chartStyle === config.key}
-                onSelect={() => { setChartStyle(config.key); closeMenu(); }}
-              />
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc} p-4`} onContextMenu={handleContextMenu}>
+        <div className="flex items-start gap-4">
+          <div className="space-y-1.5 shrink-0 pt-1">
+            {legendItems.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-[10px] text-muted-foreground">{item.label}</span>
+              </div>
             ))}
           </div>
-        </>
+          <div className="flex-1 min-w-0">{renderChart()}</div>
+        </div>
+      </motion.div>
+
+      {ctxMenu && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={closeMenu} onContextMenu={(e) => { e.preventDefault(); closeMenu(); }} />
+          <div ref={menuRef}
+            className="fixed z-[9999] bg-card border border-border/60 rounded-xl shadow-xl py-1.5 px-1 min-w-[200px] backdrop-blur-xl"
+            style={{ left: Math.min(ctxMenu.x, window.innerWidth - 220), top: Math.min(ctxMenu.y, window.innerHeight - 500) }}>
+            <button onClick={() => { setIsRenaming(true); closeMenu(); }}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent/40 transition-colors text-foreground">
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" /><span>Renomear</span>
+            </button>
+            <button onClick={() => { setIsFullscreen(true); closeMenu(); }}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent/40 transition-colors text-foreground">
+              <Maximize2 className="h-3.5 w-3.5 text-muted-foreground" /><span>Abrir em tela cheia</span>
+            </button>
+            <div className="h-px bg-border/40 my-1" />
+            <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Estilo do Gráfico</div>
+            {filteredStyles.map(cfg => (
+              <ChartStyleMenuItem key={cfg.key} config={cfg} isActive={chartStyle === cfg.key}
+                onSelect={() => { setChartStyle(cfg.key); closeMenu(); }} />
+            ))}
+          </div>
+        </>,
+        document.body
       )}
-    </motion.div>
+
+      {isRenaming && createPortal(
+        <div className="fixed inset-0 z-[9990] bg-background/60 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => { setCustomLabel(renameValue); setIsRenaming(false); }}>
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className={`${gc} p-6 min-w-[300px]`} onClick={e => e.stopPropagation()}>
+            <p className="text-xs font-bold text-muted-foreground mb-2">Renomear painel</p>
+            <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { setCustomLabel(renameValue); setIsRenaming(false); } }}
+              className="w-full bg-muted/30 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-primary" />
+          </motion.div>
+        </div>,
+        document.body
+      )}
+
+      {isFullscreen && (
+        <FullscreenPanel title={customLabel} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-4xl mx-auto p-6`}>
+            <div className="flex items-start gap-6">
+              <div className="space-y-2 shrink-0">
+                {legendItems.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-sm text-muted-foreground">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex-1">{renderChart(350)}</div>
+            </div>
+          </div>
+        </FullscreenPanel>
+      )}
+    </>
   );
 }
 
