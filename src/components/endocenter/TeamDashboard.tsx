@@ -386,6 +386,7 @@ export default function TeamDashboard() {
             onClose={() => setSelectedMember(null)}
             isAdmin={isAdmin}
             canEdit={isAdmin || selectedMember.role === teamRole}
+            onDelete={isAdmin ? (id) => { removeMember(id); setSelectedMember(null); } : undefined}
           />
         )}
       </AnimatePresence>
