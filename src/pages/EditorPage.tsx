@@ -233,7 +233,7 @@ const EditorPage = () => {
       </div>
 
       {/* Iframe */}
-      <iframe ref={iframeRef} src="/editor.html?embedded=1" className="flex-1 w-full border-none" title="Site Editor Pro" allow="clipboard-read; clipboard-write" />
+      <iframe ref={iframeRef} src="/editor.html?embedded=1" className="flex-1 w-full border-none" title="TaskFlow" allow="clipboard-read; clipboard-write" />
 
       {/* Trial Modal */}
       {!trial.loading && !isValidated && (
