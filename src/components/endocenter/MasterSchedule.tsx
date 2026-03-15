@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Brain, ChevronDown, PenTool, Plus, Radio, Palette, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter } from "@/store/endocenterStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const roleIcons = {
   Estrategista: Brain,
