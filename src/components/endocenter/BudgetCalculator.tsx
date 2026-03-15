@@ -12,7 +12,7 @@ import {
   PieChart as RPieChart, Pie, Cell,
   AreaChart, Area, LineChart, Line,
   RadarChart, Radar, PolarGrid, PolarAngleAxis,
-  ComposedChart, XAxis, YAxis, Tooltip
+  ComposedChart, XAxis, YAxis
 } from "recharts";
 import { CHART_STYLES, type ChartStyle, ChartStyleMenuItem } from "./ChartStylePicker";
 import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
