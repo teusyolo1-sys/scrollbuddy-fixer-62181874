@@ -826,8 +826,8 @@ export function EndocenterProvider({ children, companyId }: { children: ReactNod
       deadlines,
       crisisScenarios,
       budgetEntries,
-    });
-  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios, budgetEntries]);
+    }, companyId);
+  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios, budgetEntries, companyId]);
 
   const updateMember = (id: string, updates: Partial<TeamMember>) => {
     setTeamState((prev) =>
