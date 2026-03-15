@@ -44,6 +44,7 @@ export const TAB_SECTIONS: Record<TabKey, TabSection[]> = {
     { key: 'participants', label: 'Participantes', description: 'Gestão de participantes em entradas' },
   ],
   team: [
+    { key: 'own_profile_only', label: 'Apenas próprio perfil', description: 'Restringe a visualização apenas ao perfil do próprio usuário, sem ver os colegas' },
     { key: 'kpis', label: 'KPIs individuais', description: 'Cards de performance de cada membro' },
     { key: 'sla_charts', label: 'Gráficos de SLA', description: 'Gráficos de SLA e tempo de entrega' },
     { key: 'activities', label: 'Atividades', description: 'Registro de atividades da equipe' },
