@@ -248,7 +248,7 @@ export default function ProjectPipeline() {
                           <div className="grid grid-cols-2 gap-1.5">
                             <input className="ios-input px-2 py-1.5 text-xs" value={task.responsible}
                               onChange={(e) => updatePipelineTask(project.id, task.id, { responsible: e.target.value })} />
-                            <StatusPill value={task.status} onChange={(s) => updatePipelineTask(project.id, task.id, { status: s })} />
+                            <StatusPill value={task.status} onChange={(s) => handleTaskStatus(project.id, task.id, s)} />
                           </div>
                           <div className="grid grid-cols-[1fr_1fr_1fr_28px] gap-1.5">
                             <input type="number" className="ios-input px-2 py-1.5 text-xs" value={task.hours}
