@@ -3,6 +3,8 @@ import { createPortal } from "react-dom";
 import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Target, TrendingUp, Upload, User, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useTeamRole } from "@/hooks/useTeamRole";
 
 const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
 
