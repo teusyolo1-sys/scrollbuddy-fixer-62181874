@@ -171,6 +171,16 @@ export default function ResponsibilityMatrix() {
                   onSelect={(item) => setSelectedItem({ roleId: role.id, tab: activeTab, item })}
                   onToggleDone={(id) => handleUpdateItem(id, { done: !currentItems.find((i) => i.id === id)?.done })}
                   onAdd={() => addResponsibilityRoleItem(role.id, activeTab)}
+                  onMoveItem={(itemId, target) => {
+                    if (target === "done") {
+                      handleUpdateItem(itemId, { done: true });
+                    } else if (target === "urgent") {
+                      handleUpdateItem(itemId, { done: false, priority: "urgent", critical: true });
+                    } else {
+                      const item = currentItems.find((i) => i.id === itemId);
+                      handleUpdateItem(itemId, { done: false, priority: item?.priority === "urgent" ? "medium" : item?.priority || "medium", critical: false });
+                    }
+                  }}
                 />
               ) : (
                 <ListView
