@@ -58,12 +58,14 @@ const textColors = [
 
 type DropdownType = "font" | "size" | "weight" | "color" | "highlight" | null;
 
-export default function RichTextEditor({ value, onChange, placeholder = "Comece a escrever...", minHeight = "400px" }: RichTextEditorProps) {
+const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(function RichTextEditor({ value, onChange, placeholder = "Comece a escrever...", minHeight = "400px" }, ref) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
   const [currentFont, setCurrentFont] = useState("Sans Serif");
   const [currentSize, setCurrentSize] = useState("14");
   const savedSelectionRef = useRef<Range | null>(null);
+  const [hoveredImg, setHoveredImg] = useState<{ el: HTMLImageElement; rect: DOMRect } | null>(null);
+  const editorWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (editorRef.current && !editorRef.current.innerHTML && value) {
