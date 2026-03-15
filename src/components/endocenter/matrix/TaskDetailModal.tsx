@@ -43,6 +43,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [timerRunning, setTimerRunning] = useState(item.timerRunning);
   const [timerSeconds, setTimerSeconds] = useState(item.timerSeconds);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [editingDescription, setEditingDescription] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
@@ -156,21 +157,24 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const checkTotal = item.checklist.length;
   const checkPct = checkTotal > 0 ? Math.round((checkDone / checkTotal) * 100) : 0;
 
-  /* ── Collapsible Section helper ── */
+  /* ── Collapsible Section helper — iOS 26 style ── */
   const SideSection = ({ icon: Icon, label, children, defaultOpen = false }: { icon: any; label: string; children: React.ReactNode; defaultOpen?: boolean }) => {
     const [open, setOpen] = useState(defaultOpen);
     return (
-      <div className="border-b border-border/30 last:border-b-0">
-        <button onClick={() => setOpen(!open)} className="flex items-center gap-2 w-full px-3 py-2.5 text-[11px] font-semibold text-muted-foreground hover:text-foreground transition-colors">
-          <Icon className="h-3.5 w-3.5 shrink-0" />
+      <div className="mb-1">
+        <button onClick={() => setOpen(!open)} 
+          className="flex items-center gap-2.5 w-full px-4 py-3 text-[13px] font-semibold text-foreground/80 hover:text-foreground hover:bg-secondary/40 transition-colors"
+          style={{ borderRadius: "var(--ios-radius-sm)" }}
+        >
+          <Icon className="h-4 w-4 shrink-0 text-muted-foreground" />
           <span className="flex-1 text-left">{label}</span>
-          {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+          <ChevronRight className={`h-3.5 w-3.5 text-muted-foreground/50 transition-transform duration-200 ${open ? "rotate-90" : ""}`} />
         </button>
         <div
-          className="overflow-hidden transition-all duration-150"
+          className="overflow-hidden transition-all duration-200 ease-out"
           style={{ maxHeight: open ? "500px" : "0px", opacity: open ? 1 : 0 }}
         >
-          <div className="px-3 pb-3 space-y-2">{children}</div>
+          <div className="px-4 pb-3 pt-1 space-y-2.5">{children}</div>
         </div>
       </div>
     );
@@ -249,22 +253,69 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
 
           {/* Main content area: Editor (75%) + Sidebar (25%) */}
           <div className="flex flex-1 min-h-0 overflow-hidden">
-            {/* Editor — 75% */}
+            {/* Editor / Read-only view — 75% */}
             <div className="flex-1 flex flex-col min-w-0">
-              <RichTextEditor
-                value={description}
-                onChange={handleDescriptionChange}
-                minHeight="100%"
-                placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
-              />
+              {editingDescription ? (
+                <div className="flex flex-col h-full">
+                  <RichTextEditor
+                    value={description}
+                    onChange={handleDescriptionChange}
+                    minHeight="100%"
+                    placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
+                  />
+                  <div className="flex items-center gap-2 px-4 py-2 border-t border-border/40 bg-secondary/20 shrink-0">
+                    <button onClick={() => setEditingDescription(false)}
+                      className="text-xs font-semibold px-4 py-1.5 text-white transition-colors"
+                      style={{ backgroundColor: roleColor, borderRadius: "var(--ios-radius-sm)" }}>
+                      Concluir edição
+                    </button>
+                    <span className="text-[10px] text-muted-foreground">Editando descrição...</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex-1 overflow-y-auto cursor-pointer group" onClick={() => setEditingDescription(true)}>
+                  {description && description !== "<br>" && description.replace(/<[^>]*>/g, "").trim() ? (
+                    <div className="px-6 py-5 text-sm text-foreground prose prose-sm max-w-none
+                      [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3
+                      [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-2
+                      [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2
+                      [&_blockquote]:border-l-4 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
+                      [&_pre]:bg-secondary [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-xs
+                      [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
+                      [&_a]:text-primary [&_a]:underline
+                      [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-2
+                      [&_hr]:border-border/50 [&_hr]:my-3"
+                      dangerouslySetInnerHTML={{ __html: description }}
+                    />
+                  ) : (
+                    <div className="flex-1 flex flex-col items-center justify-center gap-3 text-muted-foreground/40 p-8">
+                      <Type className="h-10 w-10" />
+                      <p className="text-sm font-medium">Clique para adicionar uma descrição</p>
+                      <p className="text-xs">Use formatação rica como um editor de texto</p>
+                    </div>
+                  )}
+                  {/* Hover hint */}
+                  <div className="sticky bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity px-4 py-2 bg-gradient-to-t from-card to-transparent">
+                    <span className="text-[10px] font-medium text-muted-foreground bg-secondary/80 px-3 py-1 rounded-full"
+                      style={{ borderRadius: "var(--ios-radius-sm)" }}>
+                      ✏️ Clique para editar
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Sidebar — collapsible properties panel */}
+            {/* Sidebar — iOS 26 glass panel */}
             <div
-              className="border-l border-border/40 bg-secondary/10 overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
-              style={{ width: sidebarOpen ? 280 : 0, opacity: sidebarOpen ? 1 : 0 }}
+              className="overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
+              style={{ 
+                width: sidebarOpen ? 300 : 0, 
+                opacity: sidebarOpen ? 1 : 0,
+                background: "var(--ios-glass-heavy)",
+                borderLeft: sidebarOpen ? "1px solid hsl(var(--border) / 0.3)" : "none",
+              }}
             >
-              <div className="w-[280px]">
+              <div className="w-[300px] py-2">
                     {/* Priority */}
                     <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
                       <div className="flex flex-wrap gap-1">
@@ -420,25 +471,28 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Footer actions */}
-                    <div className="p-3 border-t border-border/30 space-y-2">
-                      <div className="flex gap-1.5">
+                    <div className="px-4 py-4 mt-2 space-y-2.5">
+                      <div className="flex gap-2">
                         <button onClick={() => onUpdate({ critical: !item.critical })}
-                          className={`text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors flex-1 ${item.critical ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"}`}>
+                          className={`text-[11px] font-semibold px-3 py-2 transition-colors flex-1 ${item.critical ? "bg-destructive/10 text-destructive" : "bg-secondary/60 text-muted-foreground"}`}
+                          style={{ borderRadius: "var(--ios-radius-sm)" }}>
                           {item.critical ? "✦ Crítico" : "Normal"}
                         </button>
                         <button onClick={() => onUpdate({ done: !item.done })}
-                          className={`text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors flex-1 ${item.done ? "text-white" : "bg-secondary text-muted-foreground"}`}
-                          style={item.done ? { backgroundColor: roleColor } : {}}>
+                          className={`text-[11px] font-semibold px-3 py-2 transition-colors flex-1 ${item.done ? "text-white" : "bg-secondary/60 text-muted-foreground"}`}
+                          style={{ borderRadius: "var(--ios-radius-sm)", ...(item.done ? { backgroundColor: roleColor } : {}) }}>
                           {item.done ? "✓ Concluído" : "Concluir"}
                         </button>
                       </div>
-                      <button onClick={onDelete} className="w-full text-[10px] font-medium px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors flex items-center justify-center gap-1">
-                        <Trash2 className="h-3 w-3" /> Excluir tarefa
+                      <button onClick={onDelete} 
+                        className="w-full text-[11px] font-medium px-3 py-2 bg-destructive/10 text-destructive hover:bg-destructive/15 transition-colors flex items-center justify-center gap-1.5"
+                        style={{ borderRadius: "var(--ios-radius-sm)" }}>
+                        <Trash2 className="h-3.5 w-3.5" /> Excluir tarefa
                       </button>
-                  </div>
-                </div>
-              </div>
-            </div>
+                    </div>{/* footer */}
+                  </div>{/* w-300 */}
+                </div>{/* sidebar */}
+              </div>{/* flex */}
         </motion.div>
       </motion.div>
     </AnimatePresence>
