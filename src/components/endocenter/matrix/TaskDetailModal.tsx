@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Image, Link2, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
-  ChevronDown, ChevronRight, Settings2
+  ChevronDown, ChevronRight, Settings2, Pencil
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } from "@/store/endocenterStore";
@@ -244,9 +244,16 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     />
                   </div>
                 ) : (
-                  <h2 onClick={() => setEditingTitle(true)} className="text-base font-bold text-foreground cursor-text hover:text-primary transition-colors truncate flex-1 min-w-0 py-2">
-                    {item.task}
-                  </h2>
+                  <div onClick={() => setEditingTitle(true)} 
+                    className="group/title relative flex-1 min-w-0 flex items-center gap-2 py-2 px-2 cursor-text rounded-xl hover:bg-secondary/40 transition-all duration-200">
+                    <h2 className="text-base font-bold text-foreground truncate flex-1 min-w-0 group-hover/title:text-primary transition-colors">
+                      {item.task}
+                    </h2>
+                    {/* Lápis com efeito diafragma */}
+                    <div className="shrink-0 w-6 h-6 rounded-full flex items-center justify-center opacity-0 scale-0 group-hover/title:opacity-100 group-hover/title:scale-100 transition-all duration-300 bg-primary/10">
+                      <Pencil className="h-3 w-3 text-primary" />
+                    </div>
+                  </div>
                 )}
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
