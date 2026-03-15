@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      api_keys: {
+        Row: {
+          activated_at: string | null
+          active_ip: string | null
+          api_key: string
+          created_at: string
+          email: string
+          expires_at: string | null
+          hostinger_synced: boolean
+          id: string
+          is_active: boolean
+          max_devices: number
+          note: string | null
+          payment_status: string
+          plan: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activated_at?: string | null
+          active_ip?: string | null
+          api_key: string
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          hostinger_synced?: boolean
+          id?: string
+          is_active?: boolean
+          max_devices?: number
+          note?: string | null
+          payment_status?: string
+          plan?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activated_at?: string | null
+          active_ip?: string | null
+          api_key?: string
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          hostinger_synced?: boolean
+          id?: string
+          is_active?: boolean
+          max_devices?: number
+          note?: string | null
+          payment_status?: string
+          plan?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       budget_entries: {
         Row: {
           amount: number
@@ -100,6 +154,128 @@ export type Database = {
           email?: string | null
           id?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      project_versions: {
+        Row: {
+          created_at: string
+          html_content: string
+          id: string
+          label: string | null
+          project_id: string
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          created_at?: string
+          html_content: string
+          id?: string
+          label?: string | null
+          project_id: string
+          user_id: string
+          version_number?: number
+        }
+        Update: {
+          created_at?: string
+          html_content?: string
+          id?: string
+          label?: string | null
+          project_id?: string
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_versions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          created_at: string
+          html_content: string | null
+          id: string
+          name: string
+          thumbnail_url: string | null
+          updated_at: string
+          user_id: string
+          zip_file_path: string | null
+        }
+        Insert: {
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          name?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id: string
+          zip_file_path?: string | null
+        }
+        Update: {
+          created_at?: string
+          html_content?: string | null
+          id?: string
+          name?: string
+          thumbnail_url?: string | null
+          updated_at?: string
+          user_id?: string
+          zip_file_path?: string | null
+        }
+        Relationships: []
+      }
+      section_templates: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          html_content: string
+          id: string
+          name: string
+          thumbnail_url: string | null
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          html_content: string
+          id?: string
+          name: string
+          thumbnail_url?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          html_content?: string
+          id?: string
+          name?: string
+          thumbnail_url?: string | null
+        }
+        Relationships: []
+      }
+      trial_sessions: {
+        Row: {
+          expired: boolean
+          id: string
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          expired?: boolean
+          id?: string
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          expired?: boolean
+          id?: string
+          started_at?: string
+          user_id?: string
         }
         Relationships: []
       }
