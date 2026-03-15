@@ -70,7 +70,7 @@ export default function SettingsDialog({ open, onClose }: Props) {
             </div>
 
             {/* Segmented control */}
-            <div className="mx-6 mb-4 ios-segmented grid grid-cols-4 gap-0">
+            <div className="mx-6 mb-4 ios-segmented grid grid-cols-5 gap-0">
               {tabs.map((item) => {
                 const Icon = item.icon;
                 return (
