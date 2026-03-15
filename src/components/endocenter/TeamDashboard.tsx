@@ -441,7 +441,9 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
     input.click();
   };
 
-  return (
+  if (typeof document === "undefined") return null;
+
+  return createPortal(
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
