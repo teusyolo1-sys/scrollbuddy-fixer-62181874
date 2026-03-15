@@ -341,7 +341,9 @@ function CompanyCardItem({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.05, 0.15), type: "spring", damping: 26, stiffness: 340 }}
+      whileHover={{ y: -6, scale: 1.02, boxShadow: "0 20px 50px rgba(0,0,0,0.12)" }}
+      whileTap={{ scale: 0.97, y: 0 }}
+      transition={{ delay: Math.min(index * 0.05, 0.15), type: "spring", damping: 22, stiffness: 300 }}
       className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl p-0 text-left overflow-hidden group cursor-pointer"
       onClick={onOpen}
     >
