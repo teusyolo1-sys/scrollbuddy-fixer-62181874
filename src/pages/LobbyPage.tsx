@@ -65,7 +65,7 @@ const gradients = [
 /* ── Framer-inspired animated mesh background ── */
 function AnimatedBackground() {
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
       {/* Mesh gradient base */}
       <div
         className="absolute inset-0"
