@@ -793,6 +793,36 @@ export type Database = {
         }
         Relationships: []
       }
+      trash_bin: {
+        Row: {
+          deleted_at: string
+          deleted_by: string
+          id: string
+          item_data: Json
+          item_id: string
+          item_name: string
+          item_type: string
+        }
+        Insert: {
+          deleted_at?: string
+          deleted_by: string
+          id?: string
+          item_data?: Json
+          item_id?: string
+          item_name?: string
+          item_type?: string
+        }
+        Update: {
+          deleted_at?: string
+          deleted_by?: string
+          id?: string
+          item_data?: Json
+          item_id?: string
+          item_name?: string
+          item_type?: string
+        }
+        Relationships: []
+      }
       trial_sessions: {
         Row: {
           expired: boolean
