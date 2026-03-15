@@ -349,7 +349,31 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActiveId(String(e.active.id))} onDragEnd={handleDragEnd}>
       <div className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px]`}>
         {columnData.map((col, index) => (
-          <div key={col.key} className="space-y-2 group/col">
+          <div
+            key={col.key}
+            ref={(el) => { colRefs.current[index] = el; }}
+            className={`space-y-2 group/col transition-all duration-200 ${
+              draggingColIdx === index ? "opacity-40 scale-95" : ""
+            } ${dragOverColIdx === index && draggingColIdx !== index ? "ring-2 ring-primary/40 rounded-2xl" : ""}`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (draggingColIdx !== null && draggingColIdx !== index) {
+                setDragOverColIdx(index);
+              }
+            }}
+            onDragLeave={() => setDragOverColIdx(null)}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (draggingColIdx !== null && draggingColIdx !== index) {
+                const newCols = [...columns];
+                const [moved] = newCols.splice(draggingColIdx, 1);
+                newCols.splice(index, 0, moved);
+                setColumns(newCols);
+              }
+              setDraggingColIdx(null);
+              setDragOverColIdx(null);
+            }}
+          >
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
               {/* Column label */}
@@ -370,18 +394,21 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
                 <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md shrink-0">{col.items.length}</span>
               </div>
 
-              {/* Move arrows - only on hover */}
-              <div className="flex items-center gap-0.5 opacity-0 group-hover/col:opacity-100 transition-opacity">
-                {index > 0 && (
-                  <button onClick={() => moveColumn(index, -1)} className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mover ← esquerda">
-                    <ChevronLeft className="h-3 w-3" />
-                  </button>
-                )}
-                {index < columns.length - 1 && (
-                  <button onClick={() => moveColumn(index, 1)} className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mover → direita">
-                    <ChevronRight className="h-3 w-3" />
-                  </button>
-                )}
+              {/* Drag grip - only on hover */}
+              <div
+                draggable
+                onDragStart={(e) => {
+                  setDraggingColIdx(index);
+                  e.dataTransfer.effectAllowed = "move";
+                }}
+                onDragEnd={() => {
+                  setDraggingColIdx(null);
+                  setDragOverColIdx(null);
+                }}
+                className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary hover:text-foreground"
+                title="Arrastar para reordenar"
+              >
+                <GripVertical className="h-3.5 w-3.5" />
               </div>
 
               {/* 3-dot menu with all actions */}
