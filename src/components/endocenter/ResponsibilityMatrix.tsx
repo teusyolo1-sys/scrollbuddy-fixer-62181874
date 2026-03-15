@@ -586,12 +586,33 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
             {/* Column drop area */}
             <DroppableColumn id={col.key} isOver={false}>
               <SortableContext items={col.items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
-                {col.items.map((item) => (
-                  <SortableTaskCard key={item.id} item={item} roleColor={roleColor} onClick={() => onSelect(item)} onToggleDone={() => onToggleDone(item.id)} />
-                ))}
+                <AnimatePresence mode="popLayout">
+                  {col.items.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, scale: 0.9, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.85, y: 10 }}
+                      transition={{
+                        layout: { type: "spring", stiffness: 350, damping: 30 },
+                        opacity: { duration: 0.2 },
+                        scale: { duration: 0.2 },
+                      }}
+                    >
+                      <SortableTaskCard item={item} roleColor={roleColor} onClick={() => onSelect(item)} onToggleDone={() => onToggleDone(item.id)} />
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </SortableContext>
               {col.items.length === 0 && !activeId && (
-                <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/50">Sem itens</div>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex items-center justify-center h-20 text-xs text-muted-foreground/50"
+                >
+                  Sem itens
+                </motion.div>
               )}
             </DroppableColumn>
           </div>
