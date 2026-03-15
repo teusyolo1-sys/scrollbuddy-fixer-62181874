@@ -506,25 +506,6 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
             className={`space-y-2 group/col transition-all duration-200 ${
               draggingColIdx === index ? "opacity-40 scale-95" : ""
             } ${dragOverColIdx === index && draggingColIdx !== index ? "ring-2 ring-primary/40 rounded-2xl" : ""}`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (draggingColIdx !== null && draggingColIdx !== index) {
-                setDragOverColIdx(index);
-              }
-            }}
-            onDragLeave={() => setDragOverColIdx(null)}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (draggingColIdx !== null && draggingColIdx !== index) {
-                const newCols = [...columns];
-                const [moved] = newCols.splice(draggingColIdx, 1);
-                newCols.splice(index, 0, moved);
-                setColumns(newCols);
-              }
-              setDraggingColIdx(null);
-              setDragOverColIdx(null);
-              clearGlobalDraggingCursor();
-            }}
           >
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
