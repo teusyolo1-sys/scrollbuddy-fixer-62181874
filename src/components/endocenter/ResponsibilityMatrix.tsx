@@ -9,6 +9,9 @@ import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-
 import { useDroppable } from "@dnd-kit/core";
 import TaskCard from "./matrix/TaskCard";
 import TaskDetailModal from "./matrix/TaskDetailModal";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useTeamRole } from "@/hooks/useTeamRole";
+import { useAuth } from "@/hooks/useAuth";
 
 type MatrixTab = "weekly" | "monthly" | "quality";
 type ViewMode = "kanban" | "list";
