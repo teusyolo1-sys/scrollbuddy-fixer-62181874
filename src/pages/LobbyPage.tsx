@@ -176,6 +176,7 @@ function useFileUpload(onLoad: (dataUrl: string) => void) {
 
 export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const { profit, totalRevenue, loading: walletLoading } = useAgencyWallet();
   const [walletHovered, setWalletHovered] = useState(false);
   const [companies, setCompanies] = useState<CompanyCard[]>([]);
