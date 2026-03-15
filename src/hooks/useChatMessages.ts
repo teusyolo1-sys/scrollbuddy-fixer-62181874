@@ -49,7 +49,8 @@ export function useChatMessages(taskId?: string) {
       query = query.is("task_id", null);
     }
 
-    const { data } = await query;
+    const { data, error } = await query;
+    console.log("[ChatMessages] fetch for taskId:", taskId, "data:", data?.length, "error:", error);
 
     if (data) {
       const profileMap = new Map<string, ChatProfile>();

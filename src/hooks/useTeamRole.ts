@@ -19,7 +19,7 @@ export function useTeamRole() {
         .from("profiles")
         .select("team_role")
         .eq("id", user.id)
-        .single();
+        .maybeSingle();
 
       setTeamRole((data as any)?.team_role ?? null);
       setLoading(false);
