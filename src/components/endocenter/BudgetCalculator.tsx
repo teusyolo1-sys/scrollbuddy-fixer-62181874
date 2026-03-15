@@ -307,7 +307,7 @@ function PipelineCard({ faturamentoEntries, onAdd, delay, isExpanded, onToggle }
   return (
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-        className={`${gc} overflow-hidden flex flex-col ${isExpanded ? "row-span-2" : ""}`}
+        className={`${gc} overflow-hidden flex flex-col ${isExpanded ? "row-span-2" : "h-fit"}`}
         onContextMenu={handleCtx}>
         <button onClick={onToggle} className="p-4 hover:bg-accent/20 transition-colors w-full">
           <div className="flex items-center gap-3">
@@ -873,7 +873,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
       <CategoryCard {...catProps("investimento")} delay={0} />
 
       {/* Row 2: Gastos | Gastos (charts) | Receita */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <CategoryCard {...catProps("gasto")} delay={0.05} />
         <GastosChartCard
           entries={entries.filter(e => e.category === "gasto")}
@@ -888,7 +888,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
       </div>
 
       {/* Row 3: Faturamento (table) | Pipeline | Legend + Bar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <div className="space-y-4">
           <CategoryCard {...catProps("faturamento")} delay={0.2} />
           {/* Row 4 left: Despesas */}
