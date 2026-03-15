@@ -591,7 +591,7 @@ export default function BudgetCalculator() {
       {/* Row 2: Gastos | Gastos (charts) | Receita */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <CategoryCard {...catProps("gasto")} delay={0.05} />
-        <GastosChartCard entries={entries.filter(e => e.category === "gasto")} config={categoryConfig.gasto} total={totals.gasto} onAdd={() => { addEntry("gasto"); setExpandedCategory("gasto"); }} delay={0.1} />
+        <GastosChartCard entries={entries.filter(e => e.category === "gasto")} config={categoryConfig.gasto} total={totals.gasto} onAdd={() => { addEntry("gasto"); expandCat("gasto"); }} delay={0.1} />
         <CategoryCard {...catProps("receita")} delay={0.15} />
       </div>
 
