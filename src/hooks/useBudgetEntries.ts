@@ -97,7 +97,7 @@ export const useBudgetEntries = (companyId?: string) => {
         id: data.id, description: data.description, category: data.category as BudgetCategory,
         amount: Number(data.amount), date: data.date, notes: data.notes,
         created_by: data.created_by, participants: [],
-        agency_fee: 0, agency_fee_type: 'fixed', company_id: null,
+        agency_fee: 0, agency_fee_type: 'fixed', company_id: companyId || null,
       }, ...prev]);
     }
   };
