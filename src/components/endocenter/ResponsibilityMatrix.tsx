@@ -367,9 +367,18 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
                 <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md shrink-0">{col.items.length}</span>
               </div>
 
-              {/* Grip handle - only on hover */}
-              <div className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary" title="Arrastar coluna">
-                <GripVertical className="h-3.5 w-3.5" />
+              {/* Move arrows - only on hover */}
+              <div className="flex items-center gap-0.5 opacity-0 group-hover/col:opacity-100 transition-opacity">
+                {index > 0 && (
+                  <button onClick={() => moveColumn(index, -1)} className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mover ← esquerda">
+                    <ChevronLeft className="h-3 w-3" />
+                  </button>
+                )}
+                {index < columns.length - 1 && (
+                  <button onClick={() => moveColumn(index, 1)} className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors" title="Mover → direita">
+                    <ChevronRight className="h-3 w-3" />
+                  </button>
+                )}
               </div>
 
               {/* 3-dot menu with all actions */}
