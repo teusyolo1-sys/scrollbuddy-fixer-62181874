@@ -471,9 +471,10 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
             applyImgStyle({ width: pct, height: "auto" });
           };
 
-          const toggleStyle = (prop: string, valA: string, valB: string) => {
-            const current = selectedImg.style[prop as any];
-            applyImgStyle({ [prop]: current === valA ? valB : valA });
+          const toggleStyle = (prop: string, onVal: string, offVal: string) => {
+            const current = selectedImg.style[prop as any] || "";
+            const isOn = current === onVal || (onVal.includes("solid") && current.includes("solid")) || (onVal.includes("rgba") && current.includes("rgba"));
+            applyImgStyle({ [prop]: isOn ? offVal : onVal });
           };
 
           const ImgToolBtn = ({ onClick, children, title, active }: { onClick: () => void; children: React.ReactNode; title: string; active?: boolean }) => (
