@@ -351,10 +351,10 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     setColumns(newCols);
   };
 
-  const startColumnDrag = (startIndex: number, startX: number) => {
+  const startColumnDrag = (startIndex: number, startX: number, startKey: string) => {
     let currentIdx = startIndex;
 
-    setDraggingColIdx(startIndex);
+    setDraggingColKey(startKey);
     setDragOverColIdx(null);
     setColumnDragOffsetX(0);
     setGlobalDraggingCursor();
@@ -395,13 +395,12 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
           next.splice(projectedIdx, 0, moved);
           return next;
         });
-        setDraggingColIdx(projectedIdx);
         currentIdx = projectedIdx;
       }
     };
 
     const finishDrag = () => {
-      setDraggingColIdx(null);
+      setDraggingColKey(null);
       setDragOverColIdx(null);
       setColumnDragOffsetX(0);
       clearGlobalDraggingCursor();
