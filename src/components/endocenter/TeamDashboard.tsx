@@ -338,6 +338,7 @@ export default function TeamDashboard() {
               index={i}
               isExpanded={false}
               onToggle={() => setSelectedMember(member)}
+              showFinancials={isAdmin}
             />
           ))}
         </div>
