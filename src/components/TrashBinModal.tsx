@@ -53,7 +53,7 @@ export default function TrashBinModal({ open, onClose }: Props) {
 
   const handlePermanentDelete = async (id: string) => {
     setDeletingId(id);
-    const { error } = await supabase.from("trash_bin").delete().eq("id", id);
+    const { error } = await supabase.from("trash_bin" as any).delete().eq("id", id);
     if (error) {
       toast({ title: "Erro ao deletar", description: error.message, variant: "destructive" });
     } else {
