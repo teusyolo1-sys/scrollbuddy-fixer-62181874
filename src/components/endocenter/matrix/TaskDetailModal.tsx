@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Image, Link2, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
@@ -59,9 +59,28 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
     return () => clearInterval(timerRef.current);
   }, [timerRunning]);
 
+  const timerSaveRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
-    onUpdate({ timerSeconds, timerRunning });
+    clearTimeout(timerSaveRef.current);
+    timerSaveRef.current = setTimeout(() => {
+      onUpdate({ timerSeconds, timerRunning });
+    }, 1000);
+    return () => clearTimeout(timerSaveRef.current);
   }, [timerSeconds, timerRunning]);
+
+  // Debounced description save
+  const descSaveRef = useRef<ReturnType<typeof setTimeout>>();
+  const handleDescriptionChange = useCallback((html: string) => {
+    setDescription(html);
+    clearTimeout(descSaveRef.current);
+    descSaveRef.current = setTimeout(() => {
+      onUpdate({ description: html });
+    }, 500);
+  }, [onUpdate]);
+
+  useEffect(() => {
+    return () => clearTimeout(descSaveRef.current);
+  }, []);
 
   const formatTimer = (s: number) => {
     const h = Math.floor(s / 3600);
@@ -235,10 +254,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             <div className="flex-1 flex flex-col min-w-0">
               <RichTextEditor
                 value={description}
-                onChange={(html) => {
-                  setDescription(html);
-                  onUpdate({ description: html });
-                }}
+                onChange={handleDescriptionChange}
                 minHeight="100%"
                 placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
               />
