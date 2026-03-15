@@ -251,10 +251,17 @@ export default function TeamAnalytics() {
   }, [activities]);
 
   const handleAdd = async () => {
-    if (!formMember || !formType || !formValue) return;
-    await addActivity(formMember, formType, parseFloat(formValue), formUnit, formDate);
-    setFormValue("");
-    setShowForm(false);
+    if (!formMember) { toast.error("Selecione um membro"); return; }
+    if (!formType) { toast.error("Selecione o tipo de atividade"); return; }
+    if (!formValue) { toast.error("Informe o valor"); return; }
+    try {
+      await addActivity(formMember, formType, parseFloat(formValue), formUnit, formDate);
+      toast.success("Atividade registrada!");
+      setFormValue("");
+      setShowForm(false);
+    } catch (e: any) {
+      toast.error("Erro ao registrar: " + (e?.message || "tente novamente"));
+    }
   };
 
   if (!user) return null;
