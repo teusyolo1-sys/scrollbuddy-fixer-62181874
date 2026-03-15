@@ -604,7 +604,7 @@ export default function BudgetCalculator() {
         </div>
 
         {/* Center: Pipeline spanning 2 rows */}
-        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} onAdd={() => { addEntry("faturamento"); setExpandedCategory("faturamento"); }} delay={0.25} />
+        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} onAdd={() => { addEntry("faturamento"); expandCat("faturamento"); }} delay={0.25} />
 
         {/* Right: Legend + Bar, then Despesas detail */}
         <div className="space-y-4">
