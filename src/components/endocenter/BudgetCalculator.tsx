@@ -102,6 +102,7 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
   onUpdate: (id: string, u: any) => void; onRemove: (id: string) => void;
   profiles: any[]; onToggleParticipant: (eid: string, uid: string) => void;
 }) {
+  const { isAdmin } = useUserRole();
   const getInitial = (p: any) => (p.display_name || p.email || "?")[0].toUpperCase();
   const getColor = (id: string) => {
     const c = ["#3B82F6","#10B981","#A78BFA","#EF4444","#F59E0B","#EC4899","#14B8A6","#F97316"];
@@ -113,11 +114,13 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
 
   return (
     <div className="border border-border/50 rounded-xl overflow-hidden">
-      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-        <span>Descrição</span><span className="w-20 text-right">Valor</span><span className="w-20 text-center">Data</span><span className="w-7" />
+      <div className={`grid ${isAdmin ? "grid-cols-[1fr_auto_auto_auto_auto]" : "grid-cols-[1fr_auto_auto_auto]"} gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider`}>
+        <span>Descrição</span><span className="w-20 text-right">Valor</span>
+        {isAdmin && <span className="w-24 text-right">Fee Agência</span>}
+        <span className="w-20 text-center">Data</span><span className="w-7" />
       </div>
       {entries.map((entry: any, idx: number) => (
-        <div key={entry.id} className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 items-center ${idx % 2 ? "bg-muted/20" : ""} hover:bg-accent/20 transition-colors group`}>
+        <div key={entry.id} className={`grid ${isAdmin ? "grid-cols-[1fr_auto_auto_auto_auto]" : "grid-cols-[1fr_auto_auto_auto]"} gap-2 px-3 py-2 items-center ${idx % 2 ? "bg-muted/20" : ""} hover:bg-accent/20 transition-colors group`}>
           <div className="space-y-1">
             <input className="w-full bg-transparent text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground/60 border-b border-border/30 focus:border-primary/40 transition-colors py-1"
               value={entry.description} onChange={(e) => onUpdate(entry.id, { description: e.target.value })} placeholder="Descrição" />
@@ -141,6 +144,19 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
           <div className="w-20">
             <input type="number" className="w-full bg-transparent text-xs font-bold text-right outline-none border-b border-border/30 focus:border-primary/40 transition-colors py-1" value={entry.amount || ""} onChange={(e) => onUpdate(entry.id, { amount: Number(e.target.value) })} placeholder="0,00" style={{ color: config.color }} />
           </div>
+          {isAdmin && (
+            <div className="w-24 flex items-center gap-1">
+              <button
+                onClick={() => onUpdate(entry.id, { agency_fee_type: entry.agency_fee_type === 'fixed' ? 'percent' : 'fixed' })}
+                className="text-[8px] font-bold px-1.5 py-0.5 rounded bg-primary/10 text-primary hover:bg-primary/20 transition-colors shrink-0"
+                title="Alternar entre R$ e %"
+              >
+                {entry.agency_fee_type === 'percent' ? '%' : 'R$'}
+              </button>
+              <input type="number" className="w-full bg-transparent text-xs font-bold text-right outline-none border-b border-emerald-500/30 focus:border-emerald-500/60 transition-colors py-1 text-emerald-500"
+                value={entry.agency_fee || ""} onChange={(e) => onUpdate(entry.id, { agency_fee: Number(e.target.value) })} placeholder="0" />
+            </div>
+          )}
           <div className="w-20">
             <input type="date" className="w-full bg-transparent text-[10px] text-muted-foreground outline-none text-center border-b border-border/30 focus:border-primary/40 transition-colors py-1" value={entry.date} onChange={(e) => onUpdate(entry.id, { date: e.target.value })} />
           </div>
@@ -149,9 +165,14 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
           </button>
         </div>
       ))}
-      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 bg-muted/40 border-t border-border/50">
+      <div className={`grid ${isAdmin ? "grid-cols-[1fr_auto_auto_auto_auto]" : "grid-cols-[1fr_auto_auto_auto]"} gap-2 px-3 py-2 bg-muted/40 border-t border-border/50`}>
         <span className="text-[11px] font-bold text-foreground/70">Total</span>
         <span className="w-20 text-right text-xs font-extrabold" style={{ color: config.color }}>{formatCurrency(total)}</span>
+        {isAdmin && (
+          <span className="w-24 text-right text-xs font-extrabold text-emerald-500">
+            {formatCurrency(entries.reduce((s, e) => s + (e.agency_fee_type === 'percent' ? (e.amount * e.agency_fee / 100) : e.agency_fee), 0))}
+          </span>
+        )}
         <span className="w-20" /><span className="w-7" />
       </div>
     </div>
