@@ -168,6 +168,10 @@
     cursor: url('/cursors/grab.svg') 8 8, grab !important;
   }
 
+  [draggable="true"]:active, .drag-handle:active {
+    cursor: url('/cursors/move.svg') 7 7, grabbing !important;
+  }
+
   .cursor-move, [style*="cursor: move"] {
     cursor: url('/cursors/move.svg') 7 7, move !important;
   }
