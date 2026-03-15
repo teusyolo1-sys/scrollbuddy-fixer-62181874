@@ -620,7 +620,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                   <X className="h-3 w-3" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-3">
+              <div className="flex-1 min-h-0 overflow-hidden p-3">
                 <TaskChat taskId={item.id} taskName={item.task} />
               </div>
             </motion.div>
