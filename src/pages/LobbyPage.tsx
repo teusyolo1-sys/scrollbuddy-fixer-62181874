@@ -367,7 +367,7 @@ export default function LobbyPage() {
             </motion.button>
           )}
 
-          {visibleCompanies.length === 0 && !isAdmin && (
+          {companies.length === 0 && !isAdmin && (
             <div className="col-span-full text-center py-16">
               <Building2 className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
               <p className="text-muted-foreground text-sm">Você ainda não tem acesso a nenhuma empresa.</p>
