@@ -2,6 +2,7 @@ import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Plus, Target, Trash2, TrendingUp, Upload, User, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { sendToTrash } from "@/lib/trash";
 import AnalyticsCharts from "./AnalyticsCharts";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
@@ -711,6 +712,7 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
                               if (!user?.email) { setDeleteError("Erro ao verificar usuário."); setDeleting(false); return; }
                               const { error } = await supabase.auth.signInWithPassword({ email: user.email, password });
                               if (error) { setDeleteError("Senha incorreta."); setDeleting(false); return; }
+                              await sendToTrash("member", member.id, member.name, { role: member.role, specialty: member.specialty, color: member.color } as Record<string, unknown>, user.id);
                               onDelete(member.id);
                               onClose();
                             } catch {

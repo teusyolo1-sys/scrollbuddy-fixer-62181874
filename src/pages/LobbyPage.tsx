@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil, Wallet, Sun, Moon } from "lucide-react";
+import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil, Wallet, Sun, Moon, Trash2 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgencyWallet } from "@/hooks/useAgencyWallet";
+import TrashBinModal from "@/components/TrashBinModal";
 
 interface CompanyCard {
   id: string;
@@ -166,6 +167,7 @@ export default function LobbyPage() {
   const { profit, totalRevenue, loading: walletLoading } = useAgencyWallet();
   const { resolvedTheme, setTheme } = useTheme();
   const [walletHovered, setWalletHovered] = useState(false);
+  const [trashOpen, setTrashOpen] = useState(false);
   const [companies, setCompanies] = useState<CompanyCard[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const navigate = useNavigate();
@@ -275,6 +277,7 @@ export default function LobbyPage() {
   const openCompany = (company: CompanyCard) => navigate(`/endocenter/${company.id}`);
 
   return (
+    <>
     <div className="min-h-screen relative" style={{ isolation: "isolate" }}>
       {/* Animated background */}
       <AnimatedBackground />
@@ -334,6 +337,13 @@ export default function LobbyPage() {
                         title="Gerenciar permissões"
                       >
                         <Shield className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => setTrashOpen(true)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/20 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
+                        title="Lixeira"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </button>
                     </>
                   )}
@@ -406,6 +416,8 @@ export default function LobbyPage() {
         </div>
       </div>
     </div>
+    {isAdmin && <TrashBinModal open={trashOpen} onClose={() => setTrashOpen(false)} />}
+    </>
   );
 }
 
