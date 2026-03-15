@@ -11,6 +11,7 @@ import ResponsibilityMatrix from "@/components/endocenter/ResponsibilityMatrix";
 import WorkflowDiagram from "@/components/endocenter/WorkflowDiagram";
 import DeadlineManagement from "@/components/endocenter/DeadlineManagement";
 import SettingsDialog from "@/components/endocenter/SettingsDialog";
+import NotificationCenter from "@/components/endocenter/NotificationCenter";
 
 const tabs = [
   { id: "dashboard", label: "Dashboard", icon: BarChart3 },
@@ -60,6 +61,7 @@ function DashboardContent() {
             </div>
 
             <div className="flex items-center gap-2">
+              <NotificationCenter />
               <motion.button
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: "spring", stiffness: 500, damping: 15 }}
