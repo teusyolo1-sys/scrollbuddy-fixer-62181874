@@ -201,7 +201,7 @@ function DashboardContent() {
           {activeTab === "matrix" && <ResponsibilityMatrix />}
           {activeTab === "workflow" && <WorkflowDiagram />}
           {activeTab === "deadlines" && <DeadlineManagement />}
-          {activeTab === "budget" && <BudgetCalculator />}
+          {activeTab === "budget" && <BudgetCalculator companyId={companyId} />}
           {activeTab === "team" && <TeamAnalytics />}
         </motion.div>
       </main>
