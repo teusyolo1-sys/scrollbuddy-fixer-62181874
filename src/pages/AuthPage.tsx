@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 const FloatingOrb = ({ delay, duration, x, y, size, color }: { delay: number; duration: number; x: string; y: string; size: string; color: string }) => (
   <motion.div
@@ -20,25 +21,78 @@ const FloatingOrb = ({ delay, duration, x, y, size, color }: { delay: number; du
   />
 );
 
+type PasswordStrength = 'weak' | 'medium' | 'strong' | 'very-strong';
+
+function getPasswordStrength(pw: string): { level: PasswordStrength; score: number; label: string } {
+  let score = 0;
+  if (pw.length >= 6) score++;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  if (pw.length >= 12) score++;
+
+  if (score <= 1) return { level: 'weak', score: 1, label: 'Fraca' };
+  if (score <= 2) return { level: 'medium', score: 2, label: 'Média' };
+  if (score <= 4) return { level: 'strong', score: 3, label: 'Forte' };
+  return { level: 'very-strong', score: 4, label: 'Muito forte' };
+}
+
+const strengthColors: Record<PasswordStrength, string> = {
+  'weak': 'hsl(0 72% 51%)',
+  'medium': 'hsl(38 92% 50%)',
+  'strong': 'hsl(142 71% 45%)',
+  'very-strong': 'hsl(152 100% 40%)',
+};
+
+const strengthIcons: Record<PasswordStrength, typeof ShieldCheck> = {
+  'weak': ShieldX,
+  'medium': ShieldAlert,
+  'strong': ShieldCheck,
+  'very-strong': ShieldCheck,
+};
+
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
 
+  const strength = useMemo(() => getPasswordStrength(password), [password]);
+  const passwordsMatch = confirmPassword === '' || password === confirmPassword;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoginError(false);
     setLoading(true);
+
+    if (!isLogin) {
+      if (password !== confirmPassword) {
+        toast.error('As senhas não coincidem');
+        setLoading(false);
+        return;
+      }
+      if (strength.score < 2) {
+        toast.error('Escolha uma senha mais forte');
+        setLoading(false);
+        return;
+      }
+    }
 
     if (isLogin) {
       const { error } = await signIn(email, password);
       if (error) {
         toast.error(error.message);
+        setLoginError(true);
       } else {
         toast.success('Bem-vindo de volta!');
         navigate('/');
@@ -52,6 +106,23 @@ const AuthPage = () => {
       }
     }
     setLoading(false);
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email.trim()) {
+      toast.error('Preencha o e-mail acima primeiro');
+      return;
+    }
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
+    }
+    setForgotLoading(false);
   };
 
   const handleSocialLogin = async (provider: 'google' | 'apple') => {
@@ -79,8 +150,6 @@ const AuthPage = () => {
         <FloatingOrb delay={4} duration={18} x="30%" y="60%" size="300px" color="hsl(170 70% 50% / 0.1)" />
         <FloatingOrb delay={1} duration={14} x="80%" y="70%" size="250px" color="hsl(330 70% 60% / 0.1)" />
         <FloatingOrb delay={3} duration={16} x="10%" y="80%" size="200px" color="hsl(45 90% 55% / 0.08)" />
-
-        {/* Grid pattern overlay */}
         <div
           className="absolute inset-0 opacity-[0.03]"
           style={{
@@ -168,23 +237,25 @@ const AuthPage = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="relative"
-              >
-                <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Nome de exibição"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-                />
-              </motion.div>
-            )}
+            <AnimatePresence>
+              {!isLogin && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="relative"
+                >
+                  <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <input
+                    type="text"
+                    placeholder="Nome de exibição"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <div className="relative">
               <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
@@ -198,31 +269,131 @@ const AuthPage = () => {
               />
             </div>
 
-            <div className="relative">
-              <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Senha"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="w-full pl-10 pr-10 py-3 bg-secondary/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+            <div>
+              <div className="relative">
+                <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Senha"
+                  value={password}
+                  onChange={(e) => { setPassword(e.target.value); setLoginError(false); }}
+                  required
+                  minLength={6}
+                  className="w-full pl-10 pr-10 py-3 bg-secondary/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+
+              {/* Password strength indicator — only on signup */}
+              <AnimatePresence>
+                {!isLogin && password.length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-2 space-y-1.5"
+                  >
+                    {/* Strength bar */}
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div
+                          key={i}
+                          className="h-1 flex-1 rounded-full transition-all duration-300"
+                          style={{
+                            background: i <= strength.score
+                              ? strengthColors[strength.level]
+                              : 'hsl(var(--muted))',
+                          }}
+                        />
+                      ))}
+                    </div>
+                    {/* Strength label */}
+                    <div className="flex items-center gap-1.5">
+                      {(() => {
+                        const Icon = strengthIcons[strength.level];
+                        return <Icon size={12} style={{ color: strengthColors[strength.level] }} />;
+                      })()}
+                      <span className="text-[11px] font-medium" style={{ color: strengthColors[strength.level] }}>
+                        {strength.label}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground ml-auto">
+                        Use maiúsculas, números e símbolos
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
+
+            {/* Confirm password — only on signup */}
+            <AnimatePresence>
+              {!isLogin && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                >
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="Confirme a senha"
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      required
+                      minLength={6}
+                      className={`w-full pl-10 pr-10 py-3 bg-secondary/50 border rounded-xl text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50 ${
+                        !passwordsMatch ? 'border-destructive' : 'border-border'
+                      }`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {!passwordsMatch && (
+                    <p className="text-[11px] text-destructive mt-1 ml-1">As senhas não coincidem</p>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Forgot password — shown on login after error */}
+            <AnimatePresence>
+              {isLogin && loginError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="text-center"
+                >
+                  <button
+                    type="button"
+                    onClick={handleForgotPassword}
+                    disabled={forgotLoading}
+                    className="text-sm text-primary hover:underline transition-colors inline-flex items-center gap-1"
+                  >
+                    {forgotLoading && <Loader2 size={12} className="animate-spin" />}
+                    Esqueceu sua senha?
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             <motion.button
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.97 }}
               type="submit"
-              disabled={loading}
+              disabled={loading || (!isLogin && !passwordsMatch)}
               className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {loading ? (
@@ -238,7 +409,7 @@ const AuthPage = () => {
 
           <div className="mt-6 text-center">
             <button
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => { setIsLogin(!isLogin); setLoginError(false); setConfirmPassword(''); }}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
               {isLogin ? 'Não tem conta? Criar conta' : 'Já tem conta? Entrar'}
