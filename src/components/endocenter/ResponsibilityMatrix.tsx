@@ -311,6 +311,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
   const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
   const [draggingColIdx, setDraggingColIdx] = useState<number | null>(null);
   const [dragOverColIdx, setDragOverColIdx] = useState<number | null>(null);
+  const [columnDragOffsetX, setColumnDragOffsetX] = useState(0);
   const [editingCol, setEditingCol] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [menuCol, setMenuCol] = useState<string | null>(null);
@@ -350,17 +351,20 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     setColumns(newCols);
   };
 
-  const startColumnDrag = (startIndex: number) => {
+  const startColumnDrag = (startIndex: number, startX: number) => {
     let currentIdx = startIndex;
 
     setDraggingColIdx(startIndex);
     setDragOverColIdx(null);
+    setColumnDragOffsetX(0);
     setGlobalDraggingCursor();
     document.body.style.userSelect = "none";
 
     const handleMouseMove = (event: MouseEvent) => {
       const pointerX = event.clientX;
       const pointerY = event.clientY;
+
+      setColumnDragOffsetX(pointerX - startX);
 
       let bestIdx: number | null = null;
       let bestDistance = Number.POSITIVE_INFINITY;
@@ -380,22 +384,26 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
         }
       });
 
-      // Live reorder: swap columns in real-time so layout animation triggers
-      if (bestIdx !== null && bestIdx !== currentIdx) {
+      const projectedIdx = bestIdx !== null && bestIdx !== currentIdx ? bestIdx : null;
+      setDragOverColIdx(projectedIdx);
+
+      // Live reorder so sibling columns animate position changes
+      if (projectedIdx !== null) {
         setColumns((prev) => {
           const next = [...prev];
           const [moved] = next.splice(currentIdx, 1);
-          next.splice(bestIdx!, 0, moved);
+          next.splice(projectedIdx, 0, moved);
           return next;
         });
-        setDraggingColIdx(bestIdx);
-        currentIdx = bestIdx;
+        setDraggingColIdx(projectedIdx);
+        currentIdx = projectedIdx;
       }
     };
 
     const finishDrag = () => {
       setDraggingColIdx(null);
       setDragOverColIdx(null);
+      setColumnDragOffsetX(0);
       clearGlobalDraggingCursor();
       document.body.style.userSelect = "";
       window.removeEventListener("mousemove", handleMouseMove);
