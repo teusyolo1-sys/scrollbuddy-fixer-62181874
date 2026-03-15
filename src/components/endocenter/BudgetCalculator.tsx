@@ -197,7 +197,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 items-center ${idx % 2 === 0 ? "bg-transparent" : "bg-white/[0.02]"} hover:bg-white/[0.04] transition-colors group`}
+                      className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 items-center ${idx % 2 === 0 ? "bg-transparent" : "bg-muted/30"} hover:bg-accent/30 transition-colors group`}
                     >
                       <div className="space-y-1.5">
                         <input
