@@ -85,9 +85,10 @@ export default function TaskCard({ item, roleColor, onClick, onToggleDone }: Tas
         </div>
 
         {/* Description preview */}
-        {item.description && !item.done && (
-          <p className="text-xs text-muted-foreground line-clamp-2 pl-7">{item.description}</p>
-        )}
+        {item.description && !item.done && (() => {
+          const text = item.description.replace(/<[^>]*>/g, "").trim();
+          return text ? <p className="text-xs text-muted-foreground line-clamp-2 pl-7">{text}</p> : null;
+        })()}
 
         {/* Meta row */}
         <div className="flex items-center gap-2 flex-wrap pl-7">

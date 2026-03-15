@@ -168,7 +168,7 @@ export default function ResponsibilityMatrix() {
             </motion.div>
           </AnimatePresence>
         </div>
-      </motion.div>
+      </div>
 
       {/* Detail Modal */}
       {selectedItem && (
