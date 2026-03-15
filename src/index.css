@@ -149,6 +149,21 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
+    cursor: url('/cursors/default.png') 4 1, default;
+  }
+
+  /* Custom cursors */
+  a, button, [role="button"], label[for], select, summary,
+  .cursor-pointer, [onclick] {
+    cursor: url('/cursors/pointer.png') 10 2, pointer !important;
+  }
+
+  input, textarea, [contenteditable="true"] {
+    cursor: url('/cursors/text.png') 12 16, text !important;
+  }
+
+  [draggable="true"], .react-draggable, .drag-handle {
+    cursor: url('/cursors/move.png') 16 16, move !important;
   }
 
   /* iOS-style thin scrollbar */
