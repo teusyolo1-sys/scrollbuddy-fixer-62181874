@@ -606,9 +606,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 width: 320,
                 height: "60vh",
                 maxHeight: "75vh",
-                background: "var(--ios-glass, hsl(var(--card)))",
-                backdropFilter: "blur(40px) saturate(1.8)",
-                WebkitBackdropFilter: "blur(40px) saturate(1.8)",
+                background: "hsl(var(--card))",
                 boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
                 border: "1px solid hsl(var(--border) / 0.3)",
               }}
