@@ -96,13 +96,7 @@ export default function NotificationCenter({ onNavigateToTask }: NotificationCen
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="absolute right-0 top-12 w-80 sm:w-96 rounded-2xl border border-border/60 overflow-hidden z-50"
-            style={{
-              background: "hsl(var(--card) / 0.85)",
-              backdropFilter: "blur(24px) saturate(140%)",
-              WebkitBackdropFilter: "blur(24px) saturate(140%)",
-              boxShadow: "0 20px 60px -10px rgba(0,0,0,0.35)",
-            }}
+            className="absolute right-0 top-12 w-80 sm:w-96 rounded-2xl border border-white/20 dark:border-white/10 overflow-hidden z-50 ios-glass-heavy shadow-2xl"
           >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border/40">
