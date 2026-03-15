@@ -1,320 +1,251 @@
-import { useMemo } from "react";
-import { motion } from "framer-motion";
-import { BarChart3, TrendingUp, Users, DollarSign, Activity } from "lucide-react";
+import { useMemo, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { BarChart3, TrendingUp, Users, ShoppingCart, Target, Eye, Plus, Trash2, Loader2 } from "lucide-react";
 import {
   AreaChart,
   Area,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
   Legend,
-  PieChart,
-  Pie,
-  Cell,
 } from "recharts";
-import { useEndocenter } from "@/store/endocenterStore";
-import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
+import { useClientMetrics, METRIC_CONFIG, METRIC_TYPES, type MetricType } from "@/hooks/useClientMetrics";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 
-const formatCurrency = (v: number) =>
-  `R$ ${v.toLocaleString("pt-BR", { minimumFractionDigits: 0 })}`;
-
-const CATEGORY_COLORS: Record<BudgetCategory, string> = {
-  investimento: "#3b82f6",
-  gasto: "#ef4444",
-  faturamento: "#10b981",
-  receita: "#8b5cf6",
-  despesa: "#f59e0b",
-};
-
-const CATEGORY_LABELS: Record<BudgetCategory, string> = {
-  investimento: "Investimentos",
-  gasto: "Gastos",
-  faturamento: "Faturamento",
-  receita: "Receita",
-  despesa: "Despesas",
-};
-
-const STATUS_COLORS: Record<string, string> = {
-  Ativo: "#22c55e",
-  Inativo: "#ef4444",
-  Férias: "#f59e0b",
+const ICONS: Record<MetricType, typeof TrendingUp> = {
+  seguidores: Users,
+  vendas: ShoppingCart,
+  conversao: Target,
+  faturamento: TrendingUp,
+  leads: Eye,
+  alcance: BarChart3,
 };
 
 export default function AnalyticsCharts() {
   const { user } = useAuth();
-  const { team, metricEntries } = useEndocenter();
-  const { entries: budgetEntries, loading } = useBudgetEntries();
+  const { isAdmin } = useUserRole();
+  const { metrics, loading, addMetric, removeMetric } = useClientMetrics();
+  const [showForm, setShowForm] = useState(false);
+  const [formType, setFormType] = useState<MetricType>("seguidores");
+  const [formValue, setFormValue] = useState("");
+  const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
 
-  // ── Budget by category (pie/bar) ──
-  const budgetByCategory = useMemo(() => {
-    const cats: BudgetCategory[] = ["investimento", "gasto", "faturamento", "receita", "despesa"];
-    return cats.map((cat) => ({
-      name: CATEGORY_LABELS[cat],
-      value: budgetEntries.filter((e) => e.category === cat).reduce((s, e) => s + e.amount, 0),
-      color: CATEGORY_COLORS[cat],
-    }));
-  }, [budgetEntries]);
+  // ── KPIs: latest value per metric type ──
+  const latestByType = useMemo(() => {
+    const map: Record<string, { value: number; prev: number }> = {};
+    METRIC_TYPES.forEach((type) => {
+      const sorted = metrics.filter((m) => m.metric_type === type).sort((a, b) => b.date.localeCompare(a.date));
+      if (sorted.length > 0) {
+        map[type] = { value: sorted[0].value, prev: sorted[1]?.value ?? sorted[0].value };
+      }
+    });
+    return map;
+  }, [metrics]);
 
-  // ── Budget timeline (area chart grouped by month) ──
-  const budgetTimeline = useMemo(() => {
+  // ── Timeline data grouped by date ──
+  const timeline = useMemo(() => {
+    const byDate: Record<string, Record<string, number>> = {};
+    metrics.forEach((m) => {
+      const d = new Date(m.date);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      if (!byDate[key]) byDate[key] = {};
+      byDate[key][m.metric_type] = (byDate[key][m.metric_type] || 0) + m.value;
+    });
+    return Object.entries(byDate)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([date, vals]) => {
+        const d = new Date(date + "T00:00:00");
+        const label = `${d.getDate()}/${d.getMonth() + 1}`;
+        return { name: label, ...vals };
+      });
+  }, [metrics]);
+
+  // ── Monthly aggregation for bar chart ──
+  const monthlyData = useMemo(() => {
     const byMonth: Record<string, Record<string, number>> = {};
-    budgetEntries.forEach((e) => {
-      const d = new Date(e.date);
+    metrics.forEach((m) => {
+      const d = new Date(m.date);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       if (!byMonth[key]) byMonth[key] = {};
-      byMonth[key][e.category] = (byMonth[key][e.category] || 0) + e.amount;
+      byMonth[key][m.metric_type] = (byMonth[key][m.metric_type] || 0) + m.value;
     });
+    const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
     return Object.entries(byMonth)
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([month, cats]) => {
+      .map(([month, vals]) => {
         const [y, m] = month.split("-");
-        const label = `${["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"][parseInt(m) - 1]}/${y.slice(2)}`;
-        return { name: label, ...cats };
+        return { name: `${months[parseInt(m) - 1]}/${y.slice(2)}`, ...vals };
       });
-  }, [budgetEntries]);
+  }, [metrics]);
 
-  // ── Team composition (pie) ──
-  const teamByStatus = useMemo(() => {
-    const counts: Record<string, number> = {};
-    team.forEach((m) => { counts[m.status] = (counts[m.status] || 0) + 1; });
-    return Object.entries(counts).map(([status, count]) => ({
-      name: status,
-      value: count,
-      color: STATUS_COLORS[status] || "#94a3b8",
-    }));
-  }, [team]);
-
-  // ── Team remuneration bar chart ──
-  const teamRemuneration = useMemo(
-    () => team.map((m) => ({ name: m.name.split(" ")[0], remuneracao: m.remuneration, horas: m.hours })),
-    [team]
-  );
-
-  // ── Metrics progress ──
-  const metricsProgress = useMemo(
-    () =>
-      metricEntries.slice(0, 8).map((m) => ({
-        name: m.name.length > 15 ? m.name.slice(0, 15) + "…" : m.name,
-        atual: m.value,
-        meta: m.target,
-      })),
-    [metricEntries]
-  );
-
-  // ── Summary KPIs ──
-  const totalIn = budgetByCategory.filter((c) => ["Faturamento", "Receita"].includes(c.name)).reduce((s, c) => s + c.value, 0);
-  const totalOut = budgetByCategory.filter((c) => ["Investimentos", "Gastos", "Despesas"].includes(c.name)).reduce((s, c) => s + c.value, 0);
-  const activeMembers = team.filter((m) => m.status === "Ativo").length;
-
-  const kpis = [
-    { label: "Entrada total", value: formatCurrency(totalIn), icon: TrendingUp, color: "#10b981" },
-    { label: "Saída total", value: formatCurrency(totalOut), icon: DollarSign, color: "#ef4444" },
-    { label: "Balanço", value: formatCurrency(totalIn - totalOut), icon: Activity, color: totalIn - totalOut >= 0 ? "#10b981" : "#ef4444" },
-    { label: "Membros ativos", value: String(activeMembers), icon: Users, color: "#3b82f6" },
-  ];
+  const handleAdd = async () => {
+    const val = parseFloat(formValue);
+    if (isNaN(val)) return;
+    await addMetric(formType, val, formDate);
+    setFormValue("");
+    setShowForm(false);
+  };
 
   if (!user) return null;
+  if (loading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
+
+  const kpis = METRIC_TYPES.filter((t) => latestByType[t]).map((type) => {
+    const { value, prev } = latestByType[type];
+    const cfg = METRIC_CONFIG[type];
+    const Icon = ICONS[type];
+    const change = prev > 0 ? ((value - prev) / prev * 100) : 0;
+    return { type, label: cfg.label, value: cfg.format(value), icon: Icon, color: cfg.color, change };
+  });
 
   return (
     <div className="space-y-6">
-      {/* Section header */}
-      <div className="flex items-center gap-2">
-        <BarChart3 className="h-5 w-5 text-primary" />
-        <h3 className="text-xl font-bold text-foreground">Visão analítica</h3>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-primary" />
+          <h3 className="text-xl font-bold text-foreground">Métricas do cliente</h3>
+        </div>
+        {isAdmin && (
+          <button
+            onClick={() => setShowForm(!showForm)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+          >
+            <Plus className="h-3.5 w-3.5" /> Registrar
+          </button>
+        )}
       </div>
 
-      {/* KPI row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {kpis.map((kpi, i) => {
-          const Icon = kpi.icon;
-          return (
-            <motion.div
-              key={kpi.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06, type: "spring", damping: 22 }}
-              className="ios-card p-4"
-            >
-              <div className="flex items-center gap-2 mb-1">
-                <Icon className="h-4 w-4" style={{ color: kpi.color }} />
-                <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
-              </div>
-              <div className="text-xl font-extrabold" style={{ color: kpi.color }}>{kpi.value}</div>
-            </motion.div>
-          );
-        })}
-      </div>
-
-      {/* Charts grid */}
-      <div className="grid lg:grid-cols-2 gap-5">
-        {/* Budget timeline — area chart */}
-        {budgetTimeline.length > 0 && (
+      {/* Add metric form */}
+      <AnimatePresence>
+        {showForm && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="ios-card p-5"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="ios-card p-4 overflow-hidden"
           >
-            <h4 className="text-sm font-bold text-foreground mb-4">Fluxo financeiro mensal</h4>
-            <ResponsiveContainer width="100%" height={240}>
-              <AreaChart data={budgetTimeline}>
-                <defs>
-                  <linearGradient id="gradFat" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gradGasto" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gradInvest" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
-                  formatter={(value: number, name: string) => [formatCurrency(value), CATEGORY_LABELS[name as BudgetCategory] || name]}
-                />
-                <Area type="monotone" dataKey="faturamento" stroke="#10b981" fill="url(#gradFat)" strokeWidth={2} />
-                <Area type="monotone" dataKey="gasto" stroke="#ef4444" fill="url(#gradGasto)" strokeWidth={2} />
-                <Area type="monotone" dataKey="investimento" stroke="#3b82f6" fill="url(#gradInvest)" strokeWidth={2} />
-                <Area type="monotone" dataKey="receita" stroke="#8b5cf6" fill="transparent" strokeWidth={2} />
-                <Area type="monotone" dataKey="despesa" stroke="#f59e0b" fill="transparent" strokeWidth={2} />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} formatter={(v) => CATEGORY_LABELS[v as BudgetCategory] || v} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </motion.div>
-        )}
-
-        {/* Budget by category — pie chart */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15 }}
-          className="ios-card p-5"
-        >
-          <h4 className="text-sm font-bold text-foreground mb-4">Distribuição por categoria</h4>
-          {budgetByCategory.some((c) => c.value > 0) ? (
-            <ResponsiveContainer width="100%" height={240}>
-              <PieChart>
-                <Pie
-                  data={budgetByCategory.filter((c) => c.value > 0)}
-                  cx="50%" cy="50%"
-                  innerRadius={55} outerRadius={90}
-                  paddingAngle={3} dataKey="value" stroke="none"
-                >
-                  {budgetByCategory.filter((c) => c.value > 0).map((entry, i) => (
-                    <Cell key={i} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
-                  formatter={(value: number) => [formatCurrency(value)]}
-                />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <div className="flex items-center justify-center h-[240px] text-muted-foreground text-sm">
-              <div className="text-center">
-                <DollarSign className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                <p>Nenhum lançamento registrado</p>
-                <p className="text-xs mt-1">Adicione entradas no Orçamento para ver o gráfico</p>
-              </div>
-            </div>
-          )}
-        </motion.div>
-
-        {/* Team remuneration — bar chart */}
-        {teamRemuneration.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="ios-card p-5"
-          >
-            <h4 className="text-sm font-bold text-foreground mb-4">Remuneração por membro</h4>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={teamRemuneration} barSize={24}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} tickFormatter={(v) => `${(v/1000).toFixed(0)}k`} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
-                  formatter={(value: number, name: string) => [name === "remuneracao" ? formatCurrency(value) : `${value}h`, name === "remuneracao" ? "Remuneração" : "Horas"]}
-                />
-                <Bar dataKey="remuneracao" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="horas" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} formatter={(v) => v === "remuneracao" ? "Remuneração" : "Horas"} />
-              </BarChart>
-            </ResponsiveContainer>
-          </motion.div>
-        )}
-
-        {/* Metrics progress — bar chart */}
-        {metricsProgress.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
-            className="ios-card p-5"
-          >
-            <h4 className="text-sm font-bold text-foreground mb-4">Progresso das métricas</h4>
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={metricsProgress} layout="vertical" barSize={14}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
-                <XAxis type="number" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={100} />
-                <Tooltip
-                  contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }}
-                />
-                <Bar dataKey="atual" fill="#3b82f6" radius={[0, 6, 6, 0]} name="Atual" />
-                <Bar dataKey="meta" fill="#e2e8f0" radius={[0, 6, 6, 0]} name="Meta" />
-                <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-              </BarChart>
-            </ResponsiveContainer>
-          </motion.div>
-        )}
-
-        {/* Team status — mini pie */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="ios-card p-5"
-        >
-          <h4 className="text-sm font-bold text-foreground mb-4">Status da equipe</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={teamByStatus}
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={70}
-                paddingAngle={4}
-                dataKey="value"
-                stroke="none"
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <select
+                value={formType}
+                onChange={(e) => setFormType(e.target.value as MetricType)}
+                className="ios-input px-3 py-2 text-sm"
               >
-                {teamByStatus.map((entry, i) => (
-                  <Cell key={i} fill={entry.color} />
+                {METRIC_TYPES.map((t) => (
+                  <option key={t} value={t}>{METRIC_CONFIG[t].label}</option>
                 ))}
-              </Pie>
-              <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }} />
-              <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
-            </PieChart>
-          </ResponsiveContainer>
-        </motion.div>
-      </div>
+              </select>
+              <input
+                type="number"
+                placeholder="Valor"
+                value={formValue}
+                onChange={(e) => setFormValue(e.target.value)}
+                className="ios-input px-3 py-2 text-sm"
+              />
+              <input
+                type="date"
+                value={formDate}
+                onChange={(e) => setFormDate(e.target.value)}
+                className="ios-input px-3 py-2 text-sm"
+              />
+              <button onClick={handleAdd} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">
+                Adicionar
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* KPI cards */}
+      {kpis.length > 0 ? (
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          {kpis.map((kpi, i) => {
+            const Icon = kpi.icon;
+            return (
+              <motion.div
+                key={kpi.type}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05, type: "spring", damping: 22 }}
+                className="ios-card p-4"
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <Icon className="h-4 w-4" style={{ color: kpi.color }} />
+                  <span className="text-xs font-medium text-muted-foreground">{kpi.label}</span>
+                </div>
+                <div className="text-xl font-extrabold" style={{ color: kpi.color }}>{kpi.value}</div>
+                {kpi.change !== 0 && (
+                  <span className={`text-[11px] font-semibold ${kpi.change > 0 ? "text-green-500" : "text-red-500"}`}>
+                    {kpi.change > 0 ? "+" : ""}{kpi.change.toFixed(1)}%
+                  </span>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="ios-card p-8 text-center">
+          <BarChart3 className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
+          <p className="text-sm text-muted-foreground">Nenhuma métrica registrada ainda</p>
+          <p className="text-xs text-muted-foreground mt-1">Clique em "Registrar" para adicionar seguidores, vendas, conversão e mais</p>
+        </div>
+      )}
+
+      {/* Charts */}
+      {metrics.length > 0 && (
+        <div className="grid lg:grid-cols-2 gap-5">
+          {/* Timeline — area chart */}
+          {timeline.length > 1 && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="ios-card p-5">
+              <h4 className="text-sm font-bold text-foreground mb-4">Evolução diária</h4>
+              <ResponsiveContainer width="100%" height={240}>
+                <AreaChart data={timeline}>
+                  <defs>
+                    {METRIC_TYPES.map((t) => (
+                      <linearGradient key={t} id={`grad-${t}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={METRIC_CONFIG[t].color} stopOpacity={0.25} />
+                        <stop offset="95%" stopColor={METRIC_CONFIG[t].color} stopOpacity={0} />
+                      </linearGradient>
+                    ))}
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }} />
+                  {METRIC_TYPES.filter((t) => metrics.some((m) => m.metric_type === t)).map((t) => (
+                    <Area key={t} type="monotone" dataKey={t} stroke={METRIC_CONFIG[t].color} fill={`url(#grad-${t})`} strokeWidth={2} name={METRIC_CONFIG[t].label} />
+                  ))}
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </motion.div>
+          )}
+
+          {/* Monthly — bar chart */}
+          {monthlyData.length > 0 && (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="ios-card p-5">
+              <h4 className="text-sm font-bold text-foreground mb-4">Resultado mensal</h4>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={monthlyData} barSize={20}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+                  <XAxis dataKey="name" tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 11, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 12 }} />
+                  {METRIC_TYPES.filter((t) => metrics.some((m) => m.metric_type === t)).map((t) => (
+                    <Bar key={t} dataKey={t} fill={METRIC_CONFIG[t].color} radius={[4, 4, 0, 0]} name={METRIC_CONFIG[t].label} />
+                  ))}
+                  <Legend iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11 }} />
+                </BarChart>
+              </ResponsiveContainer>
+            </motion.div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

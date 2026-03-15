@@ -157,6 +157,39 @@ export type Database = {
         }
         Relationships: []
       }
+      client_metrics: {
+        Row: {
+          company_id: string
+          created_at: string
+          date: string
+          id: string
+          metric_type: string
+          notes: string | null
+          user_id: string
+          value: number
+        }
+        Insert: {
+          company_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          metric_type: string
+          notes?: string | null
+          user_id: string
+          value?: number
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          date?: string
+          id?: string
+          metric_type?: string
+          notes?: string | null
+          user_id?: string
+          value?: number
+        }
+        Relationships: []
+      }
       company_permissions: {
         Row: {
           company_id: string
