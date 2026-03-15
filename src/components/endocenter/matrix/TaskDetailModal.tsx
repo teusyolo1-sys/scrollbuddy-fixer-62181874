@@ -231,8 +231,8 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 ))}
                 <div className="w-px h-4 bg-border/50 mx-1 shrink-0" />
                 {editingTitle ? (
-                  <div className="flex-1 min-w-0 relative flex items-center bg-card rounded-xl border border-primary/30 shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] transition-all duration-200"
-                    style={{ borderRadius: "var(--ios-radius-sm)" }}>
+                  <div className="flex-1 min-w-0 relative flex items-center border border-primary/30 shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] transition-all duration-200"
+                    style={{ borderRadius: "var(--ios-radius-sm)", backgroundColor: "hsl(var(--secondary) / 0.5)" }}>
                     <div className="w-1 h-6 rounded-full bg-primary shrink-0 ml-3" />
                     <input
                       ref={titleRef}
