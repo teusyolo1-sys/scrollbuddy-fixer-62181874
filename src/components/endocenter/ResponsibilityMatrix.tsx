@@ -370,7 +370,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
       let bestDistance = Number.POSITIVE_INFINITY;
 
       colRefs.current.forEach((colEl, idx) => {
-        if (!colEl) return;
+        if (!colEl || idx === currentIdx) return;
         const rect = colEl.getBoundingClientRect();
         const withinY = pointerY >= rect.top - 24 && pointerY <= rect.bottom + 24;
         if (!withinY) return;
