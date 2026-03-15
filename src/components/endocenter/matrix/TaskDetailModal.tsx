@@ -44,7 +44,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [showLinkForm, setShowLinkForm] = useState(false);
   const [timerRunning, setTimerRunning] = useState(item.timerRunning);
   const [timerSeconds, setTimerSeconds] = useState(item.timerSeconds);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [editingDescription, setEditingDescription] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<RichTextEditorHandle>(null);
@@ -360,9 +360,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             <div
               className="absolute right-3 top-14 bottom-3 z-20 transition-all duration-300 ease-out overflow-hidden pointer-events-none"
               style={{
-                width: (sidebarOpen && editingDescription) ? 300 : 0,
-                opacity: (sidebarOpen && editingDescription) ? 1 : 0,
-                transform: (sidebarOpen && editingDescription) ? "translateX(0) scale(1)" : "translateX(12px) scale(0.96)",
+                width: sidebarOpen ? 300 : 0,
+                opacity: sidebarOpen ? 1 : 0,
+                transform: sidebarOpen ? "translateX(0) scale(1)" : "translateX(12px) scale(0.96)",
               }}
             >
               <div
