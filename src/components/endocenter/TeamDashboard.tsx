@@ -371,7 +371,7 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
           {member.photoUrl ? (
             <img src={member.photoUrl} alt={member.name} className="h-20 w-20 rounded-3xl object-cover border-4 border-card shadow-lg" />
           ) : (
-            <div className="h-20 w-20 rounded-3xl border-4 border-card shadow-lg flex items-center justify-center" style={{ background: `${member.color}20` }}>
+            <div className="h-20 w-20 rounded-3xl border-4 border-card shadow-lg flex items-center justify-center bg-muted">
               <User className="h-8 w-8" style={{ color: member.color }} />
             </div>
           )}
