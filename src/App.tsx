@@ -12,6 +12,7 @@ import PixPaymentPage from "./pages/PixPaymentPage";
 import EndocenterDashboard from "./pages/EndocenterDashboard";
 import LobbyPage from "./pages/LobbyPage";
 import PermissionsPage from "./pages/PermissionsPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 const SetupNotice = () => (
   <div className="min-h-screen flex items-center justify-center bg-background p-6">
@@ -82,6 +83,7 @@ const App = () => {
           <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
           <Route path="/checkout/pix" element={<ProtectedRoute><PixPaymentPage /></ProtectedRoute>} />
           <Route path="/checkout/:status" element={<ProtectedRoute><CheckoutResultPage /></ProtectedRoute>} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
