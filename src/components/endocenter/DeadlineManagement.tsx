@@ -2,6 +2,7 @@ import { useMemo, useState, useRef, useEffect } from "react";
 import { AlertTriangle, CheckCircle, ChevronDown, Plus, Trash2, XCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type DeadlinePriority, type DeadlineStatus } from "@/store/endocenterStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const priorityConfig: Record<DeadlinePriority, { label: string; className: string }> = {
   critical: { label: "Crítico", className: "bg-destructive/10 text-destructive" },
@@ -32,9 +33,17 @@ export default function DeadlineManagement() {
     removeCrisisScenario,
   } = useEndocenter();
 
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [filter, setFilter] = useState("Todos");
   const [editMode, setEditMode] = useState(false);
   const [openStatusDeadlineId, setOpenStatusDeadlineId] = useState<string | null>(null);
+
+  const handleDeadlineStatus = (deadlineId: string, status: DeadlineStatus) => {
+    const d = deadlines.find((x) => x.id === deadlineId);
+    updateDeadline(deadlineId, { status });
+    const label = statusConfig[status].label;
+    addNotification({ title: `Prazo: ${label}`, description: d?.task || "Prazo", icon: status === "done" ? "check" : status === "overdue" ? "info" : "move" });
+  };
 
   const filteredDeadlines = useMemo(
     () => (filter === "Todos" ? deadlines : deadlines.filter((deadline) => deadline.frequency === filter)),
@@ -210,7 +219,7 @@ export default function DeadlineManagement() {
                   value={deadline.status}
                   isOpen={openStatusDeadlineId === deadline.id}
                   onOpenChange={(nextOpen) => setOpenStatusDeadlineId(nextOpen ? deadline.id : null)}
-                  onChange={(s) => updateDeadline(deadline.id, { status: s })}
+                  onChange={(s) => handleDeadlineStatus(deadline.id, s)}
                 />
               </div>
             </motion.div>

@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { CheckCircle2, Circle, Edit3, Eye, Plus, Trash2, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type WorkflowStep } from "@/store/endocenterStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const splitLines = (value: string) =>
   value.split("\n").map((l) => l.trim()).filter(Boolean);
@@ -10,6 +11,7 @@ type EditingSection = { stepId: string; section: "inputs" | "outputs" | "rules" 
 
 export default function WorkflowDiagram() {
   const { workflowSteps, updateWorkflowStep, addWorkflowStep, removeWorkflowStep } = useEndocenter();
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [editMode, setEditMode] = useState(false);
   const [editingSection, setEditingSection] = useState<EditingSection>(null);
   const [detailStep, setDetailStep] = useState<WorkflowStep | null>(null);
@@ -37,8 +39,16 @@ export default function WorkflowDiagram() {
   const toggleTask = (stepId: string, taskId: string) => {
     const step = workflowSteps.find((s) => s.id === stepId);
     if (!step) return;
+    const task = (step.tasks || []).find((t) => t.id === taskId);
     const tasks = (step.tasks || []).map((t) => t.id === taskId ? { ...t, done: !t.done } : t);
     updateWorkflowStep(stepId, { tasks });
+    if (task) {
+      addNotification({
+        title: !task.done ? `Fluxo: tarefa concluída` : `Fluxo: tarefa reaberta`,
+        description: `${task.name} — ${step.title}`,
+        icon: !task.done ? "check" : "move",
+      });
+    }
   };
 
   const addTask = (stepId: string) => {

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Brain, ChevronDown, PenTool, Plus, Radio, Palette, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter } from "@/store/endocenterStore";
+import { useNotificationStore } from "@/store/notificationStore";
 
 const roleIcons = {
   Estrategista: Brain,
@@ -14,9 +15,11 @@ const typeOptions = ["entregável", "operação", "revisão", "análise", "plane
 
 export default function MasterSchedule() {
   const { scheduleWeeks, updateScheduleWeek, addScheduleTask, updateScheduleTask, removeScheduleTask, responsibilityRoles } = useEndocenter();
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [activeWeekId, setActiveWeekId] = useState<string>(scheduleWeeks[0]?.id ?? "");
   const [expandedRole, setExpandedRole] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const [prevWeekId, setPrevWeekId] = useState(activeWeekId);
 
   const week = scheduleWeeks.find((item) => item.id === activeWeekId) ?? scheduleWeeks[0];
 
@@ -93,6 +96,10 @@ export default function MasterSchedule() {
               onClick={() => {
                 setActiveWeekId(item.id);
                 setExpandedRole(null);
+                if (item.id !== prevWeekId) {
+                  setPrevWeekId(item.id);
+                  addNotification({ title: "📅 Semana selecionada", description: `${item.week} — ${item.theme}`, icon: "info" });
+                }
               }}
               whileTap={{ scale: 0.97 }}
               whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}
