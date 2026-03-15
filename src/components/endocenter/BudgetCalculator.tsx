@@ -263,8 +263,8 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                     </motion.div>
                   ))}
                   {/* Total row */}
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-white/[0.03] border-t border-white/[0.06]">
-                    <span className="text-xs font-bold text-white/70">Total</span>
+                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-muted/50 border-t border-border">
+                    <span className="text-xs font-bold text-foreground/70">Total</span>
                     <span className="w-24 text-right text-sm font-extrabold" style={{ color: config.color }}>
                       {formatCurrency(totals)}
                     </span>
