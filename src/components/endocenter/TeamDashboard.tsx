@@ -623,6 +623,7 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
         </div>
         </div>
       </motion.div>
-    </motion.div>
+    </motion.div>,
+    document.body
   );
 }
