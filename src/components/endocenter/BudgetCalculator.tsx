@@ -623,27 +623,48 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
   const [expanded, setExpanded] = useState(false);
   const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
   const [customLabel, setCustomLabel] = useState<string | undefined>();
-  const detailRows = [
-    { type: "Expense type", color: "#3B82F6", ret: 37, total: "R$ 11.3%" },
-    { type: "Expense type", color: "#10B981", ret: 25, total: "R$ 11.5%" },
-    { type: "Receital", color: "#F59E0B", ret: 19, total: "0.0%" },
-    { type: "Other treakion", color: "#A78BFA", ret: 7, total: "0,00" },
+  const [rowNames, setRowNames] = useState(["Expense type", "Expense type", "Receital", "Other treakion"]);
+  const [editingRow, setEditingRow] = useState<{ idx: number; pos: { x: number; y: number } } | null>(null);
+  const [editValue, setEditValue] = useState("");
+
+  const detailColors = ["#3B82F6", "#10B981", "#F59E0B", "#A78BFA"];
+  const detailData = [
+    { ret: 37, total: "R$ 11.3%" },
+    { ret: 25, total: "R$ 11.5%" },
+    { ret: 19, total: "0.0%" },
+    { ret: 7, total: "0,00" },
   ];
 
-  const tableContent = (
+  const handleRowContextMenu = (e: React.MouseEvent, idx: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingRow({ idx, pos: { x: e.clientX, y: e.clientY } });
+    setEditValue(rowNames[idx]);
+  };
+
+  const submitRowRename = () => {
+    if (editingRow !== null) {
+      setRowNames(prev => prev.map((n, i) => i === editingRow.idx ? editValue : n));
+      setEditingRow(null);
+    }
+  };
+
+  const renderTable = (allowEdit: boolean) => (
     <div className="px-4 pb-4">
       <div className="border border-border/50 rounded-xl overflow-hidden">
         <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
           <span>Type of</span><span className="w-14 text-right">Return</span><span className="w-16 text-right">Total</span>
         </div>
-        {detailRows.map((row, i) => (
-          <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""}`}>
+        {rowNames.map((name, i) => (
+          <div key={i}
+            className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""} ${allowEdit ? "cursor-context-menu" : ""}`}
+            onContextMenu={allowEdit ? (e) => handleRowContextMenu(e, i) : undefined}>
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
-              <span className="text-[11px] text-foreground/80">{row.type}</span>
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: detailColors[i] }} />
+              <span className="text-[11px] text-foreground/80">{name}</span>
             </div>
-            <span className="w-14 text-right text-[11px] text-foreground/70">{row.ret}</span>
-            <span className="w-16 text-right text-[11px] text-foreground/70">{row.total}</span>
+            <span className="w-14 text-right text-[11px] text-foreground/70">{detailData[i].ret}</span>
+            <span className="w-16 text-right text-[11px] text-foreground/70">{detailData[i].total}</span>
           </div>
         ))}
       </div>
@@ -656,16 +677,37 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
         className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
         <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)}
           customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
-        {expanded && tableContent}
+        {expanded && renderTable(false)}
       </motion.div>
       {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
       {isFullscreen && (
         <FullscreenPanel title={customLabel || config.label} onClose={() => setIsFullscreen(false)}>
           <div className={`${gc} max-w-2xl mx-auto overflow-hidden`}>
             <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={true} onToggle={() => {}} customLabel={customLabel} />
-            {tableContent}
+            {renderTable(true)}
           </div>
         </FullscreenPanel>
+      )}
+      {editingRow !== null && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={submitRowRename} onContextMenu={(e) => { e.preventDefault(); submitRowRename(); }} />
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ type: "spring", damping: 22, stiffness: 400 }}
+            className="fixed z-[9999] bg-card border border-border/60 rounded-xl shadow-xl p-4 min-w-[240px] backdrop-blur-xl"
+            style={{
+              left: Math.min(editingRow.pos.x, window.innerWidth - 260),
+              top: Math.min(editingRow.pos.y, window.innerHeight - 100),
+            }}
+          >
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider mb-2">Renomear item</p>
+            <input autoFocus value={editValue} onChange={e => setEditValue(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") submitRowRename(); }}
+              className="w-full bg-muted/30 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-primary" />
+          </motion.div>
+        </>,
+        document.body
       )}
     </>
   );
