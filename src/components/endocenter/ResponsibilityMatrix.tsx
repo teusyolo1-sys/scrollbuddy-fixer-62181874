@@ -458,7 +458,12 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
   };
 
   useEffect(() => {
-    return () => clearGlobalDraggingCursor();
+    const closeContextMenu = () => setContextMenu(null);
+    window.addEventListener("click", closeContextMenu);
+    return () => {
+      clearGlobalDraggingCursor();
+      window.removeEventListener("click", closeContextMenu);
+    };
   }, []);
 
   const activeItem = activeId ? items.find((i) => i.id === activeId) : null;
