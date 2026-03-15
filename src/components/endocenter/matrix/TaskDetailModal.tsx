@@ -470,7 +470,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Attachments */}
-                    <SideSection icon={Paperclip} label={`Anexos${item.attachments.length > 0 ? ` (${item.attachments.length})` : ""}`}>
+                    <SideSection icon={Paperclip} label={`Anexos${item.attachments.length > 0 ? ` (${item.attachments.length})` : ""}`} defaultOpen={item.attachments.length > 0}>
                       {item.attachments.length > 0 && (
                         <div className="space-y-1.5">
                           {item.attachments.map((att) => (
