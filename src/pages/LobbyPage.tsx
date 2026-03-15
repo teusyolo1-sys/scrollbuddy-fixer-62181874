@@ -66,7 +66,6 @@ const gradients = [
 function AnimatedBackground() {
   return (
     <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
-      {/* Mesh gradient base */}
       <div
         className="absolute inset-0"
         style={{
@@ -74,74 +73,32 @@ function AnimatedBackground() {
         }}
       />
 
-      {/* Orb 1 — large blue, top-right drift */}
+      {/* Orbs — GPU-accelerated, no scale to avoid blur repaint */}
       <motion.div
-        className="absolute w-[500px] h-[500px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, hsl(215 100% 72% / 0.25), transparent 65%)",
-          filter: "blur(80px)",
-          top: "-15%",
-          right: "-10%",
-        }}
-        animate={{
-          x: [0, -40, 20, 0],
-          y: [0, 30, -20, 0],
-          scale: [1, 1.08, 0.95, 1],
-        }}
-        transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute rounded-full"
+        style={{ width: 500, height: 500, background: "radial-gradient(circle, hsl(215 100% 72% / 0.25), transparent 65%)", filter: "blur(80px)", top: "-15%", right: "-10%", willChange: "transform" }}
+        animate={{ x: [0, -40, 20, 0], y: [0, 30, -20, 0] }}
+        transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+      />
+      <motion.div
+        className="absolute rounded-full"
+        style={{ width: 400, height: 400, background: "radial-gradient(circle, hsl(265 70% 72% / 0.18), transparent 65%)", filter: "blur(70px)", top: "25%", left: "-12%", willChange: "transform" }}
+        animate={{ x: [0, 35, -15, 0], y: [0, -20, 30, 0] }}
+        transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+      />
+      <motion.div
+        className="absolute rounded-full"
+        style={{ width: 350, height: 350, background: "radial-gradient(circle, hsl(190 80% 65% / 0.15), transparent 65%)", filter: "blur(60px)", bottom: "0%", right: "15%", willChange: "transform" }}
+        animate={{ x: [0, -25, 15, 0], y: [0, -15, 25, 0] }}
+        transition={{ duration: 19, repeat: Infinity, ease: "linear" }}
+      />
+      <motion.div
+        className="absolute rounded-full"
+        style={{ width: 300, height: 300, background: "radial-gradient(circle, hsl(35 90% 70% / 0.1), transparent 65%)", filter: "blur(60px)", top: "50%", right: "40%", willChange: "transform" }}
+        animate={{ x: [0, 20, -30, 0], y: [0, 25, -10, 0] }}
+        transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
       />
 
-      {/* Orb 2 — purple, left side */}
-      <motion.div
-        className="absolute w-[400px] h-[400px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, hsl(265 70% 72% / 0.18), transparent 65%)",
-          filter: "blur(70px)",
-          top: "25%",
-          left: "-12%",
-        }}
-        animate={{
-          x: [0, 35, -15, 0],
-          y: [0, -20, 30, 0],
-          scale: [1, 0.96, 1.06, 1],
-        }}
-        transition={{ duration: 28, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      {/* Orb 3 — cyan, center-bottom */}
-      <motion.div
-        className="absolute w-[350px] h-[350px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, hsl(190 80% 65% / 0.15), transparent 65%)",
-          filter: "blur(60px)",
-          bottom: "0%",
-          right: "15%",
-        }}
-        animate={{
-          x: [0, -25, 15, 0],
-          y: [0, -15, 25, 0],
-          scale: [1, 1.04, 0.98, 1],
-        }}
-        transition={{ duration: 19, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      {/* Orb 4 — warm accent, subtle */}
-      <motion.div
-        className="absolute w-[300px] h-[300px] rounded-full"
-        style={{
-          background: "radial-gradient(circle, hsl(35 90% 70% / 0.1), transparent 65%)",
-          filter: "blur(60px)",
-          top: "50%",
-          right: "40%",
-        }}
-        animate={{
-          x: [0, 20, -30, 0],
-          y: [0, 25, -10, 0],
-        }}
-        transition={{ duration: 24, repeat: Infinity, ease: "easeInOut" }}
-      />
-
-      {/* Subtle noise texture overlay */}
       <div
         className="absolute inset-0 opacity-[0.03]"
         style={{
