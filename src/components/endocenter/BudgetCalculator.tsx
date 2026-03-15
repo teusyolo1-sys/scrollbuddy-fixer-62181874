@@ -379,7 +379,7 @@ function UpcomingInvoices({ entries }: { entries: any[] }) {
         <h4 className="text-xs font-bold text-muted-foreground">Upcoming Invoices</h4>
       </div>
       {upcoming.length === 0 ? (
-        <p className="text-[11px] text-white/25">Nenhuma fatura pendente</p>
+        <p className="text-[11px] text-muted-foreground/50">Nenhuma fatura pendente</p>
       ) : (
         <div className="space-y-2">
           {upcoming.map((inv, i) => (
