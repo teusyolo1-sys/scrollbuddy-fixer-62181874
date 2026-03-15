@@ -224,43 +224,31 @@
 
   /* ── Liquid Glass aliases ── */
   .liquid-glass-card {
-    background: hsl(var(--card) / 0.72);
-    backdrop-filter: blur(var(--ios-blur)) saturate(135%);
-    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(135%);
-    isolation: isolate;
-    will-change: backdrop-filter;
-    transform: translateZ(0);
-    backface-visibility: hidden;
+    background: hsl(var(--card) / 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .liquid-glass-navbar {
-    background: hsl(228 18% 14% / 0.98);
-    backdrop-filter: blur(4px) saturate(105%);
-    -webkit-backdrop-filter: blur(4px) saturate(105%);
-    isolation: isolate;
-    backface-visibility: hidden;
+    background: hsl(228 18% 14%);
   }
 
   .liquid-glass-toast {
-    background: hsl(var(--card) / 0.84);
-    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(140%);
-    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(140%);
-    isolation: isolate;
-    will-change: backdrop-filter;
-    transform: translateZ(0);
-    backface-visibility: hidden;
+    background: hsl(var(--card) / 0.96);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   .dark .liquid-glass-card {
-    background: hsl(var(--card) / 0.55);
-    backdrop-filter: blur(var(--ios-blur)) saturate(160%);
-    -webkit-backdrop-filter: blur(var(--ios-blur)) saturate(160%);
+    background: hsl(var(--card) / 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 
   .dark .liquid-glass-toast {
-    background: hsl(var(--card) / 0.65);
-    backdrop-filter: blur(var(--ios-blur-heavy)) saturate(170%);
-    -webkit-backdrop-filter: blur(var(--ios-blur-heavy)) saturate(170%);
+    background: hsl(var(--card) / 0.94);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   /* Dark mode cards use glass blur */
