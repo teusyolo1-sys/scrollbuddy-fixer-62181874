@@ -526,7 +526,7 @@ function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: bool
 export default function BudgetCalculator() {
   const { user } = useAuth();
   const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries();
-  const [expandedCategory, setExpandedCategory] = useState<BudgetCategory | null>("faturamento");
+  const [expandedCategories, setExpandedCategories] = useState<Set<BudgetCategory>>(new Set(["faturamento"]));
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const totals = useMemo(() => {
@@ -536,14 +536,25 @@ export default function BudgetCalculator() {
     }, {} as Record<BudgetCategory, number>);
   }, [entries]);
 
+  const toggleCat = (cat: BudgetCategory) => {
+    setExpandedCategories(prev => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      return next;
+    });
+  };
+  const expandCat = (cat: BudgetCategory) => {
+    setExpandedCategories(prev => new Set(prev).add(cat));
+  };
+
   const catProps = (cat: BudgetCategory) => ({
     cat,
     config: categoryConfig[cat],
     entries: entries.filter(e => e.category === cat),
     total: totals[cat],
-    isExpanded: expandedCategory === cat,
-    onToggle: () => setExpandedCategory(expandedCategory === cat ? null : cat),
-    onAdd: () => { addEntry(cat); setExpandedCategory(cat); },
+    isExpanded: expandedCategories.has(cat),
+    onToggle: () => toggleCat(cat),
+    onAdd: () => { addEntry(cat); expandCat(cat); },
     onUpdate: updateEntry,
     onRemove: removeEntry,
     profiles,
@@ -580,7 +591,7 @@ export default function BudgetCalculator() {
       {/* Row 2: Gastos | Gastos (charts) | Receita */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <CategoryCard {...catProps("gasto")} delay={0.05} />
-        <GastosChartCard entries={entries.filter(e => e.category === "gasto")} config={categoryConfig.gasto} total={totals.gasto} onAdd={() => { addEntry("gasto"); setExpandedCategory("gasto"); }} delay={0.1} />
+        <GastosChartCard entries={entries.filter(e => e.category === "gasto")} config={categoryConfig.gasto} total={totals.gasto} onAdd={() => { addEntry("gasto"); expandCat("gasto"); }} delay={0.1} />
         <CategoryCard {...catProps("receita")} delay={0.15} />
       </div>
 
@@ -593,12 +604,12 @@ export default function BudgetCalculator() {
         </div>
 
         {/* Center: Pipeline spanning 2 rows */}
-        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} onAdd={() => { addEntry("faturamento"); setExpandedCategory("faturamento"); }} delay={0.25} />
+        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} onAdd={() => { addEntry("faturamento"); expandCat("faturamento"); }} delay={0.25} />
 
         {/* Right: Legend + Bar, then Despesas detail */}
         <div className="space-y-4">
           <LegendBarCard entries={entries} delay={0.3} />
-          <DespesasDetailCard entries={entries.filter(e => e.category === "despesa")} config={categoryConfig.despesa} total={totals.despesa} onAdd={() => { addEntry("despesa"); setExpandedCategory("despesa"); }} delay={0.35} />
+          <DespesasDetailCard entries={entries.filter(e => e.category === "despesa")} config={categoryConfig.despesa} total={totals.despesa} onAdd={() => { addEntry("despesa"); expandCat("despesa"); }} delay={0.35} />
         </div>
       </div>
     </div>
