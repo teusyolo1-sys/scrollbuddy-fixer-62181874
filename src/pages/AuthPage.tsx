@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff, ShieldCheck, ShieldAlert, ShieldX, Ticket } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
