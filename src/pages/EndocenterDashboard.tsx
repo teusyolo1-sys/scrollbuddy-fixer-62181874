@@ -205,6 +205,7 @@ function DashboardContent() {
       </footer>
 
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ProjectChat />
     </div>
   );
 }
