@@ -322,7 +322,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             <div
               className="overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
               style={{ 
-                width: sidebarOpen ? 300 : 0, 
+                width: (sidebarOpen && editingDescription) ? 300 : 0, 
                 opacity: sidebarOpen ? 1 : 0,
                 background: "var(--ios-glass-heavy)",
                 borderLeft: sidebarOpen ? "1px solid hsl(var(--border) / 0.3)" : "none",
