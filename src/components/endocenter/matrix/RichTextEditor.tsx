@@ -64,8 +64,12 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
   const [currentFont, setCurrentFont] = useState("Sans Serif");
   const [currentSize, setCurrentSize] = useState("14");
   const savedSelectionRef = useRef<Range | null>(null);
-  const [hoveredImg, setHoveredImg] = useState<{ el: HTMLImageElement; rect: DOMRect } | null>(null);
+  const [hoveredImg, setHoveredImg] = useState<HTMLImageElement | null>(null);
+  const [hoveredRect, setHoveredRect] = useState<{ x: number; y: number; w: number; h: number } | null>(null);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
+  const [selectedImg, setSelectedImg] = useState<HTMLImageElement | null>(null);
+  const [resizing, setResizing] = useState(false);
+  const resizeStartRef = useRef<{ startX: number; startY: number; startW: number; startH: number } | null>(null);
 
   useEffect(() => {
     if (editorRef.current && !editorRef.current.innerHTML && value) {
