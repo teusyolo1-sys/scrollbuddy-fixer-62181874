@@ -69,8 +69,9 @@ function StatCard({ label, value, icon: Icon, color, delay, children }: {
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      whileHover={{ scale: 1.03, y: -4 }}
       transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} p-5 relative overflow-hidden`}
+      className={`${gc} p-5 relative overflow-hidden cursor-default`}
     >
       <div className="absolute top-0 right-0 w-24 h-24 rounded-full opacity-10" style={{ background: color, filter: "blur(30px)" }} />
       <div className="flex items-center gap-3 mb-3">
@@ -262,7 +263,7 @@ export default function AgencyWalletPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
-            <motion.button whileTap={{ scale: 0.9 }} onClick={() => navigate("/")}
+            <motion.button whileTap={{ scale: 0.9 }} whileHover={{ scale: 1.08 }} onClick={() => navigate("/")}
               className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/50 border border-border hover:bg-secondary transition-colors">
               <ArrowLeft className="h-5 w-5 text-foreground" />
             </motion.button>
@@ -275,6 +276,7 @@ export default function AgencyWalletPage() {
           </div>
           <motion.button
             whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.08, rotate: 15 }}
             onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
             className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/50 border border-border hover:bg-secondary transition-colors"
           >
@@ -358,8 +360,9 @@ export default function AgencyWalletPage() {
         {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Pie */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22, type: "spring", damping: 22 }}
-            className={`${gc} p-5`}>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02, y: -3 }}
+            transition={{ delay: 0.22, type: "spring", damping: 22 }}
+            className={`${gc} p-5 cursor-default`}>
             <div className="flex items-center gap-2 mb-4">
               <PieChart className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-bold text-foreground">Receita por Cliente</h3>
@@ -388,8 +391,9 @@ export default function AgencyWalletPage() {
           </motion.div>
 
           {/* Trend */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25, type: "spring", damping: 22 }}
-            className={`${gc} p-5`}>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02, y: -3 }}
+            transition={{ delay: 0.25, type: "spring", damping: 22 }}
+            className={`${gc} p-5 cursor-default`}>
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-bold text-foreground">Tendência (6 meses)</h3>
@@ -409,8 +413,9 @@ export default function AgencyWalletPage() {
           </motion.div>
 
           {/* Month Summary */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28, type: "spring", damping: 22 }}
-            className={`${gc} p-5`}>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02, y: -3 }}
+            transition={{ delay: 0.28, type: "spring", damping: 22 }}
+            className={`${gc} p-5 cursor-default`}>
             <div className="flex items-center gap-2 mb-4">
               <Receipt className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-bold text-foreground">Resumo do Mês</h3>
@@ -450,7 +455,8 @@ export default function AgencyWalletPage() {
         {/* Bottom: Invoices, Expenses & Revenues */}
         <div className="space-y-4 mt-4 pb-16">
           {/* Contas a Receber */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32, type: "spring", damping: 22 }}
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01, y: -2 }}
+            transition={{ delay: 0.32, type: "spring", damping: 22 }}
             className={`${gc} overflow-hidden`}>
             <button onClick={() => setInvoicesOpen(!invoicesOpen)}
               className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
@@ -497,7 +503,8 @@ export default function AgencyWalletPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* Expenses */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, type: "spring", damping: 22 }}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01, y: -2 }}
+              transition={{ delay: 0.35, type: "spring", damping: 22 }}
               className={`${gc} overflow-hidden`}>
               <button onClick={() => setExpensesOpen(!expensesOpen)}
                 className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
@@ -539,7 +546,8 @@ export default function AgencyWalletPage() {
             </motion.div>
 
             {/* Manual Revenues */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, type: "spring", damping: 22 }}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01, y: -2 }}
+              transition={{ delay: 0.38, type: "spring", damping: 22 }}
               className={`${gc} overflow-hidden`}>
               <button onClick={() => setRevenuesOpen(!revenuesOpen)}
                 className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
