@@ -734,9 +734,16 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
   const [pipelineProjects, setPipelineProjectsState] = useState<PipelineProject[]>(
     stored?.pipelineProjects?.length ? stored.pipelineProjects : defaultPipelineProjects
   );
-  const [responsibilityRoles, setResponsibilityRolesState] = useState<ResponsibilityRole[]>(
-    stored?.responsibilityRoles?.length ? stored.responsibilityRoles : defaultResponsibilityRoles
-  );
+  const [responsibilityRoles, setResponsibilityRolesState] = useState<ResponsibilityRole[]>(() => {
+    const raw = stored?.responsibilityRoles?.length ? stored.responsibilityRoles : defaultResponsibilityRoles;
+    // Hydrate old items missing new fields
+    return raw.map((role: any) => ({
+      ...role,
+      weekly: (role.weekly ?? []).map((i: any) => hydrateRespItem(i)),
+      monthly: (role.monthly ?? []).map((i: any) => hydrateRespItem(i)),
+      quality: (role.quality ?? []).map((i: any) => hydrateRespItem(i)),
+    }));
+  });
   const [workflowSteps, setWorkflowStepsState] = useState<WorkflowStep[]>(
     stored?.workflowSteps?.length ? stored.workflowSteps : defaultWorkflowSteps
   );
