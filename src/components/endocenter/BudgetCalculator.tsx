@@ -299,8 +299,8 @@ function StackedBarPanel({ entries }: { entries: any[] }) {
       className={`${glassCard} ${glassCardBg} p-5`}
     >
       <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="h-4 w-4 text-white/40" />
-        <h3 className="text-sm font-bold text-white/70">Distribuição por categoria</h3>
+        <BarChart3 className="h-4 w-4 text-muted-foreground" />
+        <h3 className="text-sm font-bold text-foreground/70">Distribuição por categoria</h3>
       </div>
       <div className="flex items-start gap-6">
         <div className="flex-1">
