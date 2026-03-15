@@ -163,7 +163,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
             <Plus className="h-4 w-4" />
           </motion.button>
           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
-            <ChevronDown className="h-4 w-4 text-white/30" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </motion.div>
         </div>
       </button>
