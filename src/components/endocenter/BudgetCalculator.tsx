@@ -526,7 +526,7 @@ function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: bool
 export default function BudgetCalculator() {
   const { user } = useAuth();
   const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries();
-  const [expandedCategory, setExpandedCategory] = useState<BudgetCategory | null>("faturamento");
+  const [expandedCategories, setExpandedCategories] = useState<Set<BudgetCategory>>(new Set(["faturamento"]));
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const totals = useMemo(() => {
