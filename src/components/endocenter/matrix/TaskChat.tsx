@@ -39,9 +39,15 @@ function renderContent(content: string) {
   return parts.length > 0 ? parts : content;
 }
 
-export default function TaskChat() {
+interface TaskChatProps {
+  taskId: string;
+  taskName?: string;
+}
+
+export default function TaskChat({ taskId, taskName }: TaskChatProps) {
   const { user } = useAuth();
-  const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages();
+  const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages(taskId);
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [input, setInput] = useState(""); // display text (shows @Name)
   const [rawInput, setRawInput] = useState(""); // raw text (stores @[Name](id))
   const [mentionMap, setMentionMap] = useState<{ displayName: string; fullTag: string }[]>([]);
