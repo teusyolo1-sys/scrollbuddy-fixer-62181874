@@ -483,7 +483,7 @@ export default function BudgetCalculator() {
   }
 
   return (
-    <div className="min-h-screen -mx-6 -mt-6 px-6 pt-6 pb-12 bg-black/95 rounded-2xl space-y-6">
+    <div className="min-h-screen -mx-6 -mt-6 px-6 pt-6 pb-12 bg-background rounded-2xl space-y-6">
 
       {/* ── KPI Cards ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
