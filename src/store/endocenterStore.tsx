@@ -297,7 +297,7 @@ const createRespItem = (task: string, critical: boolean): ResponsibilityItem => 
 const hydrateRespItem = (item: any): ResponsibilityItem => ({
   description: "", labels: [], dueDate: "", priority: item.critical ? "high" : "medium",
   assignees: [], checklist: [], attachments: [], timerSeconds: 0, timerRunning: false,
-  createdAt: new Date().toISOString(), cover: "",
+  createdAt: new Date().toISOString(), completedAt: "", cover: "",
   ...item,
 });
 
