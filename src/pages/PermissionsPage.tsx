@@ -535,6 +535,11 @@ export default function PermissionsPage() {
             onToggleAllTabs={() => handleToggleAllTabs(selectedUser.id)}
             onToggleCompany={(companyId, current) => toggleCompanyPerm(selectedUser.id, companyId, current)}
             onClose={() => setSelectedUser(null)}
+            getUserSectionPerm={(tabKey, sectionKey) => getUserSectionPerm(selectedUser.id, tabKey, sectionKey)}
+            onSetSectionPerm={async (tabKey, sectionKey, canView, canEdit) => {
+              await setSectionPermission(selectedUser.id, tabKey, sectionKey, canView, canEdit);
+              toast.success(canView ? (canEdit ? 'Visualização + edição' : 'Somente visualização') : 'Seção oculta');
+            }}
           />
         )}
       </AnimatePresence>
