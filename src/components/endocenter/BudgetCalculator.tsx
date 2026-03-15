@@ -411,9 +411,9 @@ function PipelinePlaceholder() {
         <div className="text-center space-y-3">
           {/* Funnel shapes */}
           <div className="flex flex-col items-center gap-1.5 opacity-15">
-            <div className="w-32 h-8 border-2 border-white/40 rounded-lg rotate-[-3deg]" />
-            <div className="w-24 h-8 border-2 border-white/40 rounded-lg rotate-[2deg]" />
-            <div className="w-16 h-8 border-2 border-white/40 rounded-lg rotate-[-1deg]" />
+            <div className="w-32 h-8 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
+            <div className="w-24 h-8 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
+            <div className="w-16 h-8 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
           </div>
           <p className="text-xs text-white/25 mt-4">Add first invoice to view pipeline</p>
         </div>
