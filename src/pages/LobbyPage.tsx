@@ -68,7 +68,9 @@ const gradients = [
 
 export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
+  const { isAdmin } = useUserRole();
   const [companies, setCompanies] = useState<CompanyCard[]>(loadCompanies);
+  const navigate = useNavigate();
   const navigate = useNavigate();
 
   // Redirect to auth if not logged in
