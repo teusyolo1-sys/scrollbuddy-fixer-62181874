@@ -455,7 +455,7 @@ const AuthPage = () => {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.97 }}
               type="submit"
-              disabled={loading || (!isLogin && !passwordsMatch)}
+              disabled={loading || (!isLogin && (!passwordsMatch || !inviteValid))}
               className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
             >
               {loading ? (
