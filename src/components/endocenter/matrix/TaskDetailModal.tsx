@@ -276,7 +276,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           )}
 
           {/* Main content area: Editor (75%) + Sidebar (25%) */}
-          <div className="flex flex-1 min-h-0 overflow-hidden">
+          <div className="relative flex flex-1 min-h-0 overflow-hidden">
             {/* Editor / Read-only view — 75% */}
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
               {editingDescription ? (
@@ -318,17 +318,28 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               )}
             </div>
 
-            {/* Sidebar — iOS 26 glass panel */}
+            {/* Sidebar — iOS 26 floating balloon panel */}
             <div
-              className="overflow-y-auto overflow-x-hidden shrink-0 transition-all duration-200"
-              style={{ 
-                width: (sidebarOpen && editingDescription) ? 300 : 0, 
+              className="absolute right-3 top-14 bottom-3 z-20 transition-all duration-300 ease-out overflow-hidden pointer-events-none"
+              style={{
+                width: (sidebarOpen && editingDescription) ? 300 : 0,
                 opacity: (sidebarOpen && editingDescription) ? 1 : 0,
-                background: "var(--ios-glass-heavy)",
-                borderLeft: sidebarOpen ? "1px solid hsl(var(--border) / 0.3)" : "none",
+                transform: (sidebarOpen && editingDescription) ? "translateX(0) scale(1)" : "translateX(12px) scale(0.96)",
               }}
             >
-              <div className="w-[300px] py-2">
+              <div
+                className="h-full overflow-y-auto overflow-x-hidden pointer-events-auto"
+                style={{
+                  width: 300,
+                  background: "var(--ios-glass)",
+                  backdropFilter: "blur(var(--ios-blur-heavy))",
+                  WebkitBackdropFilter: "blur(var(--ios-blur-heavy))",
+                  borderRadius: "var(--ios-radius)",
+                  boxShadow: "var(--ios-shadow-lg)",
+                  border: "1px solid hsl(var(--border) / 0.25)",
+                }}
+              >
+                <div className="py-2">
                     {/* Priority */}
                     <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
                       <div className="flex gap-2">
@@ -507,8 +518,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                         <Trash2 className="h-3.5 w-3.5" /> Excluir tarefa
                       </button>
                     </div>{/* footer */}
-                  </div>{/* w-300 */}
-                </div>{/* sidebar */}
+                  </div>{/* py-2 */}
+                </div>{/* glass inner */}
+              </div>{/* absolute outer */}
               </div>{/* flex */}
         </motion.div>
       </motion.div>
