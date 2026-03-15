@@ -228,10 +228,10 @@ function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd
 }
 
 /* ── Donut Chart Card (center Gastos) ── */
-function GastosChartCard({ entries, config, total, onAdd, delay }: {
+function GastosChartCard({ entries, config, total, onAdd, delay, isExpanded, onToggle }: {
   entries: any[]; config: typeof categoryConfig.gasto; total: number; onAdd: () => void; delay: number;
+  isExpanded: boolean; onToggle: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
   const [customLabel, setCustomLabel] = useState<string | undefined>();
   const chartData = useMemo(() => {
@@ -246,7 +246,7 @@ function GastosChartCard({ entries, config, total, onAdd, delay }: {
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
         className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
-        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)}
+        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle}
           customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
         {expanded && (
           <div className="px-4 pb-4 flex items-center justify-center gap-4">
