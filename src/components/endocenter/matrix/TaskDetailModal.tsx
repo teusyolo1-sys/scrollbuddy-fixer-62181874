@@ -166,13 +166,12 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           <span className="flex-1 text-left">{label}</span>
           {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
         </button>
-        <AnimatePresence>
-          {open && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }} className="overflow-hidden">
-              <div className="px-3 pb-3 space-y-2">{children}</div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <div
+          className="overflow-hidden transition-all duration-150"
+          style={{ maxHeight: open ? "500px" : "0px", opacity: open ? 1 : 0 }}
+        >
+          <div className="px-3 pb-3 space-y-2">{children}</div>
+        </div>
       </div>
     );
   };
