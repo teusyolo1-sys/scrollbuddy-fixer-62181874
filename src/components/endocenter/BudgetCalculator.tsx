@@ -935,7 +935,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
         <PipelineCard
           faturamentoEntries={entries.filter(e => e.category === "faturamento")}
           onAdd={() => openPanelAndAdd("pipeline", "faturamento")}
-          isExpanded={openPanel === "pipeline"}
+          isExpanded={openPanels.has("pipeline")}
           onToggle={() => togglePanel("pipeline")}
           delay={0.25}
         />
