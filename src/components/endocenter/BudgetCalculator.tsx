@@ -201,7 +201,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                     >
                       <div className="space-y-1.5">
                         <input
-                          className="w-full bg-transparent text-sm font-medium text-white/90 outline-none placeholder:text-white/20 border-b border-transparent focus:border-white/10 transition-colors"
+                          className="w-full bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground/50 border-b border-transparent focus:border-border transition-colors"
                           value={entry.description}
                           onChange={(e) => onUpdate(entry.id, { description: e.target.value })}
                           placeholder="Descrição do item"
