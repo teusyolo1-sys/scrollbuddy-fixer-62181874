@@ -453,12 +453,12 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
                 <input type="number" className="ios-input px-3 py-2 text-sm" value={form.remuneration} onChange={(e) => setForm({ ...form, remuneration: Number(e.target.value) })} placeholder="Remuneração" />
                 <input type="number" className="ios-input px-3 py-2 text-sm" value={form.hours} onChange={(e) => setForm({ ...form, hours: Number(e.target.value) })} placeholder="Horas / mês" />
               </div>
-              <div className="grid sm:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="flex items-center gap-2">
-                  <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="h-9 w-10 rounded-lg border border-border bg-transparent" />
-                  <input className="ios-input flex-1 px-3 py-2 text-sm" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="#000000" />
+                  <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="h-9 w-10 shrink-0 rounded-lg border border-border bg-transparent cursor-pointer" />
+                  <input className="ios-input flex-1 min-w-0 px-3 py-2 text-sm" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="#000000" />
                 </div>
-                <select className="ios-input px-3 py-2 text-sm" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                <select className="ios-input px-3 py-2 text-sm w-full" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
                   <option>Ativo</option>
                   <option>Inativo</option>
                   <option>Férias</option>
