@@ -100,6 +100,12 @@ export interface ResponsibilityRole {
   quality: ResponsibilityItem[];
 }
 
+export interface WorkflowTask {
+  id: string;
+  name: string;
+  done: boolean;
+}
+
 export interface WorkflowStep {
   id: string;
   number: string;
@@ -111,6 +117,7 @@ export interface WorkflowStep {
   inputs: string[];
   outputs: string[];
   rules: string[];
+  tasks: WorkflowTask[];
 }
 
 export interface DeadlineRecord {
