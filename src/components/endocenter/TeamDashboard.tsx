@@ -322,7 +322,8 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
       transition={{ ...bouncy, delay: Math.min(index * 0.05, 0.2) }}
       whileHover={{ scale: 1.01, transition: { duration: 0.15 } }}
       style={{ willChange: "transform, opacity" }}
-      className="ios-card overflow-hidden"
+      className="ios-card overflow-hidden cursor-pointer"
+      onClick={() => onToggle(member.id)}
     >
       {/* Header */}
       <div className="p-5" style={{ borderLeft: `4px solid ${member.color}` }}>
