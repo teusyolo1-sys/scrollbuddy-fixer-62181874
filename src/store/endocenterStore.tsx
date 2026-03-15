@@ -26,6 +26,7 @@ export interface CompanyInfo {
   name: string;
   subtitle: string;
   month: string;
+  createdAt: string;
 }
 
 export interface MetricEntry {
