@@ -293,6 +293,8 @@ export default function LobbyPage() {
             <motion.button
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
+              whileHover={{ y: -6, scale: 1.03, boxShadow: "0 16px 40px rgba(0,0,0,0.08)" }}
+              whileTap={{ scale: 0.96 }}
               transition={{ delay: visibleCompanies.length * 0.08, type: "spring", damping: 22 }}
               onClick={addCompany}
               className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group"
