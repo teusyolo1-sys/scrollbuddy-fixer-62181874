@@ -337,6 +337,13 @@ export default function LobbyPage() {
                       >
                         <Shield className="h-4 w-4" />
                       </button>
+                      <button
+                        onClick={() => setTrashOpen(true)}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/20 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
+                        title="Lixeira"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
                     </>
                   )}
                   <button
