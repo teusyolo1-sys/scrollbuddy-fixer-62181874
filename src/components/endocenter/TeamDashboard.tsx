@@ -203,7 +203,7 @@ function StatusDropdown({ value, onChange, options }: { value: string; onChange:
 }
 
 export default function TeamDashboard() {
-  const { team, company, metricEntries } = useEndocenter();
+  const { team, company, metricEntries, addMember, removeMember } = useEndocenter();
   const { isAdmin } = useUserRole();
   const { teamRole } = useTeamRole();
   const { canViewSection } = useSectionPermissions();
