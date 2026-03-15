@@ -543,45 +543,59 @@ function ProfileModal({ member, onClose, isAdmin = false }: { member: ReturnType
             <div className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-2">
                 <input className="ios-input px-3 py-2 text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome" />
-                <input className="ios-input px-3 py-2 text-sm" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Função" />
+                {isAdmin ? (
+                  <input className="ios-input px-3 py-2 text-sm" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Função" />
+                ) : (
+                  <div className="ios-input px-3 py-2 text-sm text-muted-foreground bg-secondary/30 cursor-not-allowed">{form.role}</div>
+                )}
               </div>
               <input className="ios-input w-full px-3 py-2 text-sm" value={form.specialty} onChange={(e) => setForm({ ...form, specialty: e.target.value })} placeholder="Especialidade" />
-              <div className="grid sm:grid-cols-2 gap-2">
-                <input type="number" className="ios-input px-3 py-2 text-sm" value={form.remuneration} onChange={(e) => setForm({ ...form, remuneration: Number(e.target.value) })} placeholder="Remuneração" />
-                <input type="number" className="ios-input px-3 py-2 text-sm" value={form.hours} onChange={(e) => setForm({ ...form, hours: Number(e.target.value) })} placeholder="Horas / mês" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="flex items-center gap-2">
-                  <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="h-9 w-10 shrink-0 rounded-lg border border-border bg-transparent cursor-pointer" />
-                  <input className="ios-input flex-1 min-w-0 px-3 py-2 text-sm" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="#000000" />
-                </div>
-                <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={["Ativo", "Inativo", "Férias"]} />
-              </div>
-              <textarea className="ios-input w-full px-3 py-2 text-sm min-h-20" value={form.caseNotes} onChange={(e) => setForm({ ...form, caseNotes: e.target.value })} placeholder="Case do membro" />
 
-              {/* Tasks edit */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] text-muted-foreground">Tarefas</label>
-                {form.tasks.map((task, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
-                    <input className="ios-input flex-1 px-3 py-1.5 text-xs" value={task} onChange={(e) => { const t = [...form.tasks]; t[i] = e.target.value; setForm({ ...form, tasks: t }); }} />
-                    <button onClick={() => setForm({ ...form, tasks: form.tasks.filter((_, ci) => ci !== i) })} className="rounded-md p-1 text-destructive hover:bg-destructive/10"><X className="h-3 w-3" /></button>
+              {isAdmin && (
+                <>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    <input type="number" className="ios-input px-3 py-2 text-sm" value={form.remuneration} onChange={(e) => setForm({ ...form, remuneration: Number(e.target.value) })} placeholder="Remuneração" />
+                    <input type="number" className="ios-input px-3 py-2 text-sm" value={form.hours} onChange={(e) => setForm({ ...form, hours: Number(e.target.value) })} placeholder="Horas / mês" />
                   </div>
-                ))}
-                <button onClick={() => setForm({ ...form, tasks: [...form.tasks, ""] })} className="text-[11px] text-primary">+ adicionar tarefa</button>
-              </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-2">
+                      <input type="color" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} className="h-9 w-10 shrink-0 rounded-lg border border-border bg-transparent cursor-pointer" />
+                      <input className="ios-input flex-1 min-w-0 px-3 py-2 text-sm" value={form.color} onChange={(e) => setForm({ ...form, color: e.target.value })} placeholder="#000000" />
+                    </div>
+                    <StatusDropdown value={form.status} onChange={(v) => setForm({ ...form, status: v })} options={["Ativo", "Inativo", "Férias"]} />
+                  </div>
+                </>
+              )}
 
-              {/* KPIs edit */}
-              <div className="space-y-1.5">
-                <label className="text-[11px] text-muted-foreground">KPIs</label>
-                {form.kpis.map((kpi, i) => (
-                  <div key={i} className="flex items-center gap-1.5">
-                    <input className="ios-input flex-1 px-3 py-1.5 text-xs" value={kpi} onChange={(e) => { const k = [...form.kpis]; k[i] = e.target.value; setForm({ ...form, kpis: k }); }} />
-                    <button onClick={() => setForm({ ...form, kpis: form.kpis.filter((_, ci) => ci !== i) })} className="rounded-md p-1 text-destructive hover:bg-destructive/10"><X className="h-3 w-3" /></button>
+              <textarea className="ios-input w-full px-3 py-2 text-sm min-h-20" value={form.caseNotes} onChange={(e) => setForm({ ...form, caseNotes: e.target.value })} placeholder="Sobre mim / Case" />
+
+              {isAdmin && (
+                <>
+                  {/* Tasks edit */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] text-muted-foreground">Tarefas</label>
+                    {form.tasks.map((task, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <input className="ios-input flex-1 px-3 py-1.5 text-xs" value={task} onChange={(e) => { const t = [...form.tasks]; t[i] = e.target.value; setForm({ ...form, tasks: t }); }} />
+                        <button onClick={() => setForm({ ...form, tasks: form.tasks.filter((_, ci) => ci !== i) })} className="rounded-md p-1 text-destructive hover:bg-destructive/10"><X className="h-3 w-3" /></button>
+                      </div>
+                    ))}
+                    <button onClick={() => setForm({ ...form, tasks: [...form.tasks, ""] })} className="text-[11px] text-primary">+ adicionar tarefa</button>
                   </div>
-                ))}
-                <button onClick={() => setForm({ ...form, kpis: [...form.kpis, ""] })} className="text-[11px] text-primary">+ adicionar KPI</button>
-              </div>
+
+                  {/* KPIs edit */}
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] text-muted-foreground">KPIs</label>
+                    {form.kpis.map((kpi, i) => (
+                      <div key={i} className="flex items-center gap-1.5">
+                        <input className="ios-input flex-1 px-3 py-1.5 text-xs" value={kpi} onChange={(e) => { const k = [...form.kpis]; k[i] = e.target.value; setForm({ ...form, kpis: k }); }} />
+                        <button onClick={() => setForm({ ...form, kpis: form.kpis.filter((_, ci) => ci !== i) })} className="rounded-md p-1 text-destructive hover:bg-destructive/10"><X className="h-3 w-3" /></button>
+                      </div>
+                    ))}
+                    <button onClick={() => setForm({ ...form, kpis: [...form.kpis, ""] })} className="text-[11px] text-primary">+ adicionar KPI</button>
+                  </div>
+                </>
+              )}
 
               <button onClick={handleSave} className="w-full py-2.5 rounded-2xl bg-primary text-primary-foreground text-sm font-semibold">
                 Salvar alterações
