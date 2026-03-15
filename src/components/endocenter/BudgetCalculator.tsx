@@ -808,9 +808,9 @@ function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: bool
 /* ══════════════════════════════════════════
    ██  MAIN COMPONENT
    ══════════════════════════════════════════ */
-export default function BudgetCalculator() {
+export default function BudgetCalculator({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
-  const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries();
+  const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries(companyId);
   const [expandedCategories, setExpandedCategories] = useState<Set<BudgetCategory>>(new Set(["faturamento"]));
   const [calendarOpen, setCalendarOpen] = useState(false);
 
