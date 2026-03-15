@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, User, Shield } from "lucide-react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -13,6 +13,8 @@ interface CompanyCard {
   month: string;
   memberCount: number;
   color: string;
+  bannerUrl?: string;
+  logoUrl?: string;
 }
 
 const STORAGE_KEY = "endocenter_settings";
@@ -23,35 +25,28 @@ function loadCompanies(): CompanyCard[] {
     const raw = localStorage.getItem(COMPANIES_KEY);
     if (raw) return JSON.parse(raw);
   } catch {}
-
-  // Fallback: check if there's a single existing project
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       const data = JSON.parse(raw);
-      return [
-        {
-          id: "default",
-          name: data.company?.name || "Endocenter",
-          subtitle: data.company?.subtitle || "Gestão operacional",
-          month: data.company?.month || "Março 2025",
-          memberCount: data.team?.length || 4,
-          color: "#007AFF",
-        },
-      ];
+      return [{
+        id: "default",
+        name: data.company?.name || "Endocenter",
+        subtitle: data.company?.subtitle || "Gestão operacional",
+        month: data.company?.month || "Março 2025",
+        memberCount: data.team?.length || 4,
+        color: "#007AFF",
+      }];
     }
   } catch {}
-
-  return [
-    {
-      id: "default",
-      name: "Endocenter",
-      subtitle: "Gestão operacional de marketing",
-      month: "Março 2025",
-      memberCount: 4,
-      color: "#007AFF",
-    },
-  ];
+  return [{
+    id: "default",
+    name: "Endocenter",
+    subtitle: "Gestão operacional de marketing",
+    month: "Março 2025",
+    memberCount: 4,
+    color: "#007AFF",
+  }];
 }
 
 function saveCompanies(companies: CompanyCard[]) {
@@ -67,6 +62,75 @@ const gradients = [
   "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
 ];
 
+/* ── Subtle floating orbs animation ── */
+function AnimatedBackground() {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Orb 1 — slow drift */}
+      <motion.div
+        className="absolute w-96 h-96 rounded-full opacity-20"
+        style={{
+          background: "radial-gradient(circle, hsl(215 100% 65%), transparent 70%)",
+          filter: "blur(80px)",
+          top: "-10%",
+          right: "-5%",
+        }}
+        animate={{
+          x: [0, 30, -20, 0],
+          y: [0, -25, 15, 0],
+        }}
+        transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* Orb 2 — slow drift */}
+      <motion.div
+        className="absolute w-72 h-72 rounded-full opacity-15"
+        style={{
+          background: "radial-gradient(circle, hsl(265 80% 70%), transparent 70%)",
+          filter: "blur(70px)",
+          top: "30%",
+          left: "-8%",
+        }}
+        animate={{
+          x: [0, -20, 25, 0],
+          y: [0, 20, -15, 0],
+        }}
+        transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* Orb 3 — very subtle */}
+      <motion.div
+        className="absolute w-64 h-64 rounded-full opacity-10"
+        style={{
+          background: "radial-gradient(circle, hsl(190 90% 60%), transparent 70%)",
+          filter: "blur(60px)",
+          bottom: "5%",
+          right: "20%",
+        }}
+        animate={{
+          x: [0, 15, -10, 0],
+          y: [0, -10, 20, 0],
+          scale: [1, 1.05, 0.97, 1],
+        }}
+        transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
+      />
+    </div>
+  );
+}
+
+/* ── File upload helper ── */
+function useFileUpload(onLoad: (dataUrl: string) => void) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const trigger = () => inputRef.current?.click();
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => onLoad(reader.result as string);
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+  return { inputRef, trigger, handleChange };
+}
+
 export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
@@ -74,12 +138,8 @@ export default function LobbyPage() {
   const [allowedCompanyIds, setAllowedCompanyIds] = useState<string[] | null>(null);
   const navigate = useNavigate();
 
-  // Fetch company permissions for non-admin users
   useEffect(() => {
-    if (!user || isAdmin) {
-      setAllowedCompanyIds(null); // admin sees all
-      return;
-    }
+    if (!user || isAdmin) { setAllowedCompanyIds(null); return; }
     const fetchPerms = async () => {
       const { data } = await supabase
         .from('company_permissions')
@@ -96,12 +156,7 @@ export default function LobbyPage() {
     return companies.filter(c => allowedCompanyIds.includes(c.id));
   }, [companies, allowedCompanyIds, isAdmin]);
 
-  // Redirect to auth if not logged in
-  if (!authLoading && !user) {
-    navigate("/auth", { replace: true });
-    return null;
-  }
-
+  if (!authLoading && !user) { navigate("/auth", { replace: true }); return null; }
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -109,6 +164,12 @@ export default function LobbyPage() {
       </div>
     );
   }
+
+  const updateCompany = (id: string, updates: Partial<CompanyCard>) => {
+    const updated = companies.map(c => c.id === id ? { ...c, ...updates } : c);
+    setCompanies(updated);
+    saveCompanies(updated);
+  };
 
   const addCompany = () => {
     const newCompany: CompanyCard = {
@@ -119,80 +180,58 @@ export default function LobbyPage() {
       memberCount: 0,
       color: ["#007AFF", "#AF52DE", "#FF3B30", "#30D158", "#FF9500", "#00C7BE"][companies.length % 6],
     };
-
     const updated = [...companies, newCompany];
     setCompanies(updated);
     saveCompanies(updated);
   };
 
-  const openCompany = (company: CompanyCard) => {
-    navigate("/endocenter");
-  };
+  const openCompany = (company: CompanyCard) => navigate("/endocenter");
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero area with subtle gradient */}
-      <div
-        className="relative overflow-hidden"
-        style={{
-          background: "linear-gradient(180deg, hsl(230 30% 94%) 0%, hsl(240 10% 96%) 60%)",
-          minHeight: "40vh",
-        }}
-      >
-        {/* Floating blurred orbs for iOS 26 depth */}
-        <div
-          className="absolute -top-20 -right-20 w-80 h-80 rounded-full opacity-30"
-          style={{ background: "radial-gradient(circle, hsl(215 100% 65%), transparent 70%)", filter: "blur(60px)" }}
-        />
-        <div
-          className="absolute top-40 -left-20 w-60 h-60 rounded-full opacity-20"
-          style={{ background: "radial-gradient(circle, hsl(265 80% 70%), transparent 70%)", filter: "blur(60px)" }}
-        />
+    <div className="min-h-screen bg-background relative">
+      {/* Animated background */}
+      <AnimatedBackground />
 
+      {/* Hero */}
+      <div className="relative overflow-hidden" style={{ minHeight: "40vh" }}>
         <div className="relative max-w-5xl mx-auto px-6 pt-16 pb-8">
           <div className="flex items-start justify-between">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ type: "spring", damping: 25 }}>
-              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground">
-                Seus projetos
-              </h1>
+              <h1 className="text-4xl sm:text-5xl font-extrabold tracking-tight text-foreground">Seus projetos</h1>
               <p className="text-lg mt-2 text-muted-foreground max-w-md">
                 Gerencie equipes, métricas e operações de marketing em um só lugar.
               </p>
             </motion.div>
 
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-              {!authLoading && (
-                user ? (
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-muted-foreground hidden sm:inline">
-                      {user.user_metadata?.display_name || user.email?.split("@")[0]}
-                    </span>
-                    {isAdmin && (
-                      <button
-                        onClick={() => navigate("/permissions")}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
-                        title="Gerenciar permissões"
-                      >
-                        <Shield className="h-4 w-4" />
-                      </button>
-                    )}
+              {user ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground hidden sm:inline">
+                    {user.user_metadata?.display_name || user.email?.split("@")[0]}
+                  </span>
+                  {isAdmin && (
                     <button
-                      onClick={async () => { await signOut(); }}
-                      className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                      onClick={() => navigate("/permissions")}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+                      title="Gerenciar permissões"
                     >
-                      <LogOut className="h-4 w-4" />
-                      Sair
+                      <Shield className="h-4 w-4" />
                     </button>
-                  </div>
-                ) : (
+                  )}
                   <button
-                    onClick={() => navigate("/auth")}
-                    className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                    onClick={async () => { await signOut(); }}
+                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
                   >
-                    <LogIn className="h-4 w-4" />
-                    Entrar
+                    <LogOut className="h-4 w-4" /> Sair
                   </button>
-                )
+                </div>
+              ) : (
+                <button
+                  onClick={() => navigate("/auth")}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  <LogIn className="h-4 w-4" /> Entrar
+                </button>
               )}
             </motion.div>
           </div>
@@ -200,68 +239,33 @@ export default function LobbyPage() {
       </div>
 
       {/* Company cards grid */}
-      <div className="max-w-5xl mx-auto px-6 -mt-4 pb-20">
+      <div className="relative max-w-5xl mx-auto px-6 -mt-4 pb-20">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {visibleCompanies.map((company, i) => {
-            const gradient = gradients[i % gradients.length];
-            return (
-              <motion.button
-                key={company.id}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: Math.min(i * 0.05, 0.15), type: "spring", damping: 26, stiffness: 340 }}
-                onClick={() => openCompany(company)}
-                className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl p-0 text-left overflow-hidden group"
-              >
-                {/* Gradient header */}
-                <div className="h-28 relative" style={{ background: gradient }}>
-                  <div className="absolute inset-0 bg-black/5" />
-                  <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
-                    <div className="w-12 h-12 rounded-2xl bg-white/25 backdrop-blur-xl flex items-center justify-center border border-white/30">
-                      <Building2 className="h-6 w-6 text-white" />
-                    </div>
-                    <div className="flex items-center gap-1 text-white/80 text-xs">
-                      <Users className="h-3.5 w-3.5" />
-                      {company.memberCount} membros
-                    </div>
-                  </div>
-                </div>
+          {visibleCompanies.map((company, i) => (
+            <CompanyCardItem
+              key={company.id}
+              company={company}
+              index={i}
+              isAdmin={isAdmin}
+              onOpen={() => openCompany(company)}
+              onUpdate={(updates) => updateCompany(company.id, updates)}
+            />
+          ))}
 
-                {/* Content */}
-                <div className="p-5 pt-4">
-                  <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">
-                    {company.name}
-                  </h3>
-                  <p className="text-sm text-muted-foreground mt-0.5">{company.subtitle}</p>
-
-                  <div className="flex items-center justify-between mt-4">
-                    <span className="ios-badge ios-status-info">{company.month}</span>
-                    <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                      <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                  </div>
-                </div>
-              </motion.button>
-            );
-          })}
-
-          {/* Add company card — only for admins */}
           {isAdmin && (
-          <motion.button
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: visibleCompanies.length * 0.08, type: "spring", damping: 22 }}
-            onClick={addCompany}
-            className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group"
-            style={{ boxShadow: "none" }}
-          >
-            <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-              <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
-            </div>
-            <span className="text-sm font-medium text-muted-foreground mt-3 group-hover:text-primary transition-colors">
-              Nova empresa
-            </span>
-          </motion.button>
+            <motion.button
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: visibleCompanies.length * 0.08, type: "spring", damping: 22 }}
+              onClick={addCompany}
+              className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group"
+              style={{ boxShadow: "none" }}
+            >
+              <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+              </div>
+              <span className="text-sm font-medium text-muted-foreground mt-3 group-hover:text-primary transition-colors">Nova empresa</span>
+            </motion.button>
           )}
 
           {visibleCompanies.length === 0 && !isAdmin && (
@@ -274,5 +278,102 @@ export default function LobbyPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+/* ── Company Card with banner/logo upload ── */
+function CompanyCardItem({
+  company,
+  index,
+  isAdmin,
+  onOpen,
+  onUpdate,
+}: {
+  company: CompanyCard;
+  index: number;
+  isAdmin: boolean;
+  onOpen: () => void;
+  onUpdate: (updates: Partial<CompanyCard>) => void;
+}) {
+  const gradient = gradients[index % gradients.length];
+
+  const bannerUpload = useFileUpload((url) => onUpdate({ bannerUrl: url }));
+  const logoUpload = useFileUpload((url) => onUpdate({ logoUrl: url }));
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: Math.min(index * 0.05, 0.15), type: "spring", damping: 26, stiffness: 340 }}
+      className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl p-0 text-left overflow-hidden group cursor-pointer"
+      onClick={onOpen}
+    >
+      {/* Gradient / Banner header */}
+      <div className="h-28 relative overflow-hidden">
+        {company.bannerUrl ? (
+          <img src={company.bannerUrl} alt="" className="w-full h-full object-cover" />
+        ) : (
+          <div className="w-full h-full" style={{ background: gradient }} />
+        )}
+        <div className="absolute inset-0 bg-black/5" />
+
+        {/* Admin: banner upload overlay */}
+        {isAdmin && (
+          <>
+            <input ref={bannerUpload.inputRef} type="file" accept="image/*" className="hidden" onChange={bannerUpload.handleChange} />
+            <button
+              onClick={(e) => { e.stopPropagation(); bannerUpload.trigger(); }}
+              className="absolute top-2.5 right-2.5 w-7 h-7 rounded-lg bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/50 opacity-0 group-hover:opacity-100 transition-all"
+              title="Alterar banner"
+            >
+              <ImagePlus className="h-3.5 w-3.5" />
+            </button>
+          </>
+        )}
+
+        <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
+          {/* Logo */}
+          <div className="relative">
+            {company.logoUrl ? (
+              <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/30 bg-white/10 backdrop-blur-xl">
+                <img src={company.logoUrl} alt="" className="w-full h-full object-cover" />
+              </div>
+            ) : (
+              <div className="w-12 h-12 rounded-2xl bg-white/25 backdrop-blur-xl flex items-center justify-center border border-white/30">
+                <Building2 className="h-6 w-6 text-white" />
+              </div>
+            )}
+            {isAdmin && (
+              <>
+                <input ref={logoUpload.inputRef} type="file" accept="image/*" className="hidden" onChange={logoUpload.handleChange} />
+                <button
+                  onClick={(e) => { e.stopPropagation(); logoUpload.trigger(); }}
+                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-md bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
+                  title="Alterar logo"
+                >
+                  <Pencil className="h-2.5 w-2.5" />
+                </button>
+              </>
+            )}
+          </div>
+          <div className="flex items-center gap-1 text-white/80 text-xs">
+            <Users className="h-3.5 w-3.5" />
+            {company.memberCount} membros
+          </div>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-5 pt-4">
+        <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">{company.name}</h3>
+        <p className="text-sm text-muted-foreground mt-0.5">{company.subtitle}</p>
+        <div className="flex items-center justify-between mt-4">
+          <span className="ios-badge ios-status-info">{company.month}</span>
+          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
   );
 }
