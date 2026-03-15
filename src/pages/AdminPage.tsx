@@ -166,6 +166,11 @@ const AdminPage = () => {
           </div>
         </div>
 
+        {/* Invite Manager */}
+        <div className="bg-card border border-border rounded-xl p-5">
+          <InviteManager />
+        </div>
+
         {/* Search + Stats */}
         <div className="flex items-center gap-4">
           <div className="relative flex-1">
