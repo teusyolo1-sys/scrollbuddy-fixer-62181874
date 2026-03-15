@@ -489,11 +489,10 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                         style={{ borderRadius: "var(--ios-radius-sm)" }}>
                         <Trash2 className="h-3.5 w-3.5" /> Excluir tarefa
                       </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-          </div>
+                    </div>{/* footer */}
+                  </div>{/* w-300 */}
+                </div>{/* sidebar */}
+              </div>{/* flex */}
         </motion.div>
       </motion.div>
     </AnimatePresence>
