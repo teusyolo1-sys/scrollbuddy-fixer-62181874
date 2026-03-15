@@ -515,6 +515,24 @@ export default function BudgetCalculator() {
   return (
     <div className="space-y-4">
 
+      {/* Calendar toggle button */}
+      <div className="flex justify-end">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => setCalendarOpen(!calendarOpen)}
+          className={`${gc} px-4 py-2.5 flex items-center gap-2.5 hover:bg-accent/20 transition-colors`}
+        >
+          <CalendarDays className="h-4 w-4 text-primary" />
+          <span className="text-xs font-bold text-foreground">Economias</span>
+          <motion.div animate={{ rotate: calendarOpen ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+          </motion.div>
+        </motion.button>
+      </div>
+
+      {/* Budget Calendar */}
+      <BudgetCalendar entries={entries} open={calendarOpen} onClose={() => setCalendarOpen(false)} />
+
       {/* Row 1: Investimentos (full width) */}
       <CategoryCard {...catProps("investimento")} delay={0} />
 
