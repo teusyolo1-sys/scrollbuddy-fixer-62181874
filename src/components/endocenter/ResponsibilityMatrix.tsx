@@ -50,6 +50,12 @@ export default function ResponsibilityMatrix() {
     if (selectedItem && selectedItem.item.id === itemId) {
       setSelectedItem({ ...selectedItem, item: { ...selectedItem.item, ...updates } });
     }
+    if (updates.done === true) {
+      const item = currentItems.find((i) => i.id === itemId);
+      toast({ title: "✅ Tarefa concluída", description: item?.task || "Tarefa marcada como feita" });
+    } else if (updates.done === false) {
+      toast({ title: "🔄 Tarefa reaberta", description: "Tarefa movida de volta para pendente" });
+    }
   };
 
   const handleDeleteItem = (itemId: string) => {
