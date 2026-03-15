@@ -31,14 +31,51 @@ export default function ResponsibilityMatrix() {
     updateResponsibilityRoleItem, removeResponsibilityRoleItem,
   } = useEndocenter();
   const addNotification = useNotificationStore((s) => s.addNotification);
+  const { isAdmin } = useUserRole();
+  const { teamRole, loading: teamRoleLoading } = useTeamRole();
+  const { user } = useAuth();
 
-  const [activeRoleId, setActiveRoleId] = useState(responsibilityRoles[0]?.id ?? "");
+  // Filter roles: admin sees all, others see only their assigned role
+  const visibleRoles = useMemo(() => {
+    if (isAdmin || !teamRole) return responsibilityRoles;
+    return responsibilityRoles.filter((r) => r.role === teamRole);
+  }, [responsibilityRoles, isAdmin, teamRole]);
+
+  // Collect tasks from OTHER roles where this user is mentioned/assigned
+  const mentionedTasksFromOtherRoles = useMemo(() => {
+    if (isAdmin || !teamRole || !user) return [];
+    const userDisplayName = user.user_metadata?.display_name || user.email?.split("@")[0] || "";
+    const otherRoles = responsibilityRoles.filter((r) => r.role !== teamRole);
+    const results: { roleId: string; roleName: string; roleColor: string; tab: "weekly" | "monthly" | "quality"; item: ResponsibilityItem }[] = [];
+    for (const r of otherRoles) {
+      for (const tab of ["weekly", "monthly", "quality"] as const) {
+        for (const item of r[tab]) {
+          const isAssigned = item.assignees.some(
+            (a) => a.toLowerCase() === userDisplayName.toLowerCase()
+          );
+          if (isAssigned) {
+            results.push({ roleId: r.id, roleName: r.role, roleColor: r.color, tab, item });
+          }
+        }
+      }
+    }
+    return results;
+  }, [responsibilityRoles, isAdmin, teamRole, user]);
+
+  const [activeRoleId, setActiveRoleId] = useState(visibleRoles[0]?.id ?? "");
   const [activeTab, setActiveTab] = useState<MatrixTab>("weekly");
   const [viewMode, setViewMode] = useState<ViewMode>("kanban");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<{ roleId: string; tab: MatrixTab; item: ResponsibilityItem } | null>(null);
 
-  const role = responsibilityRoles.find((r) => r.id === activeRoleId) ?? responsibilityRoles[0];
+  // Keep activeRoleId valid
+  useEffect(() => {
+    if (visibleRoles.length > 0 && !visibleRoles.find((r) => r.id === activeRoleId)) {
+      setActiveRoleId(visibleRoles[0].id);
+    }
+  }, [visibleRoles, activeRoleId]);
+
+  const role = visibleRoles.find((r) => r.id === activeRoleId) ?? visibleRoles[0];
   const teamMembers = team.map((t) => t.name);
 
   const completionByTab = useMemo(() => {
@@ -46,6 +83,10 @@ export default function ResponsibilityMatrix() {
     const rate = (items: ResponsibilityItem[]) => items.length ? Math.round((items.filter((i) => i.done).length / items.length) * 100) : 0;
     return { weekly: rate(role.weekly), monthly: rate(role.monthly), quality: rate(role.quality) };
   }, [role]);
+
+  if (teamRoleLoading) {
+    return <div className="text-center py-10 text-muted-foreground text-sm">Carregando...</div>;
+  }
 
   if (!role) return null;
 
