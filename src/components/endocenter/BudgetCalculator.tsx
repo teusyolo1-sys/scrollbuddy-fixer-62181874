@@ -286,34 +286,52 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
     { label: "Other", color: "#EF4444" },
   ];
 
+  // Generate monthly stacked data (last 6 months)
   const chartData = useMemo(() => {
-    const byCategory: Record<string, number> = {};
-    entries.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + e.amount; });
-    return categories.filter(c => byCategory[c]).map(c => ({ name: categoryConfig[c].label, value: byCategory[c] || 0, color: categoryConfig[c].color }));
+    const months: { name: string; [key: string]: number | string }[] = [];
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+      const label = d.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "");
+      const row: any = { name: label };
+      categories.forEach(cat => {
+        row[categoryConfig[cat].label] = entries
+          .filter(e => e.category === cat && e.date.startsWith(key))
+          .reduce((s, e) => s + e.amount, 0);
+      });
+      months.push(row);
+    }
+    return months;
   }, [entries]);
 
-  const hasData = chartData.length > 0;
+  const catColors = categories.map(c => ({ name: categoryConfig[c].label, color: categoryConfig[c].color }));
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
       className={`${gc} p-4`}>
-      <div className="space-y-1.5 mb-3">
-        {legendItems.map((item, i) => (
-          <div key={i} className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-            <span className="text-[10px] text-muted-foreground">{item.label}</span>
-          </div>
-        ))}
+      <div className="flex items-start gap-4">
+        {/* Legend */}
+        <div className="space-y-1.5 shrink-0 pt-1">
+          {legendItems.map((item, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+              <span className="text-[10px] text-muted-foreground">{item.label}</span>
+            </div>
+          ))}
+        </div>
+        {/* Stacked bars */}
+        <div className="flex-1 min-w-0">
+          <ResponsiveContainer width="100%" height={110}>
+            <BarChart data={chartData} barSize={16} barGap={2}>
+              {catColors.map((d, i) => (
+                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85}
+                  radius={i === catColors.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
-      {hasData && (
-        <ResponsiveContainer width="100%" height={100}>
-          <BarChart data={[{ name: "Total", ...Object.fromEntries(chartData.map(d => [d.name, d.value])) }]}>
-            {chartData.map((d, i) => (
-              <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.8} radius={i === chartData.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
-      )}
     </motion.div>
   );
 }
