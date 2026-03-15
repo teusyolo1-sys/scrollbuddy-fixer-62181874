@@ -338,7 +338,7 @@ function PipelineCard({ faturamentoEntries, onAdd, delay, isExpanded, onToggle }
           </div>
         </button>
 
-        {expanded && (
+        {isExpanded && (
           <>
             <AnimatePresence>
               {faturamentoEntries.length > 0 && (
