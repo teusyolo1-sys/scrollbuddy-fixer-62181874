@@ -157,6 +157,33 @@ export type Database = {
         }
         Relationships: []
       }
+      company_permissions: {
+        Row: {
+          company_id: string
+          created_at: string
+          granted: boolean
+          granted_by: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          granted?: boolean
+          granted_by?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          granted?: boolean
+          granted_by?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
