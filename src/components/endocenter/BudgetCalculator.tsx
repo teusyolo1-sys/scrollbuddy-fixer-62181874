@@ -653,6 +653,8 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
   entries: any[]; config: typeof categoryConfig.despesa; total: number; onAdd: () => void; delay: number;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
+  const [customLabel, setCustomLabel] = useState<string | undefined>();
   const detailRows = [
     { type: "Expense type", color: "#3B82F6", ret: 37, total: "R$ 11.3%" },
     { type: "Expense type", color: "#10B981", ret: 25, total: "R$ 11.5%" },
@@ -660,30 +662,44 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
     { type: "Other treakion", color: "#A78BFA", ret: 7, total: "0,00" },
   ];
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} overflow-hidden`}>
-      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)} />
-      {expanded && (
-        <div className="px-4 pb-4">
-          <div className="border border-border/50 rounded-xl overflow-hidden">
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-              <span>Type of</span><span className="w-14 text-right">Return</span><span className="w-16 text-right">Total</span>
-            </div>
-            {detailRows.map((row, i) => (
-              <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""}`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
-                  <span className="text-[11px] text-foreground/80">{row.type}</span>
-                </div>
-                <span className="w-14 text-right text-[11px] text-foreground/70">{row.ret}</span>
-                <span className="w-16 text-right text-[11px] text-foreground/70">{row.total}</span>
-              </div>
-            ))}
-          </div>
+  const tableContent = (
+    <div className="px-4 pb-4">
+      <div className="border border-border/50 rounded-xl overflow-hidden">
+        <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <span>Type of</span><span className="w-14 text-right">Return</span><span className="w-16 text-right">Total</span>
         </div>
+        {detailRows.map((row, i) => (
+          <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""}`}>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
+              <span className="text-[11px] text-foreground/80">{row.type}</span>
+            </div>
+            <span className="w-14 text-right text-[11px] text-foreground/70">{row.ret}</span>
+            <span className="w-16 text-right text-[11px] text-foreground/70">{row.total}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
+        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)}
+          customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
+        {expanded && tableContent}
+      </motion.div>
+      {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
+      {isFullscreen && (
+        <FullscreenPanel title={customLabel || config.label} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-2xl mx-auto overflow-hidden`}>
+            <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={true} onToggle={() => {}} customLabel={customLabel} />
+            {tableContent}
+          </div>
+        </FullscreenPanel>
       )}
-    </motion.div>
+    </>
   );
 }
 function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: boolean; onClose: () => void }) {
