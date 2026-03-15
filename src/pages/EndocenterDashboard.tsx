@@ -13,14 +13,14 @@ import DeadlineManagement from "@/components/endocenter/DeadlineManagement";
 import SettingsDialog from "@/components/endocenter/SettingsDialog";
 import NotificationCenter from "@/components/endocenter/NotificationCenter";
 
-const tabs = [
-  { id: "dashboard", label: "Dashboard", icon: BarChart3 },
-  { id: "schedule", label: "Cronograma", icon: Calendar },
-  { id: "pipeline", label: "Pipeline", icon: Rocket },
-  { id: "matrix", label: "Responsabilidades", icon: CheckSquare },
-  { id: "workflow", label: "Fluxo", icon: RefreshCw },
-  { id: "deadlines", label: "Prazos & Crises", icon: AlertTriangle },
-] as const;
+const tabDefs = [
+  { id: "dashboard" as const, icon: BarChart3 },
+  { id: "schedule" as const, icon: Calendar },
+  { id: "pipeline" as const, icon: Rocket },
+  { id: "matrix" as const, icon: CheckSquare },
+  { id: "workflow" as const, icon: RefreshCw },
+  { id: "deadlines" as const, icon: AlertTriangle },
+];
 
 function DashboardContent() {
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number]["id"]>("dashboard");
