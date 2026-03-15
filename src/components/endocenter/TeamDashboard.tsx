@@ -29,23 +29,29 @@ const months = [
 function MonthYearPicker() {
   const { company, setCompany } = useEndocenter();
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
+  const badgeRef = useRef<HTMLSpanElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  // Parse current month/year
   const parts = company.month.split(" ");
   const currentMonth = parts[0] ?? "Março";
   const currentYear = parseInt(parts[1] ?? "2025", 10);
 
-  const years = Array.from({ length: 7 }, (_, i) => currentYear - 3 + i);
+  // Build years from createdAt to now
+  const createdDate = new Date(company.createdAt || Date.now());
+  const createdYear = createdDate.getFullYear();
+  const createdMonthIdx = createdDate.getMonth();
+  const nowYear = new Date().getFullYear();
+  const years = Array.from({ length: nowYear - createdYear + 1 }, (_, i) => createdYear + i);
+
+  // Filter months: if selected year === createdYear, only show from createdMonth onward
+  const availableMonths = months.filter((_, i) => {
+    if (currentYear === createdYear && i < createdMonthIdx) return false;
+    if (currentYear === nowYear && i > new Date().getMonth()) return false;
+    return true;
+  });
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
-    const menuW = 230;
-    const menuH = 200;
-    const x = Math.min(e.clientX, window.innerWidth - menuW - 8);
-    const y = Math.min(e.clientY, window.innerHeight - menuH - 8);
-    setPos({ x: Math.max(8, x), y: Math.max(8, y) });
     setOpen(true);
   }, []);
 
@@ -57,15 +63,19 @@ function MonthYearPicker() {
   useEffect(() => {
     if (!open) return;
     const close = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target as Node) &&
+          badgeRef.current && !badgeRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
     window.addEventListener("mousedown", close);
     return () => window.removeEventListener("mousedown", close);
   }, [open]);
 
   return (
-    <>
+    <div className="relative">
       <span
+        ref={badgeRef}
         onContextMenu={handleContextMenu}
         className="ios-badge ios-status-info cursor-context-menu select-none"
       >
@@ -80,8 +90,7 @@ function MonthYearPicker() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.92 }}
             transition={{ type: "spring", damping: 24, stiffness: 400 }}
-            className="fixed z-[100] ios-card p-3 shadow-2xl"
-            style={{ top: pos.y, left: pos.x, minWidth: 220 }}
+            className="absolute right-0 top-full mt-2 z-[100] ios-card p-3 shadow-2xl w-[240px]"
           >
             {/* Year row */}
             <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2 border-b border-border/40">
@@ -102,7 +111,7 @@ function MonthYearPicker() {
 
             {/* Month grid */}
             <div className="grid grid-cols-3 gap-1">
-              {months.map((m) => (
+              {availableMonths.map((m) => (
                 <button
                   key={m}
                   onClick={() => select(m, currentYear)}
@@ -119,7 +128,7 @@ function MonthYearPicker() {
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </div>
   );
 }
 
