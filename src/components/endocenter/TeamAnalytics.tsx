@@ -1,220 +1,299 @@
-import { useMemo, useState, useRef, useEffect, useCallback } from "react";
-import { createPortal } from "react-dom";
+import { useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, Loader2, ChevronDown, Check, TrendingUp, TrendingDown, User } from "lucide-react";
 import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  Users, Plus, Loader2, TrendingUp, TrendingDown, User, Clock, CheckCircle2,
+  AlertTriangle, Flag, ChevronDown, ChevronRight, BarChart3, Timer, Trash2,
+} from "lucide-react";
+import {
+  AreaChart, Area, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
 import { toast } from "sonner";
 import { useTeamActivities } from "@/hooks/useTeamActivities";
-import { useEndocenter } from "@/store/endocenterStore";
+import { useTaskComplaints } from "@/hooks/useTaskComplaints";
+import { useEndocenter, type ResponsibilityItem } from "@/store/endocenterStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 
 const MEMBER_COLORS = ["#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#ec4899", "#06b6d4", "#ef4444", "#84cc16"];
+type TimePeriod = "day" | "week" | "month" | "year";
+const periodLabels: Record<TimePeriod, string> = { day: "Dia", week: "Semana", month: "Mês", year: "Ano" };
 
-/* ── iOS 26 Dropdown ── */
-function IosDropdown({ value, onChange, options }: {
-  value: string;
-  onChange: (v: string) => void;
-  options: { value: string; label: string }[];
-}) {
-  const [open, setOpen] = useState(false);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number; width: number }>({ top: 0, left: 0, width: 0 });
-  const selected = options.find((o) => o.value === value);
-
-  const updatePos = useCallback(() => {
-    if (!triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    setPos({ top: rect.bottom + 6, left: rect.left, width: rect.width });
-  }, []);
-
-  useEffect(() => {
-    if (!open) return;
-    updatePos();
-    const close = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node) &&
-          triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
-        setOpen(false);
+/* ── Helper: get all tasks across all roles ── */
+function getAllTasks(roles: { role: string; weekly: ResponsibilityItem[]; monthly: ResponsibilityItem[]; quality: ResponsibilityItem[] }[]) {
+  const tasks: (ResponsibilityItem & { roleName: string })[] = [];
+  for (const r of roles) {
+    for (const tab of ["weekly", "monthly", "quality"] as const) {
+      for (const item of r[tab]) {
+        tasks.push({ ...item, roleName: r.role });
       }
-    };
-    window.addEventListener("mousedown", close);
-    window.addEventListener("scroll", updatePos, true);
-    return () => {
-      window.removeEventListener("mousedown", close);
-      window.removeEventListener("scroll", updatePos, true);
-    };
-  }, [open, updatePos]);
-
-  return (
-    <div className="relative">
-      <button ref={triggerRef} type="button" onClick={() => setOpen(!open)} className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2">
-        <span className="text-foreground truncate">{selected?.label || "Selecionar"}</span>
-        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
-          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-        </motion.span>
-      </button>
-      {open && createPortal(
-        <AnimatePresence>
-          <motion.div
-            ref={menuRef}
-            initial={{ opacity: 0, y: -4, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.96 }}
-            transition={{ type: "spring", damping: 24, stiffness: 400 }}
-            className="fixed z-[9999] bg-card border border-border/60 shadow-lg p-1 max-h-48 overflow-y-auto"
-            style={{
-              top: pos.top,
-              left: pos.left,
-              width: pos.width,
-              borderRadius: "var(--ios-radius, 16px)",
-              boxShadow: "var(--ios-shadow-float, 0 8px 32px rgba(0,0,0,0.12))",
-            }}
-          >
-            {options.map((opt) => (
-              <button
-                key={opt.value}
-                onClick={() => { onChange(opt.value); setOpen(false); }}
-                className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl hover:bg-secondary/60 transition-colors"
-              >
-                <span className="flex-1 text-left text-foreground">{opt.label}</span>
-                {value === opt.value && <Check className="h-3.5 w-3.5 text-primary" />}
-              </button>
-            ))}
-          </motion.div>
-        </AnimatePresence>,
-        document.body
-      )}
-    </div>
-  );
+    }
+  }
+  return tasks;
 }
 
-/* ── Chart per member ── */
-function MemberCharts({ memberName, activities, color, delay }: {
+/* ── Filter by period ── */
+function isInPeriod(dateStr: string, period: TimePeriod): boolean {
+  if (!dateStr) return false;
+  const date = new Date(dateStr);
+  const now = new Date();
+  switch (period) {
+    case "day":
+      return date.toDateString() === now.toDateString();
+    case "week": {
+      const weekAgo = new Date(now);
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      return date >= weekAgo;
+    }
+    case "month":
+      return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+    case "year":
+      return date.getFullYear() === now.getFullYear();
+  }
+}
+
+/* ── Calculate SLA (average resolution time in hours) ── */
+function calcSLA(tasks: ResponsibilityItem[]): number {
+  const completed = tasks.filter((t) => t.done && t.completedAt && t.createdAt);
+  if (completed.length === 0) return 0;
+  const totalHours = completed.reduce((sum, t) => {
+    const diff = new Date(t.completedAt).getTime() - new Date(t.createdAt).getTime();
+    return sum + diff / (1000 * 60 * 60);
+  }, 0);
+  return totalHours / completed.length;
+}
+
+function formatHours(h: number): string {
+  if (h < 1) return `${Math.round(h * 60)}min`;
+  if (h < 24) return `${h.toFixed(1)}h`;
+  return `${(h / 24).toFixed(1)}d`;
+}
+
+/* ── Member Raio-X Card ── */
+function MemberRaioX({
+  memberName, color, delay, tasks, activities, complaints, isAdmin, period,
+  onRemoveComplaint,
+}: {
   memberName: string;
-  activities: { activity_type: string; value: number; unit: string; date: string }[];
   color: string;
   delay: number;
+  tasks: (ResponsibilityItem & { roleName: string })[];
+  activities: { activity_type: string; value: number; unit: string; date: string }[];
+  complaints: { id: string; task_name: string; category: string; description: string; created_at: string }[];
+  isAdmin: boolean;
+  period: TimePeriod;
+  onRemoveComplaint: (id: string) => void;
 }) {
-  // Group activities by type
-  const byType = useMemo(() => {
-    const map: Record<string, { values: { name: string; value: number }[]; unit: string; latest: number; prev: number }> = {};
-    activities.forEach((a) => {
-      if (!map[a.activity_type]) map[a.activity_type] = { values: [], unit: a.unit, latest: 0, prev: 0 };
+  const [expanded, setExpanded] = useState(false);
+
+  // Filter tasks by period (using completedAt for done tasks, createdAt for all)
+  const periodTasks = tasks.filter((t) => {
+    if (t.done && t.completedAt) return isInPeriod(t.completedAt, period);
+    return isInPeriod(t.createdAt, period);
+  });
+
+  const completedTasks = periodTasks.filter((t) => t.done);
+  const pendingTasks = periodTasks.filter((t) => !t.done);
+  const avgSLA = calcSLA(completedTasks);
+
+  // Filter activities by period
+  const periodActivities = activities.filter((a) => isInPeriod(a.date, period));
+
+  // Filter complaints by period
+  const periodComplaints = complaints.filter((c) => isInPeriod(c.created_at, period));
+
+  // SLA chart data (last 7 completed tasks)
+  const slaChartData = completedTasks
+    .filter((t) => t.completedAt && t.createdAt)
+    .slice(-7)
+    .map((t) => {
+      const hours = (new Date(t.completedAt).getTime() - new Date(t.createdAt).getTime()) / (1000 * 60 * 60);
+      const d = new Date(t.completedAt);
+      return { name: `${d.getDate()}/${d.getMonth() + 1}`, value: Math.round(hours * 10) / 10 };
+    });
+
+  // Activity chart data
+  const activityByType = useMemo(() => {
+    const map: Record<string, { values: { name: string; value: number }[]; unit: string }> = {};
+    periodActivities.forEach((a) => {
+      if (!map[a.activity_type]) map[a.activity_type] = { values: [], unit: a.unit };
       const d = new Date(a.date + "T00:00:00");
       map[a.activity_type].values.push({ name: `${d.getDate()}/${d.getMonth() + 1}`, value: a.value });
     });
-    // Sort and set latest/prev
-    Object.values(map).forEach((entry) => {
-      entry.values.sort((a, b) => a.name.localeCompare(b.name));
-      entry.latest = entry.values[entry.values.length - 1]?.value ?? 0;
-      entry.prev = entry.values.length > 1 ? entry.values[entry.values.length - 2].value : entry.latest;
-    });
+    Object.values(map).forEach((e) => e.values.sort((a, b) => a.name.localeCompare(b.name)));
     return map;
-  }, [activities]);
-
-  const types = Object.keys(byType);
-  const chartVariants = ["area", "bar", "line"] as const;
+  }, [periodActivities]);
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", damping: 22 }}
-      className="ios-card p-5 space-y-4"
+      className="ios-card overflow-hidden"
     >
-      {/* Member header */}
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: `${color}15` }}>
+      {/* Header */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center gap-3 p-5 hover:bg-secondary/20 transition-colors"
+      >
+        <div className="w-11 h-11 rounded-2xl flex items-center justify-center" style={{ background: `${color}15` }}>
           <User className="h-5 w-5" style={{ color }} />
         </div>
-        <div>
+        <div className="flex-1 text-left">
           <h4 className="text-base font-bold text-foreground">{memberName}</h4>
-          <p className="text-xs text-muted-foreground">{types.length} atividade{types.length !== 1 ? "s" : ""} registrada{types.length !== 1 ? "s" : ""}</p>
+          <p className="text-xs text-muted-foreground">
+            {completedTasks.length} concluída{completedTasks.length !== 1 ? "s" : ""} · SLA {formatHours(avgSLA)}
+            {periodComplaints.length > 0 && isAdmin && (
+              <span className="text-amber-500 ml-2">· {periodComplaints.length} sinalização{periodComplaints.length !== 1 ? "ões" : ""}</span>
+            )}
+          </p>
         </div>
-      </div>
+        {/* KPI pills */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-emerald-500/10 text-emerald-500 text-[11px] font-semibold">
+            <CheckCircle2 className="h-3 w-3" /> {completedTasks.length}
+          </div>
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-secondary text-muted-foreground text-[11px] font-semibold">
+            <Clock className="h-3 w-3" /> {pendingTasks.length}
+          </div>
+          {isAdmin && periodComplaints.length > 0 && (
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-500 text-[11px] font-semibold">
+              <Flag className="h-3 w-3" /> {periodComplaints.length}
+            </div>
+          )}
+        </div>
+        <ChevronRight className={`h-4 w-4 text-muted-foreground transition-transform duration-200 ${expanded ? "rotate-90" : ""}`} />
+      </button>
 
-      {/* KPI row for this member */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        {types.map((type) => {
-          const { latest, prev, unit } = byType[type];
-          const change = prev > 0 ? ((latest - prev) / prev * 100) : 0;
-          return (
-            <div key={type} className="p-3 rounded-2xl bg-secondary/30 border border-border/30">
-              <div className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{type}</div>
-              <div className="text-lg font-extrabold text-foreground mt-0.5">
-                {latest.toLocaleString("pt-BR")}{unit ? ` ${unit}` : ""}
+      {/* Expanded Raio-X */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="overflow-hidden"
+          >
+            <div className="px-5 pb-5 space-y-4 border-t border-border/30">
+              {/* KPI Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-4">
+                <KPICard label="Concluídas" value={completedTasks.length} icon={CheckCircle2} color="#059669" />
+                <KPICard label="Pendentes" value={pendingTasks.length} icon={Clock} color="#f59e0b" />
+                <KPICard label="SLA Médio" value={formatHours(avgSLA)} icon={Timer} color="#3b82f6" />
+                <KPICard label="Sinalizações" value={periodComplaints.length} icon={Flag} color="#ef4444" />
               </div>
-              {change !== 0 && (
-                <div className={`flex items-center gap-0.5 text-[11px] font-semibold ${change > 0 ? "text-green-500" : "text-red-500"}`}>
-                  {change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                  {Math.abs(change).toFixed(1)}%
+
+              {/* SLA Chart */}
+              {slaChartData.length > 1 && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-semibold text-muted-foreground">Tempo de Resolução (horas)</h5>
+                  <ResponsiveContainer width="100%" height={140}>
+                    <AreaChart data={slaChartData}>
+                      <defs>
+                        <linearGradient id={`sla-${memberName}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+                          <stop offset="95%" stopColor={color} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+                      <XAxis dataKey="name" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                      <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={30} />
+                      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} />
+                      <Area type="monotone" dataKey="value" stroke={color} fill={`url(#sla-${memberName})`} strokeWidth={2} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
+
+              {/* Activity charts (from team_activities) */}
+              {Object.keys(activityByType).length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-semibold text-muted-foreground">Atividades Registradas</h5>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {Object.entries(activityByType).map(([type, { values, unit }]) => (
+                      <div key={type} className="space-y-1.5">
+                        <div className="text-[11px] font-medium text-foreground">{type} {unit ? `(${unit})` : ""}</div>
+                        <ResponsiveContainer width="100%" height={100}>
+                          <BarChart data={values} barSize={12}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+                            <XAxis dataKey="name" tick={{ fontSize: 8, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+                            <YAxis tick={{ fontSize: 8, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={25} />
+                            <Tooltip contentStyle={{ borderRadius: 10, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 10 }} />
+                            <Bar dataKey="value" fill={color} radius={[3, 3, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Complaint History — Admin only */}
+              {isAdmin && periodComplaints.length > 0 && (
+                <div className="space-y-2">
+                  <h5 className="text-xs font-semibold text-amber-500 flex items-center gap-1.5">
+                    <Flag className="h-3 w-3" /> Histórico de Sinalizações
+                  </h5>
+                  <div className="space-y-1.5">
+                    {periodComplaints.map((c) => (
+                      <div
+                        key={c.id}
+                        className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/5 border border-amber-500/10"
+                      >
+                        <AlertTriangle className="h-3.5 w-3.5 text-amber-500 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600">
+                              {c.category}
+                            </span>
+                            <span className="text-[10px] text-muted-foreground">
+                              {new Date(c.created_at).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                          </div>
+                          <p className="text-xs text-foreground mt-1">{c.description}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">Tarefa: {c.task_name}</p>
+                        </div>
+                        <button
+                          onClick={() => onRemoveComplaint(c.id)}
+                          className="shrink-0 w-6 h-6 rounded-lg bg-secondary/50 flex items-center justify-center text-muted-foreground hover:text-destructive transition-colors"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
-
-      {/* Individual charts per activity type */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        {types.map((type, idx) => {
-          const { values, unit } = byType[type];
-          const variant = chartVariants[idx % 3];
-          if (values.length < 1) return null;
-
-          return (
-            <div key={type} className="space-y-2">
-              <div className="text-xs font-semibold text-muted-foreground">{type} {unit ? `(${unit})` : ""}</div>
-              <ResponsiveContainer width="100%" height={140}>
-                {variant === "area" ? (
-                  <AreaChart data={values}>
-                    <defs>
-                      <linearGradient id={`g-${memberName}-${type}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-                        <stop offset="95%" stopColor={color} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-                    <XAxis dataKey="name" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={35} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} />
-                    <Area type="monotone" dataKey="value" stroke={color} fill={`url(#g-${memberName}-${type})`} strokeWidth={2} />
-                  </AreaChart>
-                ) : variant === "bar" ? (
-                  <BarChart data={values} barSize={14}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-                    <XAxis dataKey="name" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={35} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} />
-                    <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                ) : (
-                  <LineChart data={values}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-                    <XAxis dataKey="name" tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 9, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={35} />
-                    <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} />
-                    <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ r: 3, fill: color }} />
-                  </LineChart>
-                )}
-              </ResponsiveContainer>
-            </div>
-          );
-        })}
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
 
+/* ── KPI Card ── */
+function KPICard({ label, value, icon: Icon, color }: { label: string; value: string | number; icon: any; color: string }) {
+  return (
+    <div className="p-3 rounded-2xl bg-secondary/30 border border-border/30">
+      <div className="flex items-center gap-1.5 mb-1">
+        <Icon className="h-3 w-3" style={{ color }} />
+        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{label}</span>
+      </div>
+      <div className="text-lg font-extrabold text-foreground">{value}</div>
+    </div>
+  );
+}
+
+/* ── Main Component ── */
 export default function TeamAnalytics() {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
-  const { team } = useEndocenter();
-  const { activities, loading, addActivity } = useTeamActivities();
+  const { team, responsibilityRoles } = useEndocenter();
+  const { activities, loading: activitiesLoading, addActivity } = useTeamActivities();
+  const { complaints, loading: complaintsLoading, removeComplaint } = useTaskComplaints();
+  const [period, setPeriod] = useState<TimePeriod>("month");
   const [showForm, setShowForm] = useState(false);
   const [formMember, setFormMember] = useState("");
   const [formType, setFormType] = useState("");
@@ -222,27 +301,18 @@ export default function TeamAnalytics() {
   const [formUnit, setFormUnit] = useState("");
   const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
 
-  // Get unique member names from activities + team
+  const allTasks = useMemo(() => getAllTasks(responsibilityRoles), [responsibilityRoles]);
+
+  // Get unique member names from team + tasks assignees + activities
   const memberNames = useMemo(() => {
     const names = new Set<string>();
     team.forEach((m) => names.add(m.name));
     activities.forEach((a) => names.add(a.member_name));
+    allTasks.forEach((t) => t.assignees.forEach((a) => names.add(a)));
     return Array.from(names).sort();
-  }, [team, activities]);
+  }, [team, activities, allTasks]);
 
-  // Group activities by member
-  const byMember = useMemo(() => {
-    const map: Record<string, typeof activities> = {};
-    activities.forEach((a) => {
-      if (!map[a.member_name]) map[a.member_name] = [];
-      map[a.member_name].push(a);
-    });
-    return map;
-  }, [activities]);
-
-  const membersWithData = Object.keys(byMember).sort();
-
-  // Common activity type suggestions
+  // Activity type suggestions
   const activitySuggestions = useMemo(() => {
     const types = new Set<string>();
     activities.forEach((a) => types.add(a.activity_type));
@@ -265,23 +335,41 @@ export default function TeamAnalytics() {
   };
 
   if (!user) return null;
+  const loading = activitiesLoading || complaintsLoading;
   if (loading) return <div className="flex justify-center py-10"><Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /></div>;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Análise do Time</h2>
-          <p className="text-sm text-muted-foreground mt-0.5">Gráficos individuais por membro da equipe</p>
+          <h2 className="text-2xl font-extrabold tracking-tight text-foreground">Raio-X do Time</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Performance individual com SLA, atividades e sinalizações</p>
         </div>
-        {isAdmin && (
-          <button
-            onClick={() => setShowForm(!showForm)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
-          >
-            <Plus className="h-3.5 w-3.5" /> Registrar atividade
-          </button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* Period filter */}
+          <div className="flex bg-secondary/60 rounded-xl p-0.5">
+            {(Object.keys(periodLabels) as TimePeriod[]).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  period === p ? "bg-card text-foreground shadow-sm" : "text-muted-foreground"
+                }`}
+              >
+                {periodLabels[p]}
+              </button>
+            ))}
+          </div>
+          {isAdmin && (
+            <button
+              onClick={() => setShowForm(!showForm)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" /> Registrar atividade
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Add activity form */}
@@ -294,16 +382,14 @@ export default function TeamAnalytics() {
             className="ios-card p-4"
           >
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-              <IosDropdown
-                value={formMember}
-                onChange={setFormMember}
-                options={memberNames.map((n) => ({ value: n, label: n }))}
-              />
-              <IosDropdown
-                value={formType}
-                onChange={setFormType}
-                options={activitySuggestions.map((t) => ({ value: t, label: t }))}
-              />
+              <select value={formMember} onChange={(e) => setFormMember(e.target.value)} className="ios-input px-3 py-2 text-sm">
+                <option value="">Selecionar membro</option>
+                {memberNames.map((n) => <option key={n} value={n}>{n}</option>)}
+              </select>
+              <select value={formType} onChange={(e) => setFormType(e.target.value)} className="ios-input px-3 py-2 text-sm">
+                <option value="">Tipo de atividade</option>
+                {activitySuggestions.map((t) => <option key={t} value={t}>{t}</option>)}
+              </select>
               <input
                 type="number"
                 placeholder="Valor"
@@ -332,25 +418,41 @@ export default function TeamAnalytics() {
         )}
       </AnimatePresence>
 
-      {/* Member charts */}
-      {membersWithData.length > 0 ? (
-        <div className="space-y-5">
-          {membersWithData.map((name, i) => (
-            <MemberCharts
-              key={name}
-              memberName={name}
-              activities={byMember[name]}
-              color={MEMBER_COLORS[i % MEMBER_COLORS.length]}
-              delay={i * 0.08}
-            />
-          ))}
+      {/* Member Raio-X cards */}
+      {memberNames.length > 0 ? (
+        <div className="space-y-3">
+          {memberNames.map((name, i) => {
+            const memberTasks = allTasks.filter((t) =>
+              t.assignees.some((a) => a.toLowerCase() === name.toLowerCase()) ||
+              t.roleName === team.find((m) => m.name === name)?.role
+            );
+            const memberActivities = activities.filter((a) => a.member_name === name);
+            const memberComplaints = complaints.filter((c) =>
+              c.assigned_to.toLowerCase().includes(name.toLowerCase())
+            );
+
+            return (
+              <MemberRaioX
+                key={name}
+                memberName={name}
+                color={MEMBER_COLORS[i % MEMBER_COLORS.length]}
+                delay={i * 0.05}
+                tasks={memberTasks}
+                activities={memberActivities}
+                complaints={memberComplaints}
+                isAdmin={isAdmin}
+                period={period}
+                onRemoveComplaint={removeComplaint}
+              />
+            );
+          })}
         </div>
       ) : (
         <div className="ios-card p-10 text-center">
           <Users className="h-12 w-12 mx-auto mb-3 text-muted-foreground/30" />
-          <p className="text-sm text-muted-foreground">Nenhuma atividade registrada</p>
+          <p className="text-sm text-muted-foreground">Nenhum membro registrado</p>
           <p className="text-xs text-muted-foreground mt-1">
-            Registre atividades dos membros para ver gráficos individuais de performance
+            Adicione membros ao time ou registre atividades para ver o Raio-X
           </p>
         </div>
       )}

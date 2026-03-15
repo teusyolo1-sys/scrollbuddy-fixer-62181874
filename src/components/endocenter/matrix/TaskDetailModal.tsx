@@ -1,14 +1,17 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { 
-  AlertTriangle, Calendar, CheckSquare, Clock, Image, Link2, MessageCircle, Paperclip, 
+  AlertTriangle, Calendar, CheckSquare, Clock, Flag, Image, Link2, MessageCircle, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
   ChevronDown, ChevronRight, Settings2, Pencil, ImagePlus
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
 import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } from "@/store/endocenterStore";
 import RichTextEditor, { type RichTextEditorHandle } from "./RichTextEditor";
 import TaskChat from "./TaskChat";
+import { useTaskComplaints } from "@/hooks/useTaskComplaints";
+import { useAuth } from "@/hooks/useAuth";
 
 const priorityOptions = [
   { value: "low" as const, label: "Baixa", color: "hsl(var(--muted-foreground))" },
@@ -29,9 +32,13 @@ interface Props {
   onClose: () => void;
 }
 
+const COMPLAINT_CATEGORIES = ["Qualidade", "Atraso", "Refação", "Comunicação"];
+
 const createId = () => `id_${Math.random().toString(36).slice(2, 10)}`;
 
 export default function TaskDetailModal({ item, roleColor, roleName, teamMembers, onUpdate, onDelete, onClose }: Props) {
+  const { user } = useAuth();
+  const { addComplaint } = useTaskComplaints();
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState(item.task);
   const [description, setDescription] = useState(item.description);
@@ -47,6 +54,10 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
   const [chatBalloonOpen, setChatBalloonOpen] = useState(true);
+  const [showComplaintForm, setShowComplaintForm] = useState(false);
+  const [complaintCategory, setComplaintCategory] = useState(COMPLAINT_CATEGORIES[0]);
+  const [complaintDesc, setComplaintDesc] = useState("");
+  const [submittingComplaint, setSubmittingComplaint] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<RichTextEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
@@ -562,6 +573,50 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     {/* Chat */}
                     <SideSection icon={MessageCircle} label="Chat" defaultOpen>
                       <TaskChat taskId={item.id} taskName={item.task} />
+                    </SideSection>
+
+                    {/* Sinalizar Problema — discreto */}
+                    <SideSection icon={Flag} label="Sinalizar" defaultOpen={false}>
+                      <div className="space-y-2">
+                        <select
+                          value={complaintCategory}
+                          onChange={(e) => setComplaintCategory(e.target.value)}
+                          className="ios-input w-full px-2 py-1.5 text-[11px]"
+                        >
+                          {COMPLAINT_CATEGORIES.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                        <textarea
+                          value={complaintDesc}
+                          onChange={(e) => setComplaintDesc(e.target.value)}
+                          placeholder="Descreva o problema..."
+                          className="ios-input w-full px-2 py-1.5 text-[11px] resize-none"
+                          rows={2}
+                        />
+                        <button
+                          disabled={submittingComplaint || !complaintDesc.trim()}
+                          onClick={async () => {
+                            if (!complaintDesc.trim()) return;
+                            setSubmittingComplaint(true);
+                            try {
+                              const assignedTo = item.assignees.join(", ") || roleName;
+                              await addComplaint(item.id, item.task, assignedTo, roleName, complaintCategory, complaintDesc.trim());
+                              toast.success("Sinalização enviada");
+                              setComplaintDesc("");
+                              setShowComplaintForm(false);
+                            } catch (e: any) {
+                              toast.error("Erro ao sinalizar: " + (e?.message || ""));
+                            } finally {
+                              setSubmittingComplaint(false);
+                            }
+                          }}
+                          className="w-full text-[11px] font-medium px-3 py-2 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                          style={{ borderRadius: "var(--ios-radius-sm)" }}
+                        >
+                          <Flag className="h-3 w-3" /> {submittingComplaint ? "Enviando..." : "Enviar sinalização"}
+                        </button>
+                      </div>
                     </SideSection>
 
                     {/* Footer actions */}

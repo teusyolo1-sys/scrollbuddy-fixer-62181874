@@ -149,6 +149,7 @@ export interface ResponsibilityItem {
   timerSeconds: number;
   timerRunning: boolean;
   createdAt: string;
+  completedAt: string;
   cover: string;
 }
 
@@ -289,13 +290,14 @@ const createRespItem = (task: string, critical: boolean): ResponsibilityItem => 
   timerSeconds: 0,
   timerRunning: false,
   createdAt: new Date().toISOString(),
+  completedAt: "",
   cover: "",
 });
 
 const hydrateRespItem = (item: any): ResponsibilityItem => ({
   description: "", labels: [], dueDate: "", priority: item.critical ? "high" : "medium",
   assignees: [], checklist: [], attachments: [], timerSeconds: 0, timerRunning: false,
-  createdAt: new Date().toISOString(), cover: "",
+  createdAt: new Date().toISOString(), completedAt: "", cover: "",
   ...item,
 });
 
@@ -1033,7 +1035,17 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
         role.id === roleId
           ? {
               ...role,
-              [list]: role[list].map((item) => (item.id === itemId ? { ...item, ...updates } : item)),
+              [list]: role[list].map((item) => {
+                if (item.id !== itemId) return item;
+                const merged = { ...item, ...updates };
+                // Auto-populate completedAt when done is toggled
+                if (updates.done === true && !item.completedAt) {
+                  merged.completedAt = new Date().toISOString();
+                } else if (updates.done === false) {
+                  merged.completedAt = "";
+                }
+                return merged;
+              }),
             }
           : role
       )
