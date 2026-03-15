@@ -172,7 +172,7 @@ export default function LobbyPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: companies.length * 0.08, type: "spring", damping: 22 }}
             onClick={addCompany}
-            className="ios-glass border border-white/30 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group"
+            className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group"
             style={{ boxShadow: "none" }}
           >
             <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
