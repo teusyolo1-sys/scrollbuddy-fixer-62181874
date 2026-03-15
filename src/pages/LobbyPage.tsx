@@ -71,7 +71,30 @@ export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const [companies, setCompanies] = useState<CompanyCard[]>(loadCompanies);
+  const [allowedCompanyIds, setAllowedCompanyIds] = useState<string[] | null>(null);
   const navigate = useNavigate();
+
+  // Fetch company permissions for non-admin users
+  useEffect(() => {
+    if (!user || isAdmin) {
+      setAllowedCompanyIds(null); // admin sees all
+      return;
+    }
+    const fetchPerms = async () => {
+      const { data } = await supabase
+        .from('company_permissions')
+        .select('company_id, granted')
+        .eq('user_id', user.id)
+        .eq('granted', true) as { data: { company_id: string; granted: boolean }[] | null };
+      setAllowedCompanyIds((data || []).map(d => d.company_id));
+    };
+    fetchPerms();
+  }, [user, isAdmin]);
+
+  const visibleCompanies = useMemo(() => {
+    if (isAdmin || allowedCompanyIds === null) return companies;
+    return companies.filter(c => allowedCompanyIds.includes(c.id));
+  }, [companies, allowedCompanyIds, isAdmin]);
 
   // Redirect to auth if not logged in
   if (!authLoading && !user) {
