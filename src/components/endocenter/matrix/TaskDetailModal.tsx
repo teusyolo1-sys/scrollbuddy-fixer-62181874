@@ -402,7 +402,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Labels */}
-                    <SideSection icon={Tag} label="Etiquetas">
+                    <SideSection icon={Tag} label="Etiquetas" defaultOpen={item.labels.length > 0}>
                       <div className="flex flex-wrap gap-1">
                         {item.labels.map((l) => (
                           <span key={l.id} className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-1 rounded-full text-white cursor-pointer hover:opacity-80" style={{ backgroundColor: l.color }} onClick={() => handleRemoveLabel(l.id)}>
