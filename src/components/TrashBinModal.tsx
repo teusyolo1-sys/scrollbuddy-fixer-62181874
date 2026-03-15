@@ -76,7 +76,12 @@ export default function TrashBinModal({ open, onClose }: Props) {
           return;
         }
       }
-      await supabase.from("trash_bin" as any).delete().eq("id", item.id);
+      const { error: deleteError } = await supabase.from("trash_bin" as any).delete().eq("id", item.id);
+      if (deleteError) {
+        toast({ title: "Erro ao remover da lixeira", description: deleteError.message, variant: "destructive" });
+        setDeletingId(null);
+        return;
+      }
       setItems((prev) => prev.filter((i) => i.id !== item.id));
       toast({ title: "Item restaurado com sucesso" });
     } catch {
