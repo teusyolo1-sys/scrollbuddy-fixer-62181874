@@ -414,6 +414,39 @@ export type Database = {
         }
         Relationships: []
       }
+      tab_section_permissions: {
+        Row: {
+          can_edit: boolean
+          can_view: boolean
+          created_at: string
+          granted_by: string | null
+          id: string
+          section_key: string
+          tab_key: string
+          user_id: string
+        }
+        Insert: {
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          section_key: string
+          tab_key: string
+          user_id: string
+        }
+        Update: {
+          can_edit?: boolean
+          can_view?: boolean
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          section_key?: string
+          tab_key?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       task_complaints: {
         Row: {
           assigned_to: string
