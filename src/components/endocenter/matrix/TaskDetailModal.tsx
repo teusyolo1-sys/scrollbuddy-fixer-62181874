@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Image, Link2, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
