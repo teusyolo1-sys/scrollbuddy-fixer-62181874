@@ -101,6 +101,7 @@ export default function SettingsDialog({ open, onClose }: Props) {
                   {tab === "team" && <TeamSettingsTab />}
                   {tab === "records" && <RecordsSettingsTab />}
                   {tab === "metrics" && <MetricsSettingsTab />}
+                  {tab === "goals" && <GoalsSettingsTab />}
                 </motion.div>
               </AnimatePresence>
             </div>
