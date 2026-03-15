@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback, useRef } from "react";
 import {
   Plus, Trash2, ChevronDown, Loader2,
   ArrowUpRight, ArrowDownRight, TrendingUp,
@@ -8,8 +8,12 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart, Bar, ResponsiveContainer, CartesianGrid,
-  PieChart as RPieChart, Pie, Cell
+  PieChart as RPieChart, Pie, Cell,
+  AreaChart, Area, LineChart, Line,
+  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  ComposedChart, XAxis, YAxis, Tooltip
 } from "recharts";
+import { CHART_STYLES, type ChartStyle, ChartStyleMenuItem } from "./ChartStylePicker";
 import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -278,6 +282,10 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
 
 /* ── Legend + Stacked Bar (right column center) ── */
 function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
+  const [chartStyle, setChartStyle] = useState<ChartStyle>("column");
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
   const legendItems = [
     { label: "Fornce Fortes", color: "#3B82F6" },
     { label: "Produced Funds", color: "#10B981" },
@@ -286,7 +294,6 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
     { label: "Other", color: "#EF4444" },
   ];
 
-  // Generate monthly stacked data (last 6 months)
   const chartData = useMemo(() => {
     const months: { name: string; [key: string]: number | string }[] = [];
     const now = new Date();
@@ -307,6 +314,107 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
 
   const catColors = categories.map(c => ({ name: categoryConfig[c].label, color: categoryConfig[c].color }));
 
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setCtxMenu({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  const closeMenu = useCallback(() => setCtxMenu(null), []);
+
+  // Flatten data for pie/radar
+  const pieData = useMemo(() => catColors.map(c => ({
+    name: c.name,
+    value: chartData.reduce((s, row) => s + ((row[c.name] as number) || 0), 0),
+    color: c.color,
+  })).filter(d => d.value > 0), [chartData, catColors]);
+
+  const renderChart = () => {
+    const h = 110;
+    switch (chartStyle) {
+      case "line":
+        return (
+          <ResponsiveContainer width="100%" height={h}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+              {catColors.map((d, i) => (
+                <Line key={i} type="monotone" dataKey={d.name} stroke={d.color} strokeWidth={2} dot={false} />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        );
+      case "area":
+        return (
+          <ResponsiveContainer width="100%" height={h}>
+            <AreaChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+              {catColors.map((d, i) => (
+                <Area key={i} type="monotone" dataKey={d.name} stroke={d.color} fill={d.color} fillOpacity={0.2} strokeWidth={2} />
+              ))}
+            </AreaChart>
+          </ResponsiveContainer>
+        );
+      case "bar":
+        return (
+          <ResponsiveContainer width="100%" height={h}>
+            <BarChart data={chartData} layout="vertical" barSize={10}>
+              <XAxis type="number" hide />
+              <YAxis type="category" dataKey="name" hide />
+              {catColors.map((d, i) => (
+                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85} radius={[0, 4, 4, 0]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        );
+      case "pie":
+        return (
+          <ResponsiveContainer width="100%" height={h}>
+            <RPieChart>
+              <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={20} outerRadius={45} stroke="none">
+                {pieData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
+              </Pie>
+            </RPieChart>
+          </ResponsiveContainer>
+        );
+      case "radar":
+        return (
+          <ResponsiveContainer width="100%" height={h}>
+            <RadarChart data={pieData} cx="50%" cy="50%" outerRadius={38}>
+              <PolarGrid stroke="hsl(var(--border))" />
+              <PolarAngleAxis dataKey="name" tick={{ fontSize: 7 }} />
+              <Radar dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
+            </RadarChart>
+          </ResponsiveContainer>
+        );
+      case "pareto":
+        return (
+          <ResponsiveContainer width="100%" height={h}>
+            <ComposedChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+              {catColors.map((d, i) => (
+                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} barSize={20} radius={[3, 3, 0, 0]} />
+              ))}
+            </ComposedChart>
+          </ResponsiveContainer>
+        );
+      default: // column
+        return (
+          <ResponsiveContainer width="100%" height={h}>
+            <BarChart data={chartData} barSize={16} barGap={2}>
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
+              {catColors.map((d, i) => (
+                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85}
+                  radius={i === catColors.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        );
+    }
+  };
+
+  // Supported styles for this chart
+  const supportedStyles: ChartStyle[] = ["column", "bar", "line", "area", "pie", "radar", "pareto"];
+  const filteredStyles = CHART_STYLES.filter(s => supportedStyles.includes(s.key));
+
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
       className={`${gc} p-4`}>
@@ -320,19 +428,36 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
             </div>
           ))}
         </div>
-        {/* Stacked bars */}
-        <div className="flex-1 min-w-0">
-          <ResponsiveContainer width="100%" height={110}>
-            <BarChart data={chartData} barSize={16} barGap={2}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85}
-                  radius={i === catColors.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
+        {/* Chart with context menu */}
+        <div className="flex-1 min-w-0" onContextMenu={handleContextMenu}>
+          {renderChart()}
         </div>
       </div>
+
+      {/* Context menu */}
+      {ctxMenu && (
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={closeMenu} onContextMenu={(e) => { e.preventDefault(); closeMenu(); }} />
+          <div
+            ref={menuRef}
+            className="fixed z-[9999] bg-card border border-border/60 rounded-xl shadow-xl py-1.5 px-1 min-w-[200px] backdrop-blur-xl"
+            style={{
+              left: Math.min(ctxMenu.x, window.innerWidth - 220),
+              top: Math.min(ctxMenu.y, window.innerHeight - 400),
+            }}
+          >
+            <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Estilo do Gráfico</div>
+            {filteredStyles.map(config => (
+              <ChartStyleMenuItem
+                key={config.key}
+                config={config}
+                isActive={chartStyle === config.key}
+                onSelect={() => { setChartStyle(config.key); closeMenu(); }}
+              />
+            ))}
+          </div>
+        </>
+      )}
     </motion.div>
   );
 }
