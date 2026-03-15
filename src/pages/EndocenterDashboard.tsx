@@ -57,15 +57,38 @@ function DashboardContent() {
               </div>
             </div>
 
-            <motion.button
-              whileTap={{ scale: 0.88, rotate: 90 }}
-              transition={{ type: "spring", stiffness: 500, damping: 15 }}
-              onClick={() => setSettingsOpen(true)}
-              className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
-              title="Configurações"
-            >
-              <Settings className="h-4 w-4 text-white/80" />
-            </motion.button>
+            <div className="flex items-center gap-2">
+              <motion.button
+                whileTap={{ scale: 0.88 }}
+                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                title={resolvedTheme === "dark" ? "Modo claro" : "Modo escuro"}
+              >
+                <motion.div
+                  key={resolvedTheme}
+                  initial={{ rotate: -90, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  transition={{ type: "spring", damping: 15, stiffness: 300 }}
+                >
+                  {resolvedTheme === "dark" ? (
+                    <Sun className="h-4 w-4 text-yellow-400" />
+                  ) : (
+                    <Moon className="h-4 w-4 text-white/80" />
+                  )}
+                </motion.div>
+              </motion.button>
+
+              <motion.button
+                whileTap={{ scale: 0.88, rotate: 90 }}
+                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                onClick={() => setSettingsOpen(true)}
+                className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                title="Configurações"
+              >
+                <Settings className="h-4 w-4 text-white/80" />
+              </motion.button>
+            </div>
           </div>
 
           {/* Navigation tabs — pill style */}
