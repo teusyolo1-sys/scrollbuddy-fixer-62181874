@@ -304,6 +304,10 @@
     box-shadow: var(--ios-shadow-xl);
   }
 
+  .dark .ios-card-interactive:hover {
+    border-color: hsl(var(--primary) / 0.2);
+  }
+
   .ios-card-interactive:active {
     transform: scale(0.98);
     box-shadow: var(--ios-shadow-subtle);
