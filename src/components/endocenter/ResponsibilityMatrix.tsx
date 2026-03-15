@@ -367,10 +367,10 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
                 <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md shrink-0">{col.items.length}</span>
               </div>
 
-              {/* Add task button */}
-              <button onClick={onAdd} className="p-1.5 rounded-lg text-primary hover:bg-primary/10 transition-colors" title="Nova tarefa">
-                <Plus className="h-3.5 w-3.5" />
-              </button>
+              {/* Grip handle - only on hover */}
+              <div className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary" title="Arrastar coluna">
+                <GripVertical className="h-3.5 w-3.5" />
+              </div>
 
               {/* 3-dot menu with all actions */}
               <div className="relative" ref={menuCol === col.key ? menuRef : undefined}>
