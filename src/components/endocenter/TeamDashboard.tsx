@@ -424,25 +424,34 @@ function MemberCard({ member, index, isExpanded, onToggle, showFinancials = true
 }
 
 /* ── Profile Modal ── */
-function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void }) {
+function ProfileModal({ member, onClose, isAdmin = false }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean }) {
   const { updateMember } = useEndocenter();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ ...member });
   const hourlyRate = form.hours > 0 ? form.remuneration / form.hours : 0;
 
   const handleSave = () => {
-    updateMember(member.id, {
-      name: form.name,
-      role: form.role,
-      specialty: form.specialty,
-      remuneration: form.remuneration,
-      hours: form.hours,
-      color: form.color,
-      status: form.status,
-      caseNotes: form.caseNotes,
-      tasks: form.tasks,
-      kpis: form.kpis,
-    });
+    if (isAdmin) {
+      updateMember(member.id, {
+        name: form.name,
+        role: form.role,
+        specialty: form.specialty,
+        remuneration: form.remuneration,
+        hours: form.hours,
+        color: form.color,
+        status: form.status,
+        caseNotes: form.caseNotes,
+        tasks: form.tasks,
+        kpis: form.kpis,
+      });
+    } else {
+      // Non-admin can only update personal data
+      updateMember(member.id, {
+        name: form.name,
+        specialty: form.specialty,
+        caseNotes: form.caseNotes,
+      });
+    }
     setEditing(false);
   };
 
