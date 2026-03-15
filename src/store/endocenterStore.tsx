@@ -958,10 +958,7 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
     setResponsibilityRolesState((prev) =>
       prev.map((role) =>
         role.id === roleId
-          ? {
-              ...role,
-              [list]: [...role[list], { id: createId("resp"), task: "Novo item", done: false, critical: false }],
-            }
+          ? { ...role, [list]: [...role[list], createRespItem("Novo item", false)] }
           : role
       )
     );
