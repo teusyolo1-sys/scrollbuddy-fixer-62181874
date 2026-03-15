@@ -190,6 +190,48 @@ export type Database = {
         }
         Relationships: []
       }
+      companies: {
+        Row: {
+          banner_url: string | null
+          color: string
+          company_data: Json
+          created_at: string
+          created_by: string
+          id: string
+          logo_url: string | null
+          month: string
+          name: string
+          subtitle: string
+          updated_at: string
+        }
+        Insert: {
+          banner_url?: string | null
+          color?: string
+          company_data?: Json
+          created_at?: string
+          created_by: string
+          id?: string
+          logo_url?: string | null
+          month?: string
+          name?: string
+          subtitle?: string
+          updated_at?: string
+        }
+        Update: {
+          banner_url?: string | null
+          color?: string
+          company_data?: Json
+          created_at?: string
+          created_by?: string
+          id?: string
+          logo_url?: string | null
+          month?: string
+          name?: string
+          subtitle?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       company_permissions: {
         Row: {
           company_id: string
