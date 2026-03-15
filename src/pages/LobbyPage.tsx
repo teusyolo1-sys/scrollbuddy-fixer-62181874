@@ -338,7 +338,7 @@ export default function LobbyPage() {
       {/* Company cards grid */}
       <div className="relative max-w-5xl mx-auto px-6 -mt-4 pb-20">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {visibleCompanies.map((company, i) => (
+          {companies.map((company, i) => (
             <CompanyCardItem
               key={company.id}
               company={company}
