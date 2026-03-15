@@ -116,7 +116,7 @@ export default function TeamDashboard() {
             const pct = metric.target > 0 ? Math.min(100, Math.round((metric.value / metric.target) * 100)) : 0;
             return (
               <motion.div
-                key={metric.id}
+                key={animKey}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={bouncy}
