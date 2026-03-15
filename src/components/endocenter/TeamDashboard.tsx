@@ -472,6 +472,8 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
   const [password, setPassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const deleteRef = useRef<HTMLDivElement>(null);
+
   const hourlyRate = form.hours > 0 ? form.remuneration / form.hours : 0;
 
   const handleSave = () => {
