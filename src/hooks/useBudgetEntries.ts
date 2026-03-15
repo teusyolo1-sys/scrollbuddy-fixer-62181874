@@ -96,7 +96,7 @@ export const useBudgetEntries = () => {
     }
   };
 
-  const updateEntry = async (id: string, updates: Partial<Pick<BudgetEntry, 'description' | 'amount' | 'date' | 'notes'>>) => {
+  const updateEntry = async (id: string, updates: Partial<Pick<BudgetEntry, 'description' | 'amount' | 'date' | 'notes' | 'agency_fee' | 'agency_fee_type' | 'company_id'>>) => {
     await supabase.from('budget_entries').update(updates).eq('id', id);
     setEntries(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
   };
