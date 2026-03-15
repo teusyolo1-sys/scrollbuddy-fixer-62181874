@@ -1,9 +1,10 @@
 import { useState, useMemo, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Plus, Trash2, ChevronDown, Loader2,
   ArrowUpRight, ArrowDownRight, TrendingUp,
   BarChart3, PieChart, FileText, CalendarDays,
-  ChevronLeft, ChevronRight, X
+  ChevronLeft, ChevronRight, X, Pencil, Maximize2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
