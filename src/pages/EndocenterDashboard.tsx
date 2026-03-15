@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Moon, RefreshCw, Rocket, Settings, Shield, Sun, Users } from "lucide-react";
 import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { EndocenterProvider, useEndocenter, defaultTabLabels } from "@/store/endocenterStore";
 import { useTheme } from "@/hooks/useTheme";
 import { useTabPermissions, type TabKey } from "@/hooks/useTabPermissions";
