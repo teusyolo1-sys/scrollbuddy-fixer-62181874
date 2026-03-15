@@ -271,6 +271,7 @@ interface EndocenterStore {
   removeBudgetEntry: (id: string) => void;
 }
 
+const getStorageKey = (companyId?: string) => companyId ? `endocenter_${companyId}` : "endocenter_settings";
 const STORAGE_KEY = "endocenter_settings";
 
 const createId = (prefix: string) => `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
