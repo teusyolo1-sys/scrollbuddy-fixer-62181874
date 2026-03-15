@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Columns3, LayoutList, Plus, Search, ChevronLeft, ChevronRight, GripVertical, Trash2, Pencil, MoreVertical } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNotificationStore } from "@/store/notificationStore";
