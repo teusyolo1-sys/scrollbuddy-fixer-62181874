@@ -1,23 +1,25 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { BarChart3, Building2, Settings, Users, X } from "lucide-react";
+import { BarChart3, Building2, Settings, Target, Users, X } from "lucide-react";
 import CompanySettingsTab from "@/components/endocenter/settings/CompanySettingsTab";
 import TeamSettingsTab from "@/components/endocenter/settings/TeamSettingsTab";
 import RecordsSettingsTab from "@/components/endocenter/settings/RecordsSettingsTab";
 import MetricsSettingsTab from "@/components/endocenter/settings/MetricsSettingsTab";
+import GoalsSettingsTab from "@/components/endocenter/settings/GoalsSettingsTab";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-type TabId = "company" | "team" | "records" | "metrics";
+type TabId = "company" | "team" | "records" | "metrics" | "goals";
 
 const tabs: { id: TabId; label: string; icon: typeof Settings }[] = [
   { id: "company", label: "Empresa", icon: Building2 },
   { id: "team", label: "Equipe", icon: Users },
   { id: "records", label: "Registros", icon: Settings },
   { id: "metrics", label: "Métricas", icon: BarChart3 },
+  { id: "goals", label: "Metas", icon: Target },
 ];
 
 export default function SettingsDialog({ open, onClose }: Props) {
