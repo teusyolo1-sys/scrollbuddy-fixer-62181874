@@ -379,7 +379,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Assignees */}
-                    <SideSection icon={Users} label="Responsáveis">
+                    <SideSection icon={Users} label="Responsáveis" defaultOpen={item.assignees.length > 0}>
                       <div className="flex flex-wrap gap-1.5">
                         {item.assignees.map((name) => (
                           <span key={name} onClick={() => handleRemoveAssignee(name)} className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1 rounded-full bg-primary/10 text-primary cursor-pointer hover:bg-primary/20">
