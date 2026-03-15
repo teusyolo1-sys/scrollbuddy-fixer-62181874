@@ -111,14 +111,49 @@ export default function MasterSchedule() {
           <p className="text-sm text-muted-foreground mt-0.5">Distribuição detalhada de tarefas por profissional</p>
         </div>
 
-        <button
-          onClick={() => setEditMode((current) => !current)}
-          className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
-            editMode ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
-          }`}
-        >
-          {editMode ? "Finalizar edição" : "Editar cronograma"}
-        </button>
+        <div className="flex items-center gap-3">
+          {/* Calendar counter */}
+          <div className="ios-card px-4 py-2.5 flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex flex-col items-center justify-center">
+                <span className="text-[8px] font-bold text-primary uppercase leading-none">
+                  {now.toLocaleDateString("pt-BR", { month: "short" }).replace(".", "")}
+                </span>
+                <span className="text-sm font-extrabold text-primary leading-tight">
+                  {now.getDate()}
+                </span>
+              </div>
+              <div>
+                <p className="text-xs font-semibold text-foreground">
+                  {now.toLocaleDateString("pt-BR", { weekday: "long" })}
+                </p>
+                <p className="text-[10px] text-muted-foreground">
+                  Dia {now.getDate()} de {new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate()}
+                </p>
+              </div>
+            </div>
+            <div className="w-20">
+              <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                <motion.div
+                  className="h-full rounded-full bg-primary"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${monthProgress}%` }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                />
+              </div>
+              <p className="text-[9px] text-muted-foreground text-center mt-0.5">{monthProgress}% do mês</p>
+            </div>
+          </div>
+
+          <button
+            onClick={() => setEditMode((current) => !current)}
+            className={`rounded-xl px-4 py-2 text-xs font-semibold transition-all ${
+              editMode ? "bg-primary text-primary-foreground" : "bg-secondary text-secondary-foreground"
+            }`}
+          >
+            {editMode ? "Finalizar edição" : "Editar cronograma"}
+          </button>
+        </div>
       </div>
 
       {/* Week selector — colorful active cards */}
