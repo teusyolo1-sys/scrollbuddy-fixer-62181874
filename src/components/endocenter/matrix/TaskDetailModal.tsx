@@ -37,6 +37,8 @@ const COMPLAINT_CATEGORIES = ["Qualidade", "Atraso", "Refação", "Comunicação
 const createId = () => `id_${Math.random().toString(36).slice(2, 10)}`;
 
 export default function TaskDetailModal({ item, roleColor, roleName, teamMembers, onUpdate, onDelete, onClose }: Props) {
+  const { user } = useAuth();
+  const { addComplaint } = useTaskComplaints();
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState(item.task);
   const [description, setDescription] = useState(item.description);
@@ -52,6 +54,10 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
   const [chatBalloonOpen, setChatBalloonOpen] = useState(true);
+  const [showComplaintForm, setShowComplaintForm] = useState(false);
+  const [complaintCategory, setComplaintCategory] = useState(COMPLAINT_CATEGORIES[0]);
+  const [complaintDesc, setComplaintDesc] = useState("");
+  const [submittingComplaint, setSubmittingComplaint] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<RichTextEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
