@@ -208,6 +208,7 @@ const defaultCompany: CompanyInfo = {
   name: "Endocenter",
   subtitle: "Gestão operacional de marketing",
   month: "Março 2025",
+  createdAt: new Date().toISOString(),
 };
 
 const defaultTeam: TeamMember[] = [
