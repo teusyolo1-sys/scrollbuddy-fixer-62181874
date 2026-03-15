@@ -369,12 +369,11 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             </div>
 
             {/* Sidebar — iOS 26 floating balloon panel */}
+            {sidebarOpen && (
             <div
-              className="absolute right-3 top-14 bottom-3 z-20 transition-all duration-300 ease-out overflow-hidden pointer-events-none"
+              className="absolute right-3 top-14 bottom-3 z-20 transition-all duration-300 ease-out overflow-hidden"
               style={{
-                width: sidebarOpen ? 300 : 0,
-                opacity: sidebarOpen ? 1 : 0,
-                transform: sidebarOpen ? "translateX(0) scale(1)" : "translateX(12px) scale(0.96)",
+                width: 300,
               }}
             >
               <div
