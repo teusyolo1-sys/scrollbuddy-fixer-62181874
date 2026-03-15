@@ -97,8 +97,7 @@ function UserProfilePanel({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center"
-      style={{ background: "rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}
+      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center ios-modal-overlay"
       onClick={onClose}
     >
       <motion.div
@@ -107,10 +106,9 @@ function UserProfilePanel({
         exit={{ y: 30, opacity: 0, scale: 0.98 }}
         transition={{ type: "spring", damping: 28, stiffness: 380 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col bg-card border border-border/50"
+        className="w-full sm:max-w-lg max-h-[90vh] overflow-hidden flex flex-col ios-modal-surface"
         style={{
           borderRadius: "var(--ios-radius-2xl, 28px) var(--ios-radius-2xl, 28px) 0 0",
-          boxShadow: "0 -8px 60px rgba(0,0,0,0.25)",
         }}
       >
         {/* Grab handle mobile */}

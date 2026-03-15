@@ -190,8 +190,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[100] flex items-center justify-center p-4"
-        style={{ background: "rgba(0,0,0,0.6)", backdropFilter: "blur(10px)" }}
+        className="fixed inset-0 z-[100] flex items-center justify-center p-4 ios-modal-overlay"
         onClick={onClose}
       >
         {/* Main modal + chat balloon wrapper */}
@@ -201,7 +200,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: 20, scale: 0.97 }}
           transition={{ type: "spring", damping: 30, stiffness: 400 }}
-          className="rounded-3xl bg-card border border-border/50 overflow-hidden flex flex-col transition-[max-width,height] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
+          className="rounded-3xl ios-modal-surface overflow-hidden flex flex-col transition-[max-width,height] duration-500 ease-[cubic-bezier(0.25,1,0.5,1)]"
           style={{ 
             boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
             maxWidth: editingDescription ? "80rem" : "28rem",
