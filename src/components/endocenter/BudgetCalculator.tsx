@@ -112,7 +112,7 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
             <input type="number" className="w-full bg-transparent text-xs font-bold text-right outline-none border-b border-border/30 focus:border-primary/40 transition-colors py-1" value={entry.amount || ""} onChange={(e) => onUpdate(entry.id, { amount: Number(e.target.value) })} placeholder="0,00" style={{ color: config.color }} />
           </div>
           <div className="w-20">
-            <input type="date" className="w-full bg-transparent text-[10px] text-muted-foreground outline-none text-center" value={entry.date} onChange={(e) => onUpdate(entry.id, { date: e.target.value })} />
+            <input type="date" className="w-full bg-transparent text-[10px] text-muted-foreground outline-none text-center border-b border-border/30 focus:border-primary/40 transition-colors py-1" value={entry.date} onChange={(e) => onUpdate(entry.id, { date: e.target.value })} />
           </div>
           <button onClick={() => onRemove(entry.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-destructive/30 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100">
             <Trash2 className="h-3 w-3" />
