@@ -96,52 +96,53 @@ function IosDropdown({ value, onChange, options }: {
   );
 }
 
-/* ── Render chart by style ── */
-function RenderChart({ style, data, color, type }: {
+/* ── Render chart by style (inside ResponsiveContainer) ── */
+function ChartByStyle({ style, data, color, type }: {
   style: ChartStyle;
   data: { name: string; value: number }[];
   color: string;
   type: string;
 }) {
   const cfg = METRIC_CONFIG[type as MetricType];
-  const gradientId = `grad-${type}-${style}`;
+  const gradientId = `grad-${type}-${style}-${Math.random().toString(36).slice(2, 6)}`;
+  const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 };
+  const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))" };
+  const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
 
-  if (style === "area") {
-    return (
-      <AreaChart data={data}>
-        <defs>
-          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={color} stopOpacity={0.3} />
-            <stop offset="95%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-        <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
-        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type]} />
-        <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} />
-      </AreaChart>
-    );
-  }
-  if (style === "bar") {
-    return (
-      <BarChart data={data} barSize={16}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-        <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-        <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
-        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type]} />
-        <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
-      </BarChart>
-    );
-  }
   return (
-    <LineChart data={data}>
-      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-      <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
-      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type]} />
-      <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ r: 3, fill: color }} activeDot={{ r: 5 }} />
-    </LineChart>
+    <ResponsiveContainer width="100%" height={160}>
+      {style === "area" ? (
+        <AreaChart data={data}>
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+          <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
+          <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+          <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+          <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} />
+        </AreaChart>
+      ) : style === "bar" ? (
+        <BarChart data={data} barSize={16}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+          <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
+          <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+          <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+          <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
+        </BarChart>
+      ) : (
+        <LineChart data={data}>
+          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+          <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
+          <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+          <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+          <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ r: 3, fill: color }} activeDot={{ r: 5 }} />
+        </LineChart>
+      )}
+    </ResponsiveContainer>
   );
 }
 
