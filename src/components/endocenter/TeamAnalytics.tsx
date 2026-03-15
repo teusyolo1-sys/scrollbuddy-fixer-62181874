@@ -6,6 +6,7 @@ import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
+import { toast } from "sonner";
 import { useTeamActivities } from "@/hooks/useTeamActivities";
 import { useEndocenter } from "@/store/endocenterStore";
 import { useAuth } from "@/hooks/useAuth";
