@@ -449,4 +449,3 @@ function ProfileModal({ member, onClose }: { member: ReturnType<typeof useEndoce
     </motion.div>
   );
 }
-}
