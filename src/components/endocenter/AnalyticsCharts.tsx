@@ -1,6 +1,6 @@
-import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { useMemo, useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -12,6 +12,9 @@ import {
   ContextMenuItem,
   ContextMenuLabel,
   ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubTrigger,
+  ContextMenuSubContent,
 } from "@/components/ui/context-menu";
 import { useClientMetrics, METRIC_CONFIG, METRIC_TYPES, type MetricType } from "@/hooks/useClientMetrics";
 import { useAuth } from "@/hooks/useAuth";
@@ -33,6 +36,34 @@ const CHART_STYLE_LABELS: Record<ChartStyle, string> = {
   bar: "📊 Barras",
   line: "📉 Linha",
 };
+
+/* ── Color Palettes ── */
+interface ColorPalette {
+  name: string;
+  colors: string[];
+}
+
+const COLOR_PALETTES: ColorPalette[] = [
+  { name: "Oceano", colors: ["#0ea5e9", "#06b6d4", "#14b8a6", "#10b981", "#22c55e", "#84cc16"] },
+  { name: "Sunset", colors: ["#f43f5e", "#f97316", "#f59e0b", "#eab308", "#ec4899", "#a855f7"] },
+  { name: "Neon", colors: ["#06ffa5", "#00d4ff", "#a855f7", "#f43f5e", "#facc15", "#22d3ee"] },
+  { name: "Pastéis", colors: ["#93c5fd", "#c4b5fd", "#f9a8d4", "#fca5a5", "#fcd34d", "#86efac"] },
+  { name: "Floresta", colors: ["#166534", "#15803d", "#4d7c0f", "#a16207", "#92400e", "#065f46"] },
+  { name: "Corporativo", colors: ["#1e40af", "#4338ca", "#6d28d9", "#be185d", "#0f766e", "#b45309"] },
+  { name: "Candy", colors: ["#ec4899", "#f472b6", "#c084fc", "#818cf8", "#38bdf8", "#34d399"] },
+  { name: "Monocromático", colors: ["#1e293b", "#334155", "#475569", "#64748b", "#94a3b8", "#cbd5e1"] },
+];
+
+/* Palette preview swatch row */
+function PaletteSwatches({ colors }: { colors: string[] }) {
+  return (
+    <div className="flex gap-0.5">
+      {colors.slice(0, 6).map((c, i) => (
+        <span key={i} className="w-3 h-3 rounded-sm" style={{ backgroundColor: c }} />
+      ))}
+    </div>
+  );
+}
 
 /* ── iOS 26 Custom Dropdown ── */
 function IosDropdown({ value, onChange, options }: {
@@ -96,7 +127,7 @@ function IosDropdown({ value, onChange, options }: {
   );
 }
 
-/* ── Render chart by style (inside ResponsiveContainer) ── */
+/* ── Chart renderer ── */
 function ChartByStyle({ style, data, color, type }: {
   style: ChartStyle;
   data: { name: string; value: number }[];
@@ -104,7 +135,7 @@ function ChartByStyle({ style, data, color, type }: {
   type: string;
 }) {
   const cfg = METRIC_CONFIG[type as MetricType];
-  const gradientId = `grad-${type}-${style}-${Math.random().toString(36).slice(2, 6)}`;
+  const gradientId = `grad-${type}-${style}-${color.replace("#", "")}`;
   const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 };
   const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))" };
   const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
@@ -147,13 +178,15 @@ function ChartByStyle({ style, data, color, type }: {
 }
 
 /* ── Individual Metric Chart Card with Context Menu ── */
-function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo }: {
+function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange }: {
   type: MetricType;
   data: { name: string; value: number }[];
   delay: number;
   chartStyle: ChartStyle;
   onStyleChange: (style: ChartStyle) => void;
   relatedInfo?: string;
+  color: string;
+  onColorChange: (color: string) => void;
 }) {
   const cfg = METRIC_CONFIG[type];
   const Icon = ICONS[type];
@@ -175,13 +208,13 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
           {/* Header */}
           <div className="flex items-center justify-between mb-1">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${cfg.color}15` }}>
-                <Icon className="h-4 w-4" style={{ color: cfg.color }} />
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}15` }}>
+                <Icon className="h-4 w-4" style={{ color }} />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-foreground">{cfg.label}</h4>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-extrabold" style={{ color: cfg.color }}>{cfg.format(latest)}</span>
+                  <span className="text-lg font-extrabold" style={{ color }}>{cfg.format(latest)}</span>
                   {change !== 0 && (
                     <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${change > 0 ? "text-green-500" : "text-red-500"}`}>
                       {change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -193,23 +226,20 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
             </div>
           </div>
 
-          {/* Related info */}
           {relatedInfo && (
             <div className="mb-2 px-2 py-1 rounded-lg bg-secondary/40 text-[10px] font-medium text-muted-foreground">
               {relatedInfo}
             </div>
           )}
 
-          {/* Chart */}
-          <ChartByStyle style={chartStyle} data={data} color={cfg.color} type={type} />
+          <ChartByStyle style={chartStyle} data={data} color={color} type={type} />
 
-          {/* Style indicator */}
           <div className="mt-2 text-[10px] text-muted-foreground/50 text-right">
             Clique direito para alterar estilo
           </div>
         </motion.div>
       </ContextMenuTrigger>
-      <ContextMenuContent className="w-48">
+      <ContextMenuContent className="w-56">
         <ContextMenuLabel>Estilo do gráfico</ContextMenuLabel>
         <ContextMenuSeparator />
         {(Object.keys(CHART_STYLE_LABELS) as ChartStyle[]).map((s) => (
@@ -224,14 +254,40 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
             </span>
           </ContextMenuItem>
         ))}
+        <ContextMenuSeparator />
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <Palette className="h-3.5 w-3.5 mr-2" />
+            Paleta de Cores
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-52">
+            {COLOR_PALETTES.map((palette) => {
+              const idx = METRIC_TYPES.indexOf(type) % palette.colors.length;
+              const paletteColor = palette.colors[idx];
+              return (
+                <ContextMenuItem
+                  key={palette.name}
+                  onClick={() => onColorChange(paletteColor)}
+                  className="flex items-center gap-2"
+                >
+                  <PaletteSwatches colors={palette.colors} />
+                  <span className="text-xs font-medium">{palette.name}</span>
+                  {color === paletteColor && <Check className="h-3 w-3 ml-auto text-primary" />}
+                </ContextMenuItem>
+              );
+            })}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
       </ContextMenuContent>
     </ContextMenu>
   );
 }
 
-/* ── Funnel visualization ── */
-function ConversionFunnel({ data }: {
+/* ── Funnel visualization with context menu ── */
+function ConversionFunnel({ data, colorOverrides, onApplyPalette }: {
   data: Record<MetricType, { name: string; value: number }[]>;
+  colorOverrides: Record<string, string>;
+  onApplyPalette: (palette: ColorPalette) => void;
 }) {
   const funnelSteps: { type: MetricType; label: string }[] = [
     { type: "alcance", label: "Alcance" },
@@ -244,12 +300,12 @@ function ConversionFunnel({ data }: {
   const stepsWithData = funnelSteps.filter((s) => data[s.type]?.length > 0);
   if (stepsWithData.length < 2) return null;
 
-  const latestValues = stepsWithData.map((s) => {
+  const latestValues = stepsWithData.map((s, i) => {
     const vals = data[s.type];
     return {
       ...s,
       value: vals[vals.length - 1]?.value ?? 0,
-      color: METRIC_CONFIG[s.type].color,
+      color: colorOverrides[s.type] || METRIC_CONFIG[s.type].color,
       format: METRIC_CONFIG[s.type].format,
     };
   });
@@ -257,51 +313,73 @@ function ConversionFunnel({ data }: {
   const maxVal = Math.max(...latestValues.map((v) => v.value), 1);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.1, type: "spring", damping: 22 }}
-      className="ios-card p-5"
-    >
-      <div className="flex items-center gap-2 mb-4">
-        <Target className="h-5 w-5 text-primary" />
-        <h3 className="text-base font-bold text-foreground">Funil de Conversão</h3>
-      </div>
-      <div className="space-y-3">
-        {latestValues.map((step, i) => {
-          const widthPct = Math.max((step.value / maxVal) * 100, 8);
-          const nextStep = latestValues[i + 1];
-          const convRate = nextStep && step.value > 0
-            ? ((nextStep.value / step.value) * 100).toFixed(1)
-            : null;
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, type: "spring", damping: 22 }}
+          className="ios-card p-5 cursor-context-menu"
+        >
+          <div className="flex items-center gap-2 mb-4">
+            <Target className="h-5 w-5 text-primary" />
+            <h3 className="text-base font-bold text-foreground">Funil de Conversão</h3>
+            <span className="ml-auto text-[10px] text-muted-foreground/50">Clique direito para paleta</span>
+          </div>
+          <div className="space-y-3">
+            {latestValues.map((step, i) => {
+              const widthPct = Math.max((step.value / maxVal) * 100, 8);
+              const nextStep = latestValues[i + 1];
+              const convRate = nextStep && step.value > 0
+                ? ((nextStep.value / step.value) * 100).toFixed(1)
+                : null;
 
-          return (
-            <div key={step.type}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-xs font-semibold text-foreground">{step.label}</span>
-                <span className="text-xs font-bold" style={{ color: step.color }}>{step.format(step.value)}</span>
-              </div>
-              <div className="relative h-8 rounded-xl bg-secondary/30 overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${widthPct}%` }}
-                  transition={{ delay: i * 0.1, duration: 0.6, ease: "easeOut" }}
-                  className="absolute inset-y-0 left-0 rounded-xl"
-                  style={{ background: `linear-gradient(90deg, ${step.color}40, ${step.color})` }}
-                />
-              </div>
-              {convRate && (
-                <div className="flex items-center justify-center mt-1 mb-1">
-                  <span className="text-[10px] font-semibold text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full">
-                    ↓ {convRate}% conversão
-                  </span>
+              return (
+                <div key={step.type}>
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs font-semibold text-foreground">{step.label}</span>
+                    <span className="text-xs font-bold" style={{ color: step.color }}>{step.format(step.value)}</span>
+                  </div>
+                  <div className="relative h-8 rounded-xl bg-secondary/30 overflow-hidden">
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${widthPct}%` }}
+                      transition={{ delay: i * 0.1, duration: 0.6, ease: "easeOut" }}
+                      className="absolute inset-y-0 left-0 rounded-xl"
+                      style={{ background: `linear-gradient(90deg, ${step.color}40, ${step.color})` }}
+                    />
+                  </div>
+                  {convRate && (
+                    <div className="flex items-center justify-center mt-1 mb-1">
+                      <span className="text-[10px] font-semibold text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full">
+                        ↓ {convRate}% conversão
+                      </span>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </motion.div>
+              );
+            })}
+          </div>
+        </motion.div>
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-56">
+        <ContextMenuLabel className="flex items-center gap-2">
+          <Palette className="h-3.5 w-3.5" />
+          Paleta de Cores do Funil
+        </ContextMenuLabel>
+        <ContextMenuSeparator />
+        {COLOR_PALETTES.map((palette) => (
+          <ContextMenuItem
+            key={palette.name}
+            onClick={() => onApplyPalette(palette)}
+            className="flex items-center gap-2"
+          >
+            <PaletteSwatches colors={palette.colors} />
+            <span className="text-xs font-medium">{palette.name}</span>
+          </ContextMenuItem>
+        ))}
+      </ContextMenuContent>
+    </ContextMenu>
   );
 }
 
@@ -314,12 +392,25 @@ export default function AnalyticsCharts() {
   const [formValue, setFormValue] = useState("");
   const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
   const [chartStyles, setChartStyles] = useState<Record<string, ChartStyle>>({});
+  const [colorOverrides, setColorOverrides] = useState<Record<string, string>>({});
 
   const setStyleFor = (type: string, style: ChartStyle) => {
     setChartStyles((prev) => ({ ...prev, [type]: style }));
   };
 
-  // ── Per-metric timeline data ──
+  const setColorFor = (type: string, color: string) => {
+    setColorOverrides((prev) => ({ ...prev, [type]: color }));
+  };
+
+  const applyFunnelPalette = (palette: ColorPalette) => {
+    const funnelTypes: MetricType[] = ["alcance", "seguidores", "leads", "vendas", "faturamento"];
+    const newOverrides: Record<string, string> = { ...colorOverrides };
+    funnelTypes.forEach((t, i) => {
+      newOverrides[t] = palette.colors[i % palette.colors.length];
+    });
+    setColorOverrides(newOverrides);
+  };
+
   const perMetricData = useMemo(() => {
     const result: Record<MetricType, { name: string; value: number }[]> = {} as any;
     METRIC_TYPES.forEach((type) => {
@@ -337,7 +428,6 @@ export default function AnalyticsCharts() {
         });
     });
 
-    // Auto-calculate conversion if leads + vendas exist
     if (result.leads && result.vendas && !result.conversao) {
       const leadsByDate: Record<string, number> = {};
       const vendasByDate: Record<string, number> = {};
@@ -357,7 +447,6 @@ export default function AnalyticsCharts() {
 
   const activeTypes = METRIC_TYPES.filter((t) => perMetricData[t]?.length > 0);
 
-  // Related info for metrics
   const getRelatedInfo = (type: MetricType): string | undefined => {
     if (type === "conversao" && perMetricData.leads && perMetricData.vendas) {
       return "⚡ Calculado automaticamente: Vendas ÷ Leads × 100";
@@ -389,7 +478,7 @@ export default function AnalyticsCharts() {
   const dropdownOptions = METRIC_TYPES.map((t) => ({
     value: t,
     label: METRIC_CONFIG[t].label,
-    color: METRIC_CONFIG[t].color,
+    color: colorOverrides[t] || METRIC_CONFIG[t].color,
   }));
 
   const defaultStyles: Record<string, ChartStyle> = {
@@ -418,7 +507,6 @@ export default function AnalyticsCharts() {
         )}
       </div>
 
-      {/* Add metric form */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -454,12 +542,10 @@ export default function AnalyticsCharts() {
         )}
       </AnimatePresence>
 
-      {/* Conversion Funnel */}
       {activeTypes.length >= 2 && (
-        <ConversionFunnel data={perMetricData} />
+        <ConversionFunnel data={perMetricData} colorOverrides={colorOverrides} onApplyPalette={applyFunnelPalette} />
       )}
 
-      {/* Individual charts per metric with right-click style change */}
       {activeTypes.length > 0 ? (
         <div className="grid sm:grid-cols-2 gap-5">
           {activeTypes.map((type, i) => (
@@ -471,6 +557,8 @@ export default function AnalyticsCharts() {
               chartStyle={chartStyles[type] || defaultStyles[type] || "area"}
               onStyleChange={(s) => setStyleFor(type, s)}
               relatedInfo={getRelatedInfo(type)}
+              color={colorOverrides[type] || METRIC_CONFIG[type].color}
+              onColorChange={(c) => setColorFor(type, c)}
             />
           ))}
         </div>
