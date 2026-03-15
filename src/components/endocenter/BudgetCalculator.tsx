@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import {
   Plus, Trash2, ChevronDown, Loader2,
   ArrowUpRight, ArrowDownRight, TrendingUp,
-  BarChart3, PieChart, FileText
+  BarChart3, PieChart, FileText, CalendarDays,
+  ChevronLeft, ChevronRight, X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
