@@ -200,11 +200,19 @@ function StatusDropdown({ value, onChange, options }: { value: string; onChange:
 
 export default function TeamDashboard() {
   const { team, company, metricEntries } = useEndocenter();
+  const { isAdmin } = useUserRole();
+  const { teamRole } = useTeamRole();
   const [selectedMember, setSelectedMember] = useState<typeof team[number] | null>(null);
   const [periodFilter, setPeriodFilter] = useState<MetricPeriod | "Todas">("Todas");
 
-  const totalRemuneration = useMemo(() => team.reduce((sum, m) => sum + m.remuneration, 0), [team]);
-  const totalHours = useMemo(() => team.reduce((sum, m) => sum + m.hours, 0), [team]);
+  // Filter team: non-admin users only see their own role's member
+  const visibleTeam = useMemo(() => {
+    if (isAdmin || !teamRole) return team;
+    return team.filter((m) => m.role === teamRole);
+  }, [team, isAdmin, teamRole]);
+
+  const totalRemuneration = useMemo(() => visibleTeam.reduce((sum, m) => sum + m.remuneration, 0), [visibleTeam]);
+  const totalHours = useMemo(() => visibleTeam.reduce((sum, m) => sum + m.hours, 0), [visibleTeam]);
 
   const filteredMetrics = useMemo(
     () => metricEntries.filter((m) => periodFilter === "Todas" || m.period === periodFilter),
