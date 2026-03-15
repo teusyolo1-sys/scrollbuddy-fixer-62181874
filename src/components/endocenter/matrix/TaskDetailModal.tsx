@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Image, Link2, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
@@ -181,7 +182,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
     );
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
@@ -567,6 +568,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               </div>{/* flex */}
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
