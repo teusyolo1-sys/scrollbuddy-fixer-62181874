@@ -4,6 +4,9 @@ import { toast } from "@/hooks/use-toast";
 import { useNotificationStore } from "@/store/notificationStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type ResponsibilityItem } from "@/store/endocenterStore";
+import { DndContext, DragOverlay, closestCenter, useSensor, useSensors, PointerSensor, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import TaskCard from "./matrix/TaskCard";
 import TaskDetailModal from "./matrix/TaskDetailModal";
 
