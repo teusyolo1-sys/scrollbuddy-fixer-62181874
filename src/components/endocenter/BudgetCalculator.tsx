@@ -228,10 +228,10 @@ function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd
 }
 
 /* ── Donut Chart Card (center Gastos) ── */
-function GastosChartCard({ entries, config, total, onAdd, delay }: {
+function GastosChartCard({ entries, config, total, onAdd, delay, isExpanded, onToggle }: {
   entries: any[]; config: typeof categoryConfig.gasto; total: number; onAdd: () => void; delay: number;
+  isExpanded: boolean; onToggle: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
   const [customLabel, setCustomLabel] = useState<string | undefined>();
   const chartData = useMemo(() => {
@@ -246,9 +246,9 @@ function GastosChartCard({ entries, config, total, onAdd, delay }: {
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
         className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
-        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)}
+        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle}
           customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
-        {expanded && (
+        {isExpanded && (
           <div className="px-4 pb-4 flex items-center justify-center gap-4">
             <ResponsiveContainer width={90} height={90}>
               <RPieChart>
@@ -295,10 +295,11 @@ function GastosChartCard({ entries, config, total, onAdd, delay }: {
 }
 
 /* ── Pipeline Placeholder (center Faturamento) ── */
-function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries: any[]; onAdd: () => void; delay: number }) {
+function PipelineCard({ faturamentoEntries, onAdd, delay, isExpanded, onToggle }: {
+  faturamentoEntries: any[]; onAdd: () => void; delay: number; isExpanded: boolean; onToggle: () => void;
+}) {
   const upcoming = faturamentoEntries.filter(e => e.amount > 0).slice(0, 2);
   const total = faturamentoEntries.reduce((s, e) => s + e.amount, 0);
-  const [expanded, setExpanded] = useState(false);
   const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu: handleCtx } = useCardMenu();
   const [customLabel, setCustomLabel] = useState("Faturamento");
   const [renameValue, setRenameValue] = useState("Faturamento");
@@ -306,9 +307,9 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
   return (
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-        className={`${gc} overflow-hidden flex flex-col ${expanded ? "row-span-2" : ""}`}
+        className={`${gc} overflow-hidden flex flex-col ${isExpanded ? "row-span-2" : ""}`}
         onContextMenu={handleCtx}>
-        <button onClick={() => setExpanded(!expanded)} className="p-4 hover:bg-accent/20 transition-colors w-full">
+        <button onClick={onToggle} className="p-4 hover:bg-accent/20 transition-colors w-full">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
               <TrendingUp className="h-4 w-4 text-emerald-500" />
@@ -330,14 +331,14 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
                 className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500 cursor-pointer">
                 <Plus className="h-3.5 w-3.5" />
               </motion.div>
-              <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+              <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
                 <ChevronDown className="h-4 w-4 text-muted-foreground" />
               </motion.div>
             </div>
           </div>
         </button>
 
-        {expanded && (
+        {isExpanded && (
           <>
             <AnimatePresence>
               {faturamentoEntries.length > 0 && (
@@ -563,10 +564,10 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
 }
 
 /* ── Despesas Detail Table (right column) ── */
-function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
+function DespesasDetailCard({ entries, config, total, onAdd, delay, isExpanded, onToggle }: {
   entries: any[]; config: typeof categoryConfig.despesa; total: number; onAdd: () => void; delay: number;
+  isExpanded: boolean; onToggle: () => void;
 }) {
-  const [expanded, setExpanded] = useState(false);
   const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
   const [customLabel, setCustomLabel] = useState<string | undefined>();
   const [rowNames, setRowNames] = useState(["Expense type", "Expense type", "Receital", "Other treakion"]);
@@ -621,9 +622,9 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
         className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
-        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)}
+        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle}
           customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
-        {expanded && renderTable(false)}
+        {isExpanded && renderTable(false)}
       </motion.div>
       {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
       {isFullscreen && (
@@ -811,7 +812,7 @@ function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: bool
 export default function BudgetCalculator({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
   const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries(companyId);
-  const [expandedCategories, setExpandedCategories] = useState<Set<BudgetCategory>>(new Set(["faturamento"]));
+  const [openPanel, setOpenPanel] = useState<string | null>(null);
   const [calendarOpen, setCalendarOpen] = useState(false);
 
   const totals = useMemo(() => {
@@ -821,15 +822,13 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
     }, {} as Record<BudgetCategory, number>);
   }, [entries]);
 
-  const toggleCat = (cat: BudgetCategory) => {
-    setExpandedCategories(prev => {
-      const next = new Set(prev);
-      if (next.has(cat)) next.delete(cat); else next.add(cat);
-      return next;
-    });
+  const togglePanel = (panelKey: string) => {
+    setOpenPanel((prev) => (prev === panelKey ? null : panelKey));
   };
-  const expandCat = (cat: BudgetCategory) => {
-    setExpandedCategories(prev => new Set(prev).add(cat));
+
+  const openPanelAndAdd = (panelKey: string, cat: BudgetCategory) => {
+    addEntry(cat);
+    setOpenPanel(panelKey);
   };
 
   const catProps = (cat: BudgetCategory) => ({
@@ -837,9 +836,9 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
     config: categoryConfig[cat],
     entries: entries.filter(e => e.category === cat),
     total: totals[cat],
-    isExpanded: expandedCategories.has(cat),
-    onToggle: () => toggleCat(cat),
-    onAdd: () => { addEntry(cat); expandCat(cat); },
+    isExpanded: openPanel === cat,
+    onToggle: () => togglePanel(cat),
+    onAdd: () => openPanelAndAdd(cat, cat),
     onUpdate: updateEntry,
     onRemove: removeEntry,
     profiles,
@@ -876,7 +875,15 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
       {/* Row 2: Gastos | Gastos (charts) | Receita */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <CategoryCard {...catProps("gasto")} delay={0.05} />
-        <GastosChartCard entries={entries.filter(e => e.category === "gasto")} config={categoryConfig.gasto} total={totals.gasto} onAdd={() => { addEntry("gasto"); expandCat("gasto"); }} delay={0.1} />
+        <GastosChartCard
+          entries={entries.filter(e => e.category === "gasto")}
+          config={categoryConfig.gasto}
+          total={totals.gasto}
+          onAdd={() => openPanelAndAdd("gasto-chart", "gasto")}
+          isExpanded={openPanel === "gasto-chart"}
+          onToggle={() => togglePanel("gasto-chart")}
+          delay={0.1}
+        />
         <CategoryCard {...catProps("receita")} delay={0.15} />
       </div>
 
@@ -889,12 +896,26 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
         </div>
 
         {/* Center: Pipeline spanning 2 rows */}
-        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} onAdd={() => { addEntry("faturamento"); expandCat("faturamento"); }} delay={0.25} />
+        <PipelineCard
+          faturamentoEntries={entries.filter(e => e.category === "faturamento")}
+          onAdd={() => openPanelAndAdd("pipeline", "faturamento")}
+          isExpanded={openPanel === "pipeline"}
+          onToggle={() => togglePanel("pipeline")}
+          delay={0.25}
+        />
 
         {/* Right: Legend + Bar, then Despesas detail */}
         <div className="space-y-4">
           <LegendBarCard entries={entries} delay={0.3} />
-          <DespesasDetailCard entries={entries.filter(e => e.category === "despesa")} config={categoryConfig.despesa} total={totals.despesa} onAdd={() => { addEntry("despesa"); expandCat("despesa"); }} delay={0.35} />
+          <DespesasDetailCard
+            entries={entries.filter(e => e.category === "despesa")}
+            config={categoryConfig.despesa}
+            total={totals.despesa}
+            onAdd={() => openPanelAndAdd("despesa-detail", "despesa")}
+            isExpanded={openPanel === "despesa-detail"}
+            onToggle={() => togglePanel("despesa-detail")}
+            delay={0.35}
+          />
         </div>
       </div>
     </div>
