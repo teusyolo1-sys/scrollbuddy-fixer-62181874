@@ -916,7 +916,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
           config={categoryConfig.gasto}
           total={totals.gasto}
           onAdd={() => openPanelAndAdd("gasto-chart", "gasto")}
-          isExpanded={openPanel === "gasto-chart"}
+          isExpanded={openPanels.has("gasto-chart")}
           onToggle={() => togglePanel("gasto-chart")}
           delay={0.1}
         />
