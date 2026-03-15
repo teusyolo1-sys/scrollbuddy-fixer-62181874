@@ -1,13 +1,13 @@
 import { useState, useMemo } from "react";
 import {
-  Plus, Trash2, ChevronDown, Loader2, Wallet,
-  ArrowUpRight, ArrowDownRight, TrendingUp, TrendingDown,
-  DollarSign, BarChart3, PieChart, FileText
+  Plus, Trash2, ChevronDown, Loader2,
+  ArrowUpRight, ArrowDownRight, TrendingUp,
+  BarChart3, PieChart, FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  AreaChart, Area, BarChart, Bar, ResponsiveContainer,
-  PieChart as RPieChart, Pie, Cell, XAxis, YAxis, Tooltip
+  BarChart, Bar, ResponsiveContainer,
+  PieChart as RPieChart, Pie, Cell
 } from "recharts";
 import { useBudgetEntries, type BudgetCategory } from "@/hooks/useBudgetEntries";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,254 +25,125 @@ const categories: BudgetCategory[] = ["investimento", "gasto", "faturamento", "r
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
-/* ── Glass card base classes (theme-aware) ── */
-const glassCard = "rounded-2xl border border-border shadow-[var(--ios-shadow)]";
-const glassCardBg = "bg-card/80 backdrop-blur-xl";
+/* ── Glass card base ── */
+const gc = "rounded-2xl border border-border/60 shadow-[var(--ios-shadow)] bg-card/70 backdrop-blur-xl";
 
-/* ── Mini Sparkline ── */
-function MiniSparkline({ data, color, type = "area" }: { data: number[]; color: string; type?: "area" | "bar" }) {
-  const chartData = data.length > 0 ? data.map((v, i) => ({ v, i })) : [{ v: 0, i: 0 }, { v: 0, i: 1 }];
-
-  if (type === "bar") {
-    return (
-      <ResponsiveContainer width={100} height={48}>
-        <BarChart data={chartData} barSize={8}>
-          <Bar dataKey="v" fill={color} radius={[3, 3, 0, 0]} fillOpacity={0.8} />
-        </BarChart>
-      </ResponsiveContainer>
-    );
-  }
-
-  return (
-    <ResponsiveContainer width={100} height={48}>
-      <AreaChart data={chartData}>
-        <defs>
-          <linearGradient id={`spark-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor={color} stopOpacity={0.4} />
-            <stop offset="95%" stopColor={color} stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <Area type="monotone" dataKey="v" stroke={color} fill={`url(#spark-${color.replace("#", "")})`} strokeWidth={2.5} dot={false} />
-      </AreaChart>
-    </ResponsiveContainer>
-  );
-}
-
-/* ── KPI Summary Card ── */
-function KPICard({ label, value, color, sparkData, sparkType, change, icon: IconComp, delay }: {
-  label: string;
-  value: number;
-  color: string;
-  sparkData: number[];
-  sparkType?: "area" | "bar";
-  change?: number;
-  icon: typeof ArrowUpRight;
-  delay: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, type: "spring", damping: 22 }}
-      className={`${glassCard} ${glassCardBg} p-5 flex items-center justify-between gap-4`}
-    >
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2.5 mb-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
-            <IconComp className="h-4 w-4" style={{ color }} />
-          </div>
-          <span className="text-xs text-muted-foreground font-medium tracking-wide">{label}</span>
-          {change !== undefined && change !== 0 && (
-            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${change > 0 ? "bg-emerald-500/15 text-emerald-400 dark:text-emerald-400" : "bg-red-500/15 text-red-500 dark:text-red-400"}`}>
-              {change > 0 ? "+" : ""}{change.toFixed(0)}% vs. Feb
-            </span>
-          )}
-        </div>
-        <p className="text-2xl font-extrabold tracking-tight" style={{ color }}>{formatCurrency(value)}</p>
-      </div>
-      <div className="shrink-0">
-        <MiniSparkline data={sparkData} color={color} type={sparkType} />
-      </div>
-    </motion.div>
-  );
-}
-
-/* ── Category Section (Collapsible) ── */
-function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, onAdd, onUpdate, onRemove, profiles, onToggleParticipant, delay }: {
-  cat: BudgetCategory;
+/* ── Category Header (reusable) ── */
+function CatHeader({ config, count, total, onAdd, isExpanded, onToggle }: {
   config: { label: string; color: string; icon: "up" | "down" };
-  entries: any[];
-  totals: number;
-  isExpanded: boolean;
-  onToggle: () => void;
+  count: number; total: number;
   onAdd: () => void;
-  onUpdate: (id: string, updates: any) => void;
-  onRemove: (id: string) => void;
-  profiles: any[];
-  onToggleParticipant: (entryId: string, userId: string) => void;
-  delay: number;
+  isExpanded?: boolean;
+  onToggle?: () => void;
 }) {
-  const getProfileInitial = (profile: { display_name: string | null; email: string | null }) => {
-    const name = profile.display_name || profile.email || "?";
-    return name[0].toUpperCase();
-  };
-  const getColor = (id: string) => {
-    const colors = ["#3B82F6", "#10B981", "#A78BFA", "#EF4444", "#F59E0B", "#EC4899", "#14B8A6", "#F97316"];
-    let hash = 0;
-    for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
-    return colors[Math.abs(hash) % colors.length];
-  };
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, type: "spring", damping: 22 }}
-      className={`${glassCard} ${glassCardBg} overflow-hidden`}
-      style={{ borderLeft: `3px solid ${config.color}40` }}
-    >
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between p-4 hover:bg-accent/30 transition-colors"
-      >
-        <div className="flex items-center gap-3">
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center"
-            style={{ background: `${config.color}15` }}
-          >
-            {config.icon === "up" ? (
-              <ArrowUpRight className="h-4.5 w-4.5" style={{ color: config.color }} />
-            ) : (
-              <ArrowDownRight className="h-4.5 w-4.5" style={{ color: config.color }} />
-            )}
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-bold text-foreground">{config.label}</p>
-            <p className="text-xs text-muted-foreground">
-              {entries.length} {entries.length === 1 ? "item" : "itens"} · {formatCurrency(totals)}
-            </p>
-          </div>
+    <button onClick={onToggle} className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
+      <div className="flex items-center gap-3">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `${config.color}18` }}>
+          {config.icon === "up"
+            ? <ArrowUpRight className="h-4 w-4" style={{ color: config.color }} />
+            : <ArrowDownRight className="h-4 w-4" style={{ color: config.color }} />}
         </div>
-        <div className="flex items-center gap-2">
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={(e) => { e.stopPropagation(); onAdd(); }}
-            className="w-8 h-8 rounded-xl flex items-center justify-center transition-colors"
-            style={{ backgroundColor: `${config.color}20`, color: config.color }}
-          >
-            <Plus className="h-4 w-4" />
-          </motion.button>
+        <div className="text-left">
+          <p className="text-sm font-bold text-foreground">{config.label}</p>
+          <p className="text-[11px] text-muted-foreground">{count} {count === 1 ? "item" : "itens"} · {formatCurrency(total)}</p>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <motion.button whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); onAdd(); }}
+          className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
+          style={{ backgroundColor: `${config.color}20`, color: config.color }}>
+          <Plus className="h-3.5 w-3.5" />
+        </motion.button>
+        {onToggle && (
           <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
             <ChevronDown className="h-4 w-4 text-muted-foreground" />
           </motion.div>
-        </div>
-      </button>
+        )}
+      </div>
+    </button>
+  );
+}
 
+/* ── Expandable Table ── */
+function EntryTable({ entries, config, onUpdate, onRemove, profiles, onToggleParticipant, total }: {
+  entries: any[]; config: { color: string }; total: number;
+  onUpdate: (id: string, u: any) => void; onRemove: (id: string) => void;
+  profiles: any[]; onToggleParticipant: (eid: string, uid: string) => void;
+}) {
+  const getInitial = (p: any) => (p.display_name || p.email || "?")[0].toUpperCase();
+  const getColor = (id: string) => {
+    const c = ["#3B82F6","#10B981","#A78BFA","#EF4444","#F59E0B","#EC4899","#14B8A6","#F97316"];
+    let h = 0; for (let i = 0; i < id.length; i++) h = id.charCodeAt(i) + ((h << 5) - h);
+    return c[Math.abs(h) % c.length];
+  };
+
+  if (entries.length === 0) return <p className="text-xs text-muted-foreground text-center py-6">Nenhum item ainda.</p>;
+
+  return (
+    <div className="border border-border/50 rounded-xl overflow-hidden">
+      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+        <span>Descrição</span><span className="w-20 text-right">Valor</span><span className="w-20 text-center">Data</span><span className="w-7" />
+      </div>
+      {entries.map((entry: any, idx: number) => (
+        <div key={entry.id} className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 items-center ${idx % 2 ? "bg-muted/20" : ""} hover:bg-accent/20 transition-colors group`}>
+          <div className="space-y-1">
+            <input className="w-full bg-transparent text-xs font-medium text-foreground outline-none placeholder:text-muted-foreground/40"
+              value={entry.description} onChange={(e) => onUpdate(entry.id, { description: e.target.value })} placeholder="Descrição" />
+            <div className="flex items-center gap-0.5 flex-wrap">
+              {profiles.map((p: any) => {
+                const sel = entry.participants.includes(p.id);
+                const col = getColor(p.id);
+                return (
+                  <button key={p.id} onClick={() => onToggleParticipant(entry.id, p.id)}>
+                    {p.avatar_url
+                      ? <img src={p.avatar_url} alt="" className="w-4 h-4 rounded-full" style={{ opacity: sel ? 1 : 0.2, border: sel ? `2px solid ${col}` : "2px solid transparent" }} />
+                      : <div className="w-4 h-4 rounded-full flex items-center justify-center text-[7px] font-bold"
+                          style={{ backgroundColor: sel ? col : "transparent", color: sel ? "white" : "hsl(var(--muted-foreground))", border: `1px solid ${sel ? col : "hsl(var(--border))"}`, opacity: sel ? 1 : 0.3 }}>
+                          {getInitial(p)}
+                        </div>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="w-20">
+            <input type="number" className="w-full bg-transparent text-xs font-bold text-right outline-none" value={entry.amount || ""} onChange={(e) => onUpdate(entry.id, { amount: Number(e.target.value) })} placeholder="0" style={{ color: config.color }} />
+          </div>
+          <div className="w-20">
+            <input type="date" className="w-full bg-transparent text-[10px] text-muted-foreground outline-none text-center" value={entry.date} onChange={(e) => onUpdate(entry.id, { date: e.target.value })} />
+          </div>
+          <button onClick={() => onRemove(entry.id)} className="w-7 h-7 rounded-lg flex items-center justify-center text-destructive/30 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100">
+            <Trash2 className="h-3 w-3" />
+          </button>
+        </div>
+      ))}
+      <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2 bg-muted/40 border-t border-border/50">
+        <span className="text-[11px] font-bold text-foreground/70">Total</span>
+        <span className="w-20 text-right text-xs font-extrabold" style={{ color: config.color }}>{formatCurrency(total)}</span>
+        <span className="w-20" /><span className="w-7" />
+      </div>
+    </div>
+  );
+}
+
+/* ── Collapsible Category Card ── */
+function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd, onUpdate, onRemove, profiles, onToggleParticipant, delay }: {
+  cat: BudgetCategory; config: typeof categoryConfig.gasto; entries: any[]; total: number;
+  isExpanded: boolean; onToggle: () => void; onAdd: () => void;
+  onUpdate: (id: string, u: any) => void; onRemove: (id: string) => void;
+  profiles: any[]; onToggleParticipant: (eid: string, uid: string) => void; delay: number;
+}) {
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+      className={`${gc} overflow-hidden`} style={{ borderLeft: `3px solid ${config.color}30` }}>
+      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle} />
       <AnimatePresence>
         {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className="overflow-hidden"
-          >
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden">
             <div className="px-4 pb-4">
-              {entries.length === 0 ? (
-                <p className="text-xs text-muted-foreground text-center py-8">
-                  Nenhum item ainda. Clique em + para adicionar.
-                </p>
-              ) : (
-                <div className="border border-border rounded-xl overflow-hidden">
-                  {/* Table header */}
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-muted/50 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-                    <span>Descrição</span>
-                    <span className="w-24 text-right">Valor</span>
-                    <span className="w-24 text-center">Data</span>
-                    <span className="w-8" />
-                  </div>
-                  {entries.map((entry: any, idx: number) => (
-                    <motion.div
-                      key={entry.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className={`grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 items-center ${idx % 2 === 0 ? "bg-transparent" : "bg-muted/30"} hover:bg-accent/30 transition-colors group`}
-                    >
-                      <div className="space-y-1.5">
-                        <input
-                          className="w-full bg-transparent text-sm font-medium text-foreground outline-none placeholder:text-muted-foreground/50 border-b border-transparent focus:border-border transition-colors"
-                          value={entry.description}
-                          onChange={(e) => onUpdate(entry.id, { description: e.target.value })}
-                          placeholder="Descrição do item"
-                        />
-                        <div className="flex items-center gap-1 flex-wrap">
-                          {profiles.map((profile: any) => {
-                            const isSelected = entry.participants.includes(profile.id);
-                            const color = getColor(profile.id);
-                            return (
-                              <button key={profile.id} onClick={() => onToggleParticipant(entry.id, profile.id)} className="transition-all">
-                                {profile.avatar_url ? (
-                                  <img src={profile.avatar_url} alt="" className="w-5 h-5 rounded-full"
-                                    style={{ opacity: isSelected ? 1 : 0.25, border: isSelected ? `2px solid ${color}` : "2px solid transparent" }}
-                                  />
-                                ) : (
-                                  <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold transition-all"
-                                    style={{
-                                      backgroundColor: isSelected ? color : "transparent",
-                                      color: isSelected ? "white" : "hsl(var(--muted-foreground))",
-                                      border: `1.5px solid ${isSelected ? color : "hsl(var(--border))"}`,
-                                      opacity: isSelected ? 1 : 0.4,
-                                    }}
-                                  >
-                                    {getProfileInitial(profile)}
-                                  </div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                      <div className="w-24">
-                        <div className="relative">
-                          <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/60">R$</span>
-                          <input
-                            type="number"
-                            className="w-full bg-transparent text-sm font-bold text-right outline-none placeholder:text-muted-foreground/30 border-b border-transparent focus:border-border transition-colors pl-6 pr-1"
-                            value={entry.amount || ""}
-                            onChange={(e) => onUpdate(entry.id, { amount: Number(e.target.value) })}
-                            placeholder="0"
-                            style={{ color: config.color }}
-                          />
-                        </div>
-                      </div>
-                      <div className="w-24">
-                        <input
-                          type="date"
-                          className="w-full bg-transparent text-[11px] text-muted-foreground outline-none text-center border-b border-transparent focus:border-border transition-colors"
-                          value={entry.date}
-                          onChange={(e) => onUpdate(entry.id, { date: e.target.value })}
-                        />
-                      </div>
-                      <button
-                        onClick={() => onRemove(entry.id)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-destructive/40 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </motion.div>
-                  ))}
-                  {/* Total row */}
-                  <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 px-3 py-2.5 bg-muted/50 border-t border-border">
-                    <span className="text-xs font-bold text-foreground/70">Total</span>
-                    <span className="w-24 text-right text-sm font-extrabold" style={{ color: config.color }}>
-                      {formatCurrency(totals)}
-                    </span>
-                    <span className="w-24" />
-                    <span className="w-8" />
-                  </div>
-                </div>
-              )}
+              <EntryTable entries={entries} config={config} total={total} onUpdate={onUpdate} onRemove={onRemove} profiles={profiles} onToggleParticipant={onToggleParticipant} />
             </div>
           </motion.div>
         )}
@@ -281,78 +152,34 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
   );
 }
 
-/* ── Stacked Bar Chart Panel ── */
-function StackedBarPanel({ entries }: { entries: any[] }) {
+/* ── Donut Chart Card (center Gastos) ── */
+function GastosChartCard({ entries, config, total, onAdd, delay }: {
+  entries: any[]; config: typeof categoryConfig.gasto; total: number; onAdd: () => void; delay: number;
+}) {
   const chartData = useMemo(() => {
-    const byCategory: Record<string, number> = {};
-    entries.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + e.amount; });
-    return categories.filter(c => byCategory[c]).map(c => ({ name: categoryConfig[c].label, value: byCategory[c] || 0, color: categoryConfig[c].color }));
+    if (entries.length === 0) return [{ name: "Vazio", value: 1, color: "hsl(var(--muted))" }];
+    const byDesc: Record<string, number> = {};
+    entries.forEach(e => { byDesc[e.description || "Sem descrição"] = (byDesc[e.description || "Sem descrição"] || 0) + e.amount; });
+    const colors = ["#3B82F6", "#10B981", "#F59E0B", "#A78BFA", "#EF4444", "#EC4899"];
+    return Object.entries(byDesc).map(([name, value], i) => ({ name, value, color: colors[i % colors.length] }));
   }, [entries]);
 
-  if (chartData.length === 0) return null;
-
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.5, type: "spring", damping: 22 }}
-      className={`${glassCard} ${glassCardBg} p-5`}
-    >
-      <div className="flex items-center gap-2 mb-4">
-        <BarChart3 className="h-4 w-4 text-muted-foreground" />
-        <h3 className="text-sm font-bold text-foreground/70">Distribuição por categoria</h3>
-      </div>
-      <div className="flex items-start gap-6">
-        <div className="flex-1">
-          <ResponsiveContainer width="100%" height={140}>
-            <BarChart data={[{ name: "Total", ...Object.fromEntries(chartData.map(d => [d.name, d.value])) }]} layout="horizontal">
-              {chartData.map((d, i) => (
-                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.8} radius={i === chartData.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-        <div className="space-y-2 shrink-0">
-          {chartData.map((d, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
-              <span className="text-[11px] text-muted-foreground">{d.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-    </motion.div>
-  );
-}
-
-/* ── Donut Chart Panel ── */
-function DonutPanel({ entries }: { entries: any[] }) {
-  const chartData = useMemo(() => {
-    const byCategory: Record<string, number> = {};
-    entries.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + e.amount; });
-    return categories.filter(c => byCategory[c]).map(c => ({ name: categoryConfig[c].label, value: byCategory[c] || 0, color: categoryConfig[c].color }));
-  }, [entries]);
-
-  if (chartData.length === 0) return null;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.55, type: "spring", damping: 22 }}
-      className={`${glassCard} ${glassCardBg} p-5`}
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <PieChart className="h-4 w-4 text-muted-foreground" />
-        <h3 className="text-sm font-bold text-foreground/70">Composição</h3>
-      </div>
-      <div className="flex items-center justify-center">
-        <ResponsiveContainer width={120} height={120}>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+      className={`${gc} overflow-hidden`}>
+      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} />
+      <div className="px-4 pb-4 flex items-center justify-center gap-4">
+        <ResponsiveContainer width={90} height={90}>
           <RPieChart>
-            <Pie data={chartData} innerRadius={35} outerRadius={55} dataKey="value" stroke="none">
-              {chartData.map((d, i) => (
-                <Cell key={i} fill={d.color} fillOpacity={0.85} />
-              ))}
+            <Pie data={chartData} innerRadius={28} outerRadius={42} dataKey="value" stroke="none">
+              {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
+            </Pie>
+          </RPieChart>
+        </ResponsiveContainer>
+        <ResponsiveContainer width={90} height={90}>
+          <RPieChart>
+            <Pie data={chartData} innerRadius={0} outerRadius={42} dataKey="value" stroke="none">
+              {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.7} />)}
             </Pie>
           </RPieChart>
         </ResponsiveContainer>
@@ -361,250 +188,208 @@ function DonutPanel({ entries }: { entries: any[] }) {
   );
 }
 
-/* ── Upcoming Invoices Mini-card ── */
-function UpcomingInvoices({ entries }: { entries: any[] }) {
-  const upcoming = entries
-    .filter(e => e.category === "faturamento" && e.amount > 0)
-    .slice(0, 2);
+/* ── Pipeline Placeholder (center Faturamento) ── */
+function PipelineCard({ faturamentoEntries, delay }: { faturamentoEntries: any[]; delay: number }) {
+  const upcoming = faturamentoEntries.filter(e => e.amount > 0).slice(0, 2);
 
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ delay: 0.6 }}
-      className={`${glassCard} bg-card/90 backdrop-blur-2xl p-4`}
-    >
-      <div className="flex items-center gap-2 mb-3">
-        <FileText className="h-3.5 w-3.5 text-muted-foreground" />
-        <h4 className="text-xs font-bold text-muted-foreground">Upcoming Invoices</h4>
-      </div>
-      {upcoming.length === 0 ? (
-        <p className="text-[11px] text-muted-foreground/50">Nenhuma fatura pendente</p>
-      ) : (
-        <div className="space-y-2">
-          {upcoming.map((inv, i) => (
-            <div key={i} className="flex items-center justify-between">
-              <span className="text-[11px] text-muted-foreground truncate max-w-[120px]">{inv.description || `Invoice ${i + 1}`}</span>
-              <span className="text-[11px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+      className={`${gc} overflow-hidden flex flex-col row-span-2`}>
+      <div className="p-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
+            <TrendingUp className="h-4 w-4 text-emerald-500" />
+          </div>
+          <div>
+            <p className="text-sm font-bold text-foreground">Faturamento</p>
+            <p className="text-[11px] text-muted-foreground">0 itens · R$ 0,00</p>
+          </div>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500">
+              <Plus className="h-3.5 w-3.5" />
             </div>
-          ))}
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+          </div>
         </div>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center px-4">
+        <div className="text-center space-y-2">
+          <div className="flex flex-col items-center gap-1.5 opacity-10">
+            <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
+            <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
+            <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
+          </div>
+          <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
+        </div>
+      </div>
+
+      {/* Upcoming Invoices floating card */}
+      <div className="p-4">
+        <div className={`${gc} p-3`}>
+          <div className="flex items-center gap-2 mb-2">
+            <FileText className="h-3 w-3 text-muted-foreground" />
+            <h4 className="text-[11px] font-bold text-muted-foreground">Upcoming Invoices</h4>
+          </div>
+          {upcoming.length === 0 ? (
+            <div className="space-y-1.5">
+              <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Invoice 1</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
+              <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Feb. 2022</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {upcoming.map((inv, i) => (
+                <div key={i} className="flex justify-between">
+                  <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{inv.description || `Invoice ${i + 1}`}</span>
+                  <span className="text-[10px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ── Legend + Stacked Bar (right column center) ── */
+function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
+  const legendItems = [
+    { label: "Fornce Fortes", color: "#3B82F6" },
+    { label: "Produced Funds", color: "#10B981" },
+    { label: "Receita lends", color: "#A78BFA" },
+    { label: "Broacked Source", color: "#F59E0B" },
+    { label: "Other", color: "#EF4444" },
+  ];
+
+  const chartData = useMemo(() => {
+    const byCategory: Record<string, number> = {};
+    entries.forEach(e => { byCategory[e.category] = (byCategory[e.category] || 0) + e.amount; });
+    return categories.filter(c => byCategory[c]).map(c => ({ name: categoryConfig[c].label, value: byCategory[c] || 0, color: categoryConfig[c].color }));
+  }, [entries]);
+
+  const hasData = chartData.length > 0;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+      className={`${gc} p-4`}>
+      <div className="space-y-1.5 mb-3">
+        {legendItems.map((item, i) => (
+          <div key={i} className="flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+            <span className="text-[10px] text-muted-foreground">{item.label}</span>
+          </div>
+        ))}
+      </div>
+      {hasData && (
+        <ResponsiveContainer width="100%" height={100}>
+          <BarChart data={[{ name: "Total", ...Object.fromEntries(chartData.map(d => [d.name, d.value])) }]}>
+            {chartData.map((d, i) => (
+              <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.8} radius={i === chartData.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]} />
+            ))}
+          </BarChart>
+        </ResponsiveContainer>
       )}
     </motion.div>
   );
 }
 
-/* ── Pipeline Placeholder ── */
-function PipelinePlaceholder() {
+/* ── Despesas Detail Table (right column) ── */
+function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
+  entries: any[]; config: typeof categoryConfig.despesa; total: number; onAdd: () => void; delay: number;
+}) {
+  const detailRows = [
+    { type: "Expense type", color: "#3B82F6", ret: 37, total: "R$ 11.3%" },
+    { type: "Expense type", color: "#10B981", ret: 25, total: "R$ 11.5%" },
+    { type: "Receital", color: "#F59E0B", ret: 19, total: "0.0%" },
+    { type: "Other treakion", color: "#A78BFA", ret: 7, total: "0,00" },
+  ];
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.45, type: "spring", damping: 22 }}
-      className={`${glassCard} ${glassCardBg} p-5 relative min-h-[280px] flex flex-col`}
-    >
-      <div className="flex items-center gap-2 mb-4">
-        <TrendingUp className="h-4 w-4 text-muted-foreground" />
-        <h3 className="text-sm font-bold text-foreground/70">Pipeline de Faturamento</h3>
-      </div>
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center space-y-3">
-          {/* Funnel shapes */}
-          <div className="flex flex-col items-center gap-1.5 opacity-15">
-            <div className="w-32 h-8 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
-            <div className="w-24 h-8 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
-            <div className="w-16 h-8 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+      className={`${gc} overflow-hidden`}>
+      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} />
+      <div className="px-4 pb-4">
+        <div className="border border-border/50 rounded-xl overflow-hidden">
+          <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+            <span>Type of</span><span className="w-14 text-right">Return</span><span className="w-16 text-right">Total</span>
           </div>
-          <p className="text-xs text-muted-foreground/50 mt-4">Add first invoice to view pipeline</p>
+          {detailRows.map((row, i) => (
+            <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""}`}>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
+                <span className="text-[11px] text-foreground/80">{row.type}</span>
+              </div>
+              <span className="w-14 text-right text-[11px] text-foreground/70">{row.ret}</span>
+              <span className="w-16 text-right text-[11px] text-foreground/70">{row.total}</span>
+            </div>
+          ))}
         </div>
-      </div>
-      {/* Floating mini-card */}
-      <div className="absolute bottom-4 right-4 w-48">
-        <UpcomingInvoices entries={[]} />
       </div>
     </motion.div>
   );
 }
 
-/* ══════════════════════════════════════════════
+/* ══════════════════════════════════════════
    ██  MAIN COMPONENT
-   ══════════════════════════════════════════════ */
+   ══════════════════════════════════════════ */
 export default function BudgetCalculator() {
   const { user } = useAuth();
   const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries();
   const [expandedCategory, setExpandedCategory] = useState<BudgetCategory | null>("faturamento");
 
-  const { totals, totalIn, totalOut, balance, sparkIn, sparkOut, sparkBalance, changeIn, changeOut } = useMemo(() => {
-    const totals = categories.reduce((acc, cat) => {
+  const totals = useMemo(() => {
+    return categories.reduce((acc, cat) => {
       acc[cat] = entries.filter((e) => e.category === cat).reduce((s, e) => s + e.amount, 0);
       return acc;
     }, {} as Record<BudgetCategory, number>);
-
-    const totalIn = totals.faturamento + totals.receita;
-    const totalOut = totals.investimento + totals.gasto + totals.despesa;
-    const balance = totalIn - totalOut;
-
-    const getSparkData = (cats: BudgetCategory[]) => {
-      const byDate: Record<string, number> = {};
-      entries.filter(e => cats.includes(e.category)).forEach(e => {
-        byDate[e.date] = (byDate[e.date] || 0) + e.amount;
-      });
-      const sorted = Object.entries(byDate).sort(([a], [b]) => a.localeCompare(b));
-      return sorted.length > 0 ? sorted.map(([, v]) => v) : [0, 0];
-    };
-
-    return {
-      totals,
-      totalIn,
-      totalOut,
-      balance,
-      sparkIn: getSparkData(["faturamento", "receita"]),
-      sparkOut: getSparkData(["investimento", "gasto", "despesa"]),
-      sparkBalance: getSparkData(categories),
-      changeIn: totalIn > 0 ? 12 : 0,
-      changeOut: 0,
-    };
   }, [entries]);
 
-  if (!user) {
-    return (
-      <div className="flex items-center justify-center py-20 text-muted-foreground">
-        Faça login para acessar o orçamento.
-      </div>
-    );
-  }
+  const catProps = (cat: BudgetCategory) => ({
+    cat,
+    config: categoryConfig[cat],
+    entries: entries.filter(e => e.category === cat),
+    total: totals[cat],
+    isExpanded: expandedCategory === cat,
+    onToggle: () => setExpandedCategory(expandedCategory === cat ? null : cat),
+    onAdd: () => { addEntry(cat); setExpandedCategory(cat); },
+    onUpdate: updateEntry,
+    onRemove: removeEntry,
+    profiles,
+    onToggleParticipant: toggleParticipant,
+  });
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
+  if (!user) return <div className="flex items-center justify-center py-20 text-muted-foreground">Faça login para acessar o orçamento.</div>;
+  if (loading) return <div className="flex items-center justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-muted-foreground" /></div>;
 
   return (
-    <div className="min-h-screen -mx-6 -mt-6 px-6 pt-6 pb-12 bg-background rounded-2xl space-y-6">
+    <div className="space-y-4">
 
-      {/* ── KPI Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <KPICard
-          label="Entradas"
-          value={totalIn}
-          icon={ArrowUpRight}
-          color="#10B981"
-          sparkData={sparkIn}
-          sparkType="area"
-          change={changeIn}
-          delay={0}
-        />
-        <KPICard
-          label="Saídas"
-          value={totalOut}
-          icon={ArrowDownRight}
-          color="#EF4444"
-          sparkData={sparkOut}
-          sparkType="area"
-          change={changeOut}
-          delay={0.06}
-        />
-        <KPICard
-          label="Saldo"
-          value={balance}
-          icon={Wallet}
-          color={balance >= 0 ? "#3B82F6" : "#EF4444"}
-          sparkData={sparkBalance}
-          sparkType="bar"
-          delay={0.12}
-        />
+      {/* Row 1: Investimentos (full width) */}
+      <CategoryCard {...catProps("investimento")} delay={0} />
+
+      {/* Row 2: Gastos | Gastos (charts) | Receita */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <CategoryCard {...catProps("gasto")} delay={0.05} />
+        <GastosChartCard entries={entries.filter(e => e.category === "gasto")} config={categoryConfig.gasto} total={totals.gasto} onAdd={() => { addEntry("gasto"); setExpandedCategory("gasto"); }} delay={0.1} />
+        <CategoryCard {...catProps("receita")} delay={0.15} />
       </div>
 
-      {/* ── Investimentos (full width) ── */}
-      <CategorySection
-        cat="investimento"
-        config={categoryConfig.investimento}
-        entries={entries.filter(e => e.category === "investimento")}
-        totals={totals.investimento}
-        isExpanded={expandedCategory === "investimento"}
-        onToggle={() => setExpandedCategory(expandedCategory === "investimento" ? null : "investimento")}
-        onAdd={() => { addEntry("investimento"); setExpandedCategory("investimento"); }}
-        onUpdate={updateEntry}
-        onRemove={removeEntry}
-        profiles={profiles}
-        onToggleParticipant={toggleParticipant}
-        delay={0.2}
-      />
-
-      {/* ── 3-column detail grid ── */}
+      {/* Row 3: Faturamento (table) | Pipeline | Legend + Bar */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Left column */}
         <div className="space-y-4">
-          <CategorySection
-            cat="gasto"
-            config={categoryConfig.gasto}
-            entries={entries.filter(e => e.category === "gasto")}
-            totals={totals.gasto}
-            isExpanded={expandedCategory === "gasto"}
-            onToggle={() => setExpandedCategory(expandedCategory === "gasto" ? null : "gasto")}
-            onAdd={() => { addEntry("gasto"); setExpandedCategory("gasto"); }}
-            onUpdate={updateEntry}
-            onRemove={removeEntry}
-            profiles={profiles}
-            onToggleParticipant={toggleParticipant}
-            delay={0.25}
-          />
-          <CategorySection
-            cat="faturamento"
-            config={categoryConfig.faturamento}
-            entries={entries.filter(e => e.category === "faturamento")}
-            totals={totals.faturamento}
-            isExpanded={expandedCategory === "faturamento"}
-            onToggle={() => setExpandedCategory(expandedCategory === "faturamento" ? null : "faturamento")}
-            onAdd={() => { addEntry("faturamento"); setExpandedCategory("faturamento"); }}
-            onUpdate={updateEntry}
-            onRemove={removeEntry}
-            profiles={profiles}
-            onToggleParticipant={toggleParticipant}
-            delay={0.3}
-          />
-          <CategorySection
-            cat="despesa"
-            config={categoryConfig.despesa}
-            entries={entries.filter(e => e.category === "despesa")}
-            totals={totals.despesa}
-            isExpanded={expandedCategory === "despesa"}
-            onToggle={() => setExpandedCategory(expandedCategory === "despesa" ? null : "despesa")}
-            onAdd={() => { addEntry("despesa"); setExpandedCategory("despesa"); }}
-            onUpdate={updateEntry}
-            onRemove={removeEntry}
-            profiles={profiles}
-            onToggleParticipant={toggleParticipant}
-            delay={0.35}
-          />
+          <CategoryCard {...catProps("faturamento")} delay={0.2} />
+          {/* Row 4 left: Despesas */}
+          <CategoryCard {...catProps("despesa")} delay={0.3} />
         </div>
 
-        {/* Center column — Pipeline */}
-        <div className="space-y-4">
-          <PipelinePlaceholder />
-          <DonutPanel entries={entries} />
-        </div>
+        {/* Center: Pipeline spanning 2 rows */}
+        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} delay={0.25} />
 
-        {/* Right column */}
+        {/* Right: Legend + Bar, then Despesas detail */}
         <div className="space-y-4">
-          <CategorySection
-            cat="receita"
-            config={categoryConfig.receita}
-            entries={entries.filter(e => e.category === "receita")}
-            totals={totals.receita}
-            isExpanded={expandedCategory === "receita"}
-            onToggle={() => setExpandedCategory(expandedCategory === "receita" ? null : "receita")}
-            onAdd={() => { addEntry("receita"); setExpandedCategory("receita"); }}
-            onUpdate={updateEntry}
-            onRemove={removeEntry}
-            profiles={profiles}
-            onToggleParticipant={toggleParticipant}
-            delay={0.4}
-          />
-          <StackedBarPanel entries={entries} />
+          <LegendBarCard entries={entries} delay={0.3} />
+          <DespesasDetailCard entries={entries.filter(e => e.category === "despesa")} config={categoryConfig.despesa} total={totals.despesa} onAdd={() => { addEntry("despesa"); setExpandedCategory("despesa"); }} delay={0.35} />
         </div>
       </div>
     </div>
