@@ -345,49 +345,10 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
       <div className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px]`}>
         {columnData.map((col, index) => (
           <div key={col.key} className="space-y-2">
-            {/* ── Gutenberg-style Column Toolbar ── */}
-            <div className="flex items-center gap-0.5">
-              {/* Move buttons */}
-              <div className="flex items-center rounded-xl border border-border/50 bg-card overflow-hidden"
-                style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
-                <button
-                  onClick={() => moveColumn(index, -1)}
-                  disabled={index === 0}
-                  className="p-1.5 hover:bg-secondary transition-colors disabled:opacity-30"
-                  title="Mover para esquerda"
-                >
-                  <ChevronLeft className="h-3 w-3 text-muted-foreground" />
-                </button>
-                <div className="w-px h-4 bg-border/50" />
-                <button
-                  onClick={() => {
-                    // Cycle: move to end, or to start if already at end
-                    if (index < columns.length - 1) moveColumn(index, 1);
-                    else {
-                      const newCols = [...columns];
-                      const [col] = newCols.splice(index, 1);
-                      newCols.unshift(col);
-                      setColumns(newCols);
-                    }
-                  }}
-                  className="px-1 cursor-grab active:cursor-grabbing hover:bg-secondary transition-colors rounded"
-                  title="Reposicionar coluna"
-                >
-                  <GripVertical className="h-3 w-3 text-muted-foreground" />
-                </button>
-                <div className="w-px h-4 bg-border/50" />
-                <button
-                  onClick={() => moveColumn(index, 1)}
-                  disabled={index === columns.length - 1}
-                  className="p-1.5 hover:bg-secondary transition-colors disabled:opacity-30"
-                  title="Mover para direita"
-                >
-                  <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                </button>
-              </div>
-
+            {/* ── Column Header ── */}
+            <div className="flex items-center gap-1.5">
               {/* Column label */}
-              <div className="flex items-center gap-1.5 flex-1 min-w-0 ml-1.5">
+              <div className="flex items-center gap-1.5 flex-1 min-w-0">
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: col.color }} />
                 {editingCol === col.key ? (
                   <input
@@ -409,7 +370,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
                 <Plus className="h-3.5 w-3.5" />
               </button>
 
-              {/* Actions menu */}
+              {/* 3-dot menu with all actions */}
               <div className="relative" ref={menuCol === col.key ? menuRef : undefined}>
                 <button
                   onClick={() => setMenuCol(menuCol === col.key ? null : col.key)}
@@ -423,17 +384,25 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
                       initial={{ opacity: 0, scale: 0.9, y: -4 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.9, y: -4 }}
-                      className="absolute right-0 top-8 z-50 w-36 rounded-xl border border-border/60 bg-card p-1 space-y-0.5"
+                      className="absolute right-0 top-8 z-50 w-40 rounded-xl border border-border/60 bg-card p-1 space-y-0.5"
                       style={{ boxShadow: "0 8px 24px rgba(0,0,0,0.15)" }}
                     >
-                      {col.key === "todo" && (
-                        <button onClick={() => { onAdd(); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
-                          <Plus className="h-3 w-3" /> Nova tarefa
-                        </button>
-                      )}
+                      <button onClick={() => { onAdd(); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
+                        <Plus className="h-3 w-3" /> Nova tarefa
+                      </button>
                       <button onClick={() => startRename(col.key)} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
                         <Pencil className="h-3 w-3" /> Renomear
                       </button>
+                      {index > 0 && (
+                        <button onClick={() => { moveColumn(index, -1); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
+                          <ChevronLeft className="h-3 w-3" /> Mover ← esquerda
+                        </button>
+                      )}
+                      {index < columns.length - 1 && (
+                        <button onClick={() => { moveColumn(index, 1); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-secondary transition-colors text-foreground">
+                          <ChevronRight className="h-3 w-3" /> Mover → direita
+                        </button>
+                      )}
                       {!["todo", "urgent", "done"].includes(col.key) && (
                         <button onClick={() => { removeColumn(col.key); setMenuCol(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium rounded-lg hover:bg-destructive/10 transition-colors text-destructive">
                           <Trash2 className="h-3 w-3" /> Remover
