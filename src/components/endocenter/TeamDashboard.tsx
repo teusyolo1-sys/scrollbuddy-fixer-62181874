@@ -359,9 +359,10 @@ interface MemberCardProps {
   index: number;
   isExpanded: boolean;
   onToggle: (id: string) => void;
+  showFinancials?: boolean;
 }
 
-function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
+function MemberCard({ member, index, isExpanded, onToggle, showFinancials = true }: MemberCardProps) {
   const hourlyRate = member.hours > 0 ? member.remuneration / member.hours : 0;
 
   return (
@@ -396,19 +397,26 @@ function MemberCard({ member, index, isExpanded, onToggle }: MemberCardProps) {
           </span>
         </div>
 
-        <div className="grid grid-cols-3 gap-2.5 mt-4">
-          {[
-            { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}`, sub: "/ mês" },
-            { label: "Carga Horária", value: `${member.hours}h`, sub: "/ mês" },
-            { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}`, sub: "calculado" },
-          ].map((stat) => (
-            <div key={stat.label} className="p-3 text-center rounded-2xl bg-secondary/40">
-              <div className="text-[10px] font-medium text-muted-foreground">{stat.label}</div>
-              <div className="text-sm font-bold text-foreground mt-0.5">{stat.value}</div>
-              <div className="text-[10px] text-muted-foreground">{stat.sub}</div>
-            </div>
-          ))}
-        </div>
+        {showFinancials ? (
+          <div className="grid grid-cols-3 gap-2.5 mt-4">
+            {[
+              { label: "Remuneração", value: `R$ ${member.remuneration.toLocaleString("pt-BR")}`, sub: "/ mês" },
+              { label: "Carga Horária", value: `${member.hours}h`, sub: "/ mês" },
+              { label: "Valor / Hora", value: `R$ ${hourlyRate.toFixed(2).replace(".", ",")}`, sub: "calculado" },
+            ].map((stat) => (
+              <div key={stat.label} className="p-3 text-center rounded-2xl bg-secondary/40">
+                <div className="text-[10px] font-medium text-muted-foreground">{stat.label}</div>
+                <div className="text-sm font-bold text-foreground mt-0.5">{stat.value}</div>
+                <div className="text-[10px] text-muted-foreground">{stat.sub}</div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-3 space-y-1">
+            <p className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">Cargo:</span> {member.role}</p>
+            <p className="text-xs text-muted-foreground"><span className="font-semibold text-foreground">Tarefas:</span> {member.tasks.slice(0, 2).join(", ")}{member.tasks.length > 2 ? "..." : ""}</p>
+          </div>
+        )}
       </div>
     </motion.div>
   );
