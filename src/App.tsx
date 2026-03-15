@@ -17,7 +17,7 @@ const SetupNotice = () => (
     <div className="text-center max-w-lg space-y-4">
       <h1 className="text-3xl font-bold text-foreground">⚙️ Configuração necessária</h1>
       <p className="text-muted-foreground">
-        Para usar o Site Editor Pro, configure as variáveis de ambiente do Supabase no projeto:
+        Para usar o TaskFlow, configure as variáveis de ambiente do Supabase no projeto:
       </p>
       <div className="bg-card border border-border rounded-xl p-4 text-left text-sm font-mono space-y-1">
         <p><span className="text-primary">VITE_SUPABASE_URL</span>=https://seu-projeto.supabase.co</p>
