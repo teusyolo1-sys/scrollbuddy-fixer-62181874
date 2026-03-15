@@ -102,7 +102,8 @@ function MetricChartCard({ type, data, delay }: {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", damping: 22 }}
-      className="ios-card p-5"
+      className="ios-card p-5 min-h-[280px]"
+      style={{ overflow: "visible" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
@@ -234,7 +235,7 @@ export default function AnalyticsCharts() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="ios-card p-4 overflow-hidden"
+            className="ios-card p-4"
           >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <IosDropdown
@@ -265,7 +266,7 @@ export default function AnalyticsCharts() {
 
       {/* Individual charts per metric — one card each */}
       {activeTypes.length > 0 ? (
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid sm:grid-cols-2 gap-5">
           {activeTypes.map((type, i) => (
             <MetricChartCard
               key={type}
