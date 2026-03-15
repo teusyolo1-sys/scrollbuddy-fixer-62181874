@@ -340,7 +340,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               }}
             >
               <div
-                className="h-full overflow-y-auto overflow-x-hidden pointer-events-auto overflow-hidden"
+                className="h-full pointer-events-auto overflow-hidden"
                 style={{
                   width: 300,
                   background: "var(--ios-glass)",
@@ -349,9 +349,11 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                   borderRadius: "var(--ios-radius)",
                   boxShadow: "var(--ios-shadow-lg)",
                   border: "1px solid hsl(var(--border) / 0.25)",
+                  clipPath: "inset(0 round var(--ios-radius))",
                 }}
               >
-                <div className="py-2 [&>*:last-child]:overflow-hidden">
+                <div className="h-full overflow-y-auto overflow-x-hidden">
+                  <div className="py-2 [&>*:last-child]:overflow-hidden">
                     {/* Priority */}
                     <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen={!!item.priority}>
                       <div className="flex gap-2">
