@@ -568,6 +568,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               </div>{/* flex */}
         </motion.div>
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }
