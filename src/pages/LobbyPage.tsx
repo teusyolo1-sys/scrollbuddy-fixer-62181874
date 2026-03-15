@@ -308,14 +308,46 @@ export default function LobbyPage() {
                   <span className="text-sm text-muted-foreground hidden sm:inline">
                     {user.user_metadata?.display_name || user.email?.split("@")[0]}
                   </span>
-                  {isAdmin && (
-                    <button
-                      onClick={() => navigate("/permissions")}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
-                      title="Gerenciar permissões"
-                    >
-                      <Shield className="h-4 w-4" />
-                    </button>
+                   {isAdmin && (
+                    <>
+                      {/* Wallet icon with hover balance */}
+                      <div className="relative" onMouseEnter={() => setWalletHovered(true)} onMouseLeave={() => setWalletHovered(false)}>
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => navigate("/agency-wallet")}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20 transition-colors"
+                          title="Caixa da Agência"
+                        >
+                          <Wallet className="h-4 w-4" />
+                        </motion.button>
+                        <AnimatePresence>
+                          {walletHovered && !walletLoading && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                              transition={{ type: "spring", damping: 25, stiffness: 400 }}
+                              className="absolute top-full right-0 mt-2 px-4 py-3 rounded-xl border border-border/60 bg-card/90 backdrop-blur-xl shadow-[var(--ios-shadow-lg)] min-w-[180px] z-50"
+                            >
+                              <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider mb-1">Saldo da Agência</p>
+                              <p className={`text-lg font-extrabold ${profit >= 0 ? "text-emerald-500" : "text-destructive"}`}>
+                                {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(profit)}
+                              </p>
+                              <p className="text-[10px] text-muted-foreground mt-0.5">
+                                Receita total: {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(totalRevenue)}
+                              </p>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      <button
+                        onClick={() => navigate("/permissions")}
+                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
+                        title="Gerenciar permissões"
+                      >
+                        <Shield className="h-4 w-4" />
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={async () => { await signOut(); }}
