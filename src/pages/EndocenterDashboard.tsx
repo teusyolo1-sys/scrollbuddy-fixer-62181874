@@ -26,6 +26,7 @@ function DashboardContent() {
   const [activeTab, setActiveTab] = useState<(typeof tabDefs)[number]["id"]>("dashboard");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { company } = useEndocenter();
+  const tabLabels = company.tabLabels ?? defaultTabLabels;
   const { resolvedTheme, setTheme } = useTheme();
   const navigate = useNavigate();
 
