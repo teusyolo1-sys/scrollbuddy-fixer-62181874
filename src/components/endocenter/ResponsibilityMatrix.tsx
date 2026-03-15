@@ -384,11 +384,24 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
 
+  const setGlobalDraggingCursor = () => {
+    document.body.classList.add("is-dragging-cursor");
+  };
+
+  const clearGlobalDraggingCursor = () => {
+    document.body.classList.remove("is-dragging-cursor");
+  };
+
+  useEffect(() => {
+    return () => clearGlobalDraggingCursor();
+  }, []);
+
   const activeItem = activeId ? items.find((i) => i.id === activeId) : null;
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
+    clearGlobalDraggingCursor();
     if (!over) return;
     const overId = String(over.id);
     const itemId = String(active.id);
@@ -414,7 +427,19 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
   const gridCols = columns.length <= 3 ? "md:grid-cols-3" : columns.length === 4 ? "md:grid-cols-4" : "md:grid-cols-5";
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActiveId(String(e.active.id))} onDragEnd={handleDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={(e) => {
+        setActiveId(String(e.active.id));
+        setGlobalDraggingCursor();
+      }}
+      onDragCancel={() => {
+        setActiveId(null);
+        clearGlobalDraggingCursor();
+      }}
+      onDragEnd={handleDragEnd}
+    >
       <div className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px]`}>
         {columnData.map((col, index) => (
           <div
@@ -440,6 +465,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
               }
               setDraggingColIdx(null);
               setDragOverColIdx(null);
+              clearGlobalDraggingCursor();
             }}
           >
             {/* ── Column Header ── */}
@@ -467,11 +493,13 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
                 draggable
                 onDragStart={(e) => {
                   setDraggingColIdx(index);
+                  setGlobalDraggingCursor();
                   e.dataTransfer.effectAllowed = "move";
                 }}
                 onDragEnd={() => {
                   setDraggingColIdx(null);
                   setDragOverColIdx(null);
+                  clearGlobalDraggingCursor();
                 }}
                 className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary hover:text-foreground"
                 title="Arrastar para reordenar"
@@ -582,7 +610,9 @@ function SortableTaskCard({ item, roleColor, onClick, onToggleDone }: {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
     transition,
     opacity: isDragging ? 0.4 : 1,
-    cursor: "grab",
+    cursor: isDragging
+      ? "url('/cursors/move.svg') 7 7, grabbing"
+      : "url('/cursors/grab.svg') 8 8, grab",
   };
 
   return (
