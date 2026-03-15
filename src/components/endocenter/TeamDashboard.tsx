@@ -135,16 +135,8 @@ function MonthYearPicker() {
 
 export default function TeamDashboard() {
   const { team, company, metricEntries } = useEndocenter();
-  const [expandedIds, setExpandedIds] = useState<string[]>([]);
+  const [selectedMember, setSelectedMember] = useState<typeof team[number] | null>(null);
   const [periodFilter, setPeriodFilter] = useState<MetricPeriod | "Todas">("Todas");
-
-  const toggleExpand = useCallback((id: string) => {
-    setExpandedIds((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 2) return [prev[1], id];
-      return [...prev, id];
-    });
-  }, []);
 
   const totalRemuneration = useMemo(() => team.reduce((sum, m) => sum + m.remuneration, 0), [team]);
   const totalHours = useMemo(() => team.reduce((sum, m) => sum + m.hours, 0), [team]);
