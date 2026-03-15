@@ -238,7 +238,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/60">R$</span>
                           <input
                             type="number"
-                            className="w-full bg-transparent text-sm font-bold text-right outline-none placeholder:text-white/15 border-b border-transparent focus:border-white/10 transition-colors pl-6 pr-1"
+                            className="w-full bg-transparent text-sm font-bold text-right outline-none placeholder:text-muted-foreground/30 border-b border-transparent focus:border-border transition-colors pl-6 pr-1"
                             value={entry.amount || ""}
                             onChange={(e) => onUpdate(entry.id, { amount: Number(e.target.value) })}
                             placeholder="0"
