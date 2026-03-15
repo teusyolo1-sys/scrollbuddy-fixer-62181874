@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Columns3, LayoutList, Plus, Search, ChevronLeft, ChevronRight, Trash2, Pencil, MoreVertical } from "lucide-react";
+import { Columns3, LayoutList, Plus, Search, ChevronLeft, ChevronRight, Trash2, Pencil, MoreVertical, GripVertical } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useNotificationStore } from "@/store/notificationStore";
 import { motion, AnimatePresence } from "framer-motion";
