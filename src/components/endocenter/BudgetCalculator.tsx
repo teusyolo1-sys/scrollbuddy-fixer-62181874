@@ -240,17 +240,44 @@ function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd
   onUpdate: (id: string, u: any) => void; onRemove: (id: string) => void;
   profiles: any[]; onToggleParticipant: (eid: string, uid: string) => void; delay: number;
 }) {
+  const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
+  const [customLabel, setCustomLabel] = useState<string | undefined>();
   const showTable = isExpanded && entries.length > 0;
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc}`} style={{ borderLeft: `3px solid ${config.color}30` }}>
-      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle} />
+  const displayLabel = customLabel || config.label;
+
+  const cardContent = (
+    <>
+      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle}
+        customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
       {showTable && (
         <div className="px-4 pb-4">
           <EntryTable entries={entries} config={config} total={total} onUpdate={onUpdate} onRemove={onRemove} profiles={profiles} onToggleParticipant={onToggleParticipant} />
         </div>
       )}
-    </motion.div>
+    </>
+  );
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc}`} style={{ borderLeft: `3px solid ${config.color}30` }}
+        onContextMenu={handleContextMenu}>
+        {cardContent}
+      </motion.div>
+      {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
+      {isFullscreen && (
+        <FullscreenPanel title={displayLabel} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-4xl mx-auto`} style={{ borderLeft: `3px solid ${config.color}30` }}>
+            <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={true} onToggle={() => {}} customLabel={customLabel} />
+            {entries.length > 0 && (
+              <div className="px-4 pb-4">
+                <EntryTable entries={entries} config={config} total={total} onUpdate={onUpdate} onRemove={onRemove} profiles={profiles} onToggleParticipant={onToggleParticipant} />
+              </div>
+            )}
+          </div>
+        </FullscreenPanel>
+      )}
+    </>
   );
 }
 
