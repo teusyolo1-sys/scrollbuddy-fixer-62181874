@@ -370,6 +370,7 @@ export default function PermissionsPage() {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useUserRole();
   const { permissions, loading: permLoading, setPermission, setAllPermissions } = useTabPermissions();
+  const { getUserSectionPerm, setSectionPermission, loading: secLoading } = useSectionPermissions();
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [companyPerms, setCompanyPerms] = useState<CompanyPerm[]>([]);
