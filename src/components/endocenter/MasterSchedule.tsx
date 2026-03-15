@@ -149,7 +149,7 @@ export default function MasterSchedule() {
                       className="w-10 h-10 rounded-full flex items-center justify-center"
                       style={{ background: `${group.color}15` }}
                     >
-                      <Icon className="h-4.5 w-4.5" style={{ color: group.color }} />
+                      <Icon className="h-5 w-5" style={{ color: group.color }} />
                     </div>
                     <div className="text-left">
                       <div className="text-sm font-bold text-foreground">{group.role}</div>
