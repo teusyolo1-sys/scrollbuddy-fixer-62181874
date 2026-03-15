@@ -213,47 +213,67 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             </div>
           )}
 
-          {/* Header bar */}
-          <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border/40 shrink-0">
-            <div className="flex items-center gap-2 flex-1 min-w-0">
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: roleColor }}>
-                {roleName}
-              </span>
-              {item.critical && (
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive shrink-0">Crítico</span>
-              )}
-              {item.labels.map((l) => (
-                <span key={l.id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: l.color }}>
-                  {l.name}
+          {/* Header bar — only when editing */}
+          {editingDescription && (
+            <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-border/40 shrink-0">
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: roleColor }}>
+                  {roleName}
                 </span>
-              ))}
-              <div className="w-px h-4 bg-border/50 mx-1 shrink-0" />
-              {editingTitle ? (
-                <input
-                  ref={titleRef}
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  onBlur={() => { onUpdate({ task: title }); setEditingTitle(false); }}
-                  onKeyDown={(e) => e.key === "Enter" && (onUpdate({ task: title }), setEditingTitle(false))}
-                  className="text-base font-bold text-foreground bg-transparent border-b-2 border-primary outline-none flex-1 min-w-0"
-                />
-              ) : (
-                <h2 onClick={() => setEditingTitle(true)} className="text-base font-bold text-foreground cursor-text hover:text-primary transition-colors truncate flex-1 min-w-0">
-                  {item.task}
-                </h2>
-              )}
+                {item.critical && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive shrink-0">Crítico</span>
+                )}
+                {item.labels.map((l) => (
+                  <span key={l.id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: l.color }}>
+                    {l.name}
+                  </span>
+                ))}
+                <div className="w-px h-4 bg-border/50 mx-1 shrink-0" />
+                {editingTitle ? (
+                  <input
+                    ref={titleRef}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    onBlur={() => { onUpdate({ task: title }); setEditingTitle(false); }}
+                    onKeyDown={(e) => e.key === "Enter" && (onUpdate({ task: title }), setEditingTitle(false))}
+                    className="text-base font-bold text-foreground bg-transparent border-b-2 border-primary outline-none flex-1 min-w-0"
+                  />
+                ) : (
+                  <h2 onClick={() => setEditingTitle(true)} className="text-base font-bold text-foreground cursor-text hover:text-primary transition-colors truncate flex-1 min-w-0">
+                    {item.task}
+                  </h2>
+                )}
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${sidebarOpen ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
+                  title="Propriedades">
+                  <Settings2 className="h-4 w-4" />
+                </button>
+                <button onClick={() => setEditingDescription(false)} className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors" title="Minimizar">
+                  <ChevronDown className="h-4 w-4" />
+                </button>
+                <button onClick={onClose} className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <button onClick={() => setSidebarOpen(!sidebarOpen)}
-                className={`w-8 h-8 rounded-xl flex items-center justify-center transition-colors ${sidebarOpen ? "bg-primary/15 text-primary" : "bg-secondary text-muted-foreground hover:text-foreground"}`}
-                title="Propriedades">
-                <Settings2 className="h-4 w-4" />
-              </button>
-              <button onClick={onClose} className="w-8 h-8 rounded-xl bg-secondary flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                <X className="h-4 w-4" />
+          )}
+
+          {/* Title bar for compact 9:16 mode */}
+          {!editingDescription && (
+            <div className="flex items-center justify-between px-4 py-2.5 shrink-0">
+              <div className="flex items-center gap-2 min-w-0 flex-1">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: roleColor }}>
+                  {roleName}
+                </span>
+                <h2 className="text-sm font-bold text-foreground truncate">{item.task}</h2>
+              </div>
+              <button onClick={onClose} className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
-          </div>
+          )
 
           {/* Main content area: Editor (75%) + Sidebar (25%) */}
           <div className="flex flex-1 min-h-0 overflow-hidden">
