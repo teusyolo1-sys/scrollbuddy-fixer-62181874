@@ -500,12 +500,14 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     >
       <div className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px]`}>
         {columnData.map((col, index) => (
-          <div
+          <motion.div
             key={col.key}
+            layout
+            transition={{ type: "spring", stiffness: 300, damping: 28 }}
             ref={(el) => { colRefs.current[index] = el; }}
-            className={`space-y-2 group/col transition-all duration-200 ${
+            className={`space-y-2 group/col transition-colors duration-200 ${
               draggingColIdx === index ? "opacity-40 scale-95" : ""
-            } ${dragOverColIdx === index && draggingColIdx !== index ? "ring-2 ring-primary/40 rounded-2xl" : ""}`}
+            } ${dragOverColIdx === index && draggingColIdx !== index ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5" : ""}`}
           >
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
