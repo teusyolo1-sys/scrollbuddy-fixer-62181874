@@ -1,9 +1,10 @@
 import { useState, useMemo, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import {
   Plus, Trash2, ChevronDown, Loader2,
   ArrowUpRight, ArrowDownRight, TrendingUp,
   BarChart3, PieChart, FileText, CalendarDays,
-  ChevronLeft, ChevronRight, X
+  ChevronLeft, ChevronRight, X, Pencil, Maximize2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -33,14 +34,102 @@ const formatCurrency = (value: number) =>
 /* ── Glass card base ── */
 const gc = "rounded-2xl border border-border/60 shadow-[var(--ios-shadow)] bg-card/70 backdrop-blur-xl";
 
+/* ── Card Context Menu ── */
+function CardContextMenu({ pos, onClose, onRename, onFullscreen }: {
+  pos: { x: number; y: number }; onClose: () => void;
+  onRename: () => void; onFullscreen: () => void;
+}) {
+  return createPortal(
+    <>
+      <div className="fixed inset-0 z-[9998]" onClick={onClose} onContextMenu={(e) => { e.preventDefault(); onClose(); }} />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.92 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "spring", damping: 22, stiffness: 400 }}
+        className="fixed z-[9999] bg-card border border-border/60 rounded-xl shadow-xl py-1.5 px-1 min-w-[180px] backdrop-blur-xl"
+        style={{
+          left: Math.min(pos.x, window.innerWidth - 200),
+          top: Math.min(pos.y, window.innerHeight - 120),
+        }}
+      >
+        <button onClick={() => { onRename(); onClose(); }}
+          className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent/40 transition-colors text-foreground">
+          <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+          <span>Renomear</span>
+        </button>
+        <button onClick={() => { onFullscreen(); onClose(); }}
+          className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent/40 transition-colors text-foreground">
+          <Maximize2 className="h-3.5 w-3.5 text-muted-foreground" />
+          <span>Abrir em tela cheia</span>
+        </button>
+      </motion.div>
+    </>,
+    document.body
+  );
+}
+
+/* ── Fullscreen Panel ── */
+function FullscreenPanel({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  return createPortal(
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[9990] bg-background/80 backdrop-blur-xl flex flex-col"
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border/40">
+          <h2 className="text-lg font-bold text-foreground">{title}</h2>
+          <motion.button whileTap={{ scale: 0.9 }} onClick={onClose}
+            className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-accent/30 transition-colors">
+            <X className="h-4 w-4 text-muted-foreground" />
+          </motion.button>
+        </div>
+        {/* Content */}
+        <div className="flex-1 overflow-auto p-6">
+          {children}
+        </div>
+      </motion.div>
+    </AnimatePresence>,
+    document.body
+  );
+}
+
+/* ── useCardMenu hook ── */
+function useCardMenu() {
+  const [ctxPos, setCtxPos] = useState<{ x: number; y: number } | null>(null);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setCtxPos({ x: e.clientX, y: e.clientY });
+  }, []);
+
+  return {
+    ctxPos, setCtxPos,
+    isRenaming, setIsRenaming,
+    isFullscreen, setIsFullscreen,
+    handleContextMenu,
+  };
+}
+
 /* ── Category Header (reusable) ── */
-function CatHeader({ config, count, total, onAdd, isExpanded, onToggle }: {
+function CatHeader({ config, count, total, onAdd, isExpanded, onToggle, customLabel, isRenaming, onRenameSubmit }: {
   config: { label: string; color: string; icon: "up" | "down" };
   count: number; total: number;
   onAdd: () => void;
   isExpanded?: boolean;
   onToggle?: () => void;
+  customLabel?: string;
+  isRenaming?: boolean;
+  onRenameSubmit?: (name: string) => void;
 }) {
+  const [renameValue, setRenameValue] = useState(customLabel || config.label);
+  const displayLabel = customLabel || config.label;
+
   return (
     <button onClick={onToggle} className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
       <div className="flex items-center gap-3">
@@ -50,7 +139,19 @@ function CatHeader({ config, count, total, onAdd, isExpanded, onToggle }: {
             : <ArrowDownRight className="h-4 w-4" style={{ color: config.color }} />}
         </div>
         <div className="text-left">
-          <p className="text-sm font-bold text-foreground">{config.label}</p>
+          {isRenaming ? (
+            <input
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onBlur={() => onRenameSubmit?.(renameValue)}
+              onKeyDown={(e) => { if (e.key === "Enter") onRenameSubmit?.(renameValue); }}
+              onClick={(e) => e.stopPropagation()}
+              className="text-sm font-bold text-foreground bg-transparent border-b border-primary outline-none w-full"
+            />
+          ) : (
+            <p className="text-sm font-bold text-foreground">{displayLabel}</p>
+          )}
           <p className="text-[11px] text-muted-foreground">{count} {count === 1 ? "item" : "itens"} · {formatCurrency(total)}</p>
         </div>
       </div>
@@ -139,17 +240,44 @@ function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd
   onUpdate: (id: string, u: any) => void; onRemove: (id: string) => void;
   profiles: any[]; onToggleParticipant: (eid: string, uid: string) => void; delay: number;
 }) {
+  const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
+  const [customLabel, setCustomLabel] = useState<string | undefined>();
   const showTable = isExpanded && entries.length > 0;
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc}`} style={{ borderLeft: `3px solid ${config.color}30` }}>
-      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle} />
+  const displayLabel = customLabel || config.label;
+
+  const cardContent = (
+    <>
+      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle}
+        customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
       {showTable && (
         <div className="px-4 pb-4">
           <EntryTable entries={entries} config={config} total={total} onUpdate={onUpdate} onRemove={onRemove} profiles={profiles} onToggleParticipant={onToggleParticipant} />
         </div>
       )}
-    </motion.div>
+    </>
+  );
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc}`} style={{ borderLeft: `3px solid ${config.color}30` }}
+        onContextMenu={handleContextMenu}>
+        {cardContent}
+      </motion.div>
+      {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
+      {isFullscreen && (
+        <FullscreenPanel title={displayLabel} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-4xl mx-auto`} style={{ borderLeft: `3px solid ${config.color}30` }}>
+            <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={true} onToggle={() => {}} customLabel={customLabel} />
+            {entries.length > 0 && (
+              <div className="px-4 pb-4">
+                <EntryTable entries={entries} config={config} total={total} onUpdate={onUpdate} onRemove={onRemove} profiles={profiles} onToggleParticipant={onToggleParticipant} />
+              </div>
+            )}
+          </div>
+        </FullscreenPanel>
+      )}
+    </>
   );
 }
 
@@ -158,6 +286,8 @@ function GastosChartCard({ entries, config, total, onAdd, delay }: {
   entries: any[]; config: typeof categoryConfig.gasto; total: number; onAdd: () => void; delay: number;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
+  const [customLabel, setCustomLabel] = useState<string | undefined>();
   const chartData = useMemo(() => {
     if (entries.length === 0) return [{ name: "Vazio", value: 1, color: "hsl(var(--muted))" }];
     const byDesc: Record<string, number> = {};
@@ -167,28 +297,54 @@ function GastosChartCard({ entries, config, total, onAdd, delay }: {
   }, [entries]);
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} overflow-hidden`}>
-      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)} />
-      {expanded && (
-        <div className="px-4 pb-4 flex items-center justify-center gap-4">
-          <ResponsiveContainer width={90} height={90}>
-            <RPieChart>
-              <Pie data={chartData} innerRadius={28} outerRadius={42} dataKey="value" stroke="none">
-                {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
-              </Pie>
-            </RPieChart>
-          </ResponsiveContainer>
-          <ResponsiveContainer width={90} height={90}>
-            <RPieChart>
-              <Pie data={chartData} innerRadius={0} outerRadius={42} dataKey="value" stroke="none">
-                {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.7} />)}
-              </Pie>
-            </RPieChart>
-          </ResponsiveContainer>
-        </div>
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
+        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)}
+          customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
+        {expanded && (
+          <div className="px-4 pb-4 flex items-center justify-center gap-4">
+            <ResponsiveContainer width={90} height={90}>
+              <RPieChart>
+                <Pie data={chartData} innerRadius={28} outerRadius={42} dataKey="value" stroke="none">
+                  {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
+                </Pie>
+              </RPieChart>
+            </ResponsiveContainer>
+            <ResponsiveContainer width={90} height={90}>
+              <RPieChart>
+                <Pie data={chartData} innerRadius={0} outerRadius={42} dataKey="value" stroke="none">
+                  {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.7} />)}
+                </Pie>
+              </RPieChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </motion.div>
+      {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
+      {isFullscreen && (
+        <FullscreenPanel title={customLabel || config.label} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-2xl mx-auto p-6`}>
+            <div className="flex items-center justify-center gap-6">
+              <ResponsiveContainer width={200} height={200}>
+                <RPieChart>
+                  <Pie data={chartData} innerRadius={60} outerRadius={90} dataKey="value" stroke="none">
+                    {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
+                  </Pie>
+                </RPieChart>
+              </ResponsiveContainer>
+              <ResponsiveContainer width={200} height={200}>
+                <RPieChart>
+                  <Pie data={chartData} innerRadius={0} outerRadius={90} dataKey="value" stroke="none">
+                    {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.7} />)}
+                  </Pie>
+                </RPieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </FullscreenPanel>
       )}
-    </motion.div>
+    </>
   );
 }
 
@@ -197,89 +353,116 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
   const upcoming = faturamentoEntries.filter(e => e.amount > 0).slice(0, 2);
   const total = faturamentoEntries.reduce((s, e) => s + e.amount, 0);
   const [expanded, setExpanded] = useState(false);
+  const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu: handleCtx } = useCardMenu();
+  const [customLabel, setCustomLabel] = useState("Faturamento");
+  const [renameValue, setRenameValue] = useState("Faturamento");
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} overflow-hidden flex flex-col ${expanded ? "row-span-2" : ""}`}>
-      <button onClick={() => setExpanded(!expanded)} className="p-4 hover:bg-accent/20 transition-colors w-full">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-bold text-foreground">Faturamento</p>
-            <p className="text-[11px] text-muted-foreground">{faturamentoEntries.length} {faturamentoEntries.length === 1 ? "item" : "itens"} · {formatCurrency(total)}</p>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <motion.div whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); onAdd(); }}
-              className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500 cursor-pointer">
-              <Plus className="h-3.5 w-3.5" />
-            </motion.div>
-            <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </motion.div>
-          </div>
-        </div>
-      </button>
-
-      {expanded && (
-        <>
-          <AnimatePresence>
-            {faturamentoEntries.length > 0 && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden px-4 pb-3">
-                <div className="space-y-1.5">
-                  {faturamentoEntries.map((e, i) => (
-                    <div key={e.id} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-muted/30">
-                      <span className="text-[11px] text-foreground/80 truncate max-w-[140px]">{e.description || `Item ${i + 1}`}</span>
-                      <span className="text-[11px] font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {faturamentoEntries.length === 0 && (
-            <div className="flex-1 flex items-center justify-center px-4">
-              <div className="text-center space-y-2">
-                <div className="flex flex-col items-center gap-1.5 opacity-10">
-                  <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
-                  <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
-                  <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
-                </div>
-                <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
-              </div>
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc} overflow-hidden flex flex-col ${expanded ? "row-span-2" : ""}`}
+        onContextMenu={handleCtx}>
+        <button onClick={() => setExpanded(!expanded)} className="p-4 hover:bg-accent/20 transition-colors w-full">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
             </div>
-          )}
-
-          {/* Upcoming Invoices floating card */}
-          <div className="p-4">
-            <div className={`${gc} p-3`}>
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-3 w-3 text-muted-foreground" />
-                <h4 className="text-[11px] font-bold text-muted-foreground">Upcoming Invoices</h4>
-              </div>
-              {upcoming.length === 0 ? (
-                <div className="space-y-1.5">
-                  <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Invoice 1</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
-                  <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Feb. 2022</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
-                </div>
+            <div className="text-left">
+              {isRenaming ? (
+                <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
+                  onBlur={() => { setCustomLabel(renameValue); setIsRenaming(false); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { setCustomLabel(renameValue); setIsRenaming(false); } }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sm font-bold text-foreground bg-transparent border-b border-primary outline-none w-full" />
               ) : (
-                <div className="space-y-1.5">
-                  {upcoming.map((inv, i) => (
-                    <div key={i} className="flex justify-between">
-                      <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{inv.description || `Invoice ${i + 1}`}</span>
-                      <span className="text-[10px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-sm font-bold text-foreground">{customLabel}</p>
               )}
+              <p className="text-[11px] text-muted-foreground">{faturamentoEntries.length} {faturamentoEntries.length === 1 ? "item" : "itens"} · {formatCurrency(total)}</p>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <motion.div whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); onAdd(); }}
+                className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500 cursor-pointer">
+                <Plus className="h-3.5 w-3.5" />
+              </motion.div>
+              <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </motion.div>
             </div>
           </div>
-        </>
+        </button>
+
+        {expanded && (
+          <>
+            <AnimatePresence>
+              {faturamentoEntries.length > 0 && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden px-4 pb-3">
+                  <div className="space-y-1.5">
+                    {faturamentoEntries.map((e, i) => (
+                      <div key={e.id} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-muted/30">
+                        <span className="text-[11px] text-foreground/80 truncate max-w-[140px]">{e.description || `Item ${i + 1}`}</span>
+                        <span className="text-[11px] font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {faturamentoEntries.length === 0 && (
+              <div className="flex-1 flex items-center justify-center px-4">
+                <div className="text-center space-y-2">
+                  <div className="flex flex-col items-center gap-1.5 opacity-10">
+                    <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
+                    <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
+                    <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
+                </div>
+              </div>
+            )}
+
+            <div className="p-4">
+              <div className={`${gc} p-3`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="h-3 w-3 text-muted-foreground" />
+                  <h4 className="text-[11px] font-bold text-muted-foreground">Upcoming Invoices</h4>
+                </div>
+                {upcoming.length === 0 ? (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Invoice 1</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
+                    <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Feb. 2022</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {upcoming.map((inv, i) => (
+                      <div key={i} className="flex justify-between">
+                        <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{inv.description || `Invoice ${i + 1}`}</span>
+                        <span className="text-[10px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </motion.div>
+      {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
+      {isFullscreen && (
+        <FullscreenPanel title={customLabel} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-2xl mx-auto p-6 space-y-4`}>
+            {faturamentoEntries.map((e, i) => (
+              <div key={e.id} className="flex justify-between items-center py-2 px-3 rounded-lg bg-muted/30">
+                <span className="text-sm text-foreground/80">{e.description || `Item ${i + 1}`}</span>
+                <span className="text-sm font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
+              </div>
+            ))}
+            {faturamentoEntries.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum item de faturamento.</p>}
+          </div>
+        </FullscreenPanel>
       )}
-    </motion.div>
+    </>
   );
 }
 
@@ -287,6 +470,10 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
 function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
   const [chartStyle, setChartStyle] = useState<ChartStyle>("column");
   const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isRenaming, setIsRenaming] = useState(false);
+  const [customLabel, setCustomLabel] = useState("Resumo");
+  const [renameValue, setRenameValue] = useState("Resumo");
   const menuRef = useRef<HTMLDivElement>(null);
 
   const legendItems = [
@@ -324,144 +511,108 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
 
   const closeMenu = useCallback(() => setCtxMenu(null), []);
 
-  // Flatten data for pie/radar
   const pieData = useMemo(() => catColors.map(c => ({
     name: c.name,
     value: chartData.reduce((s, row) => s + ((row[c.name] as number) || 0), 0),
     color: c.color,
   })).filter(d => d.value > 0), [chartData, catColors]);
 
-  const renderChart = () => {
-    const h = 110;
+  const renderChart = (h = 110) => {
     switch (chartStyle) {
       case "line":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Line key={i} type="monotone" dataKey={d.name} stroke={d.color} strokeWidth={2} dot={false} />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />{catColors.map((d, i) => <Line key={i} type="monotone" dataKey={d.name} stroke={d.color} strokeWidth={2} dot={false} />)}</LineChart></ResponsiveContainer>);
       case "area":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <AreaChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Area key={i} type="monotone" dataKey={d.name} stroke={d.color} fill={d.color} fillOpacity={0.2} strokeWidth={2} />
-              ))}
-            </AreaChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><AreaChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />{catColors.map((d, i) => <Area key={i} type="monotone" dataKey={d.name} stroke={d.color} fill={d.color} fillOpacity={0.2} strokeWidth={2} />)}</AreaChart></ResponsiveContainer>);
       case "bar":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <BarChart data={chartData} layout="vertical" barSize={10}>
-              <XAxis type="number" hide />
-              <YAxis type="category" dataKey="name" hide />
-              {catColors.map((d, i) => (
-                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85} radius={[0, 4, 4, 0]} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><BarChart data={chartData} layout="vertical" barSize={10}><XAxis type="number" hide /><YAxis type="category" dataKey="name" hide />{catColors.map((d, i) => <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85} radius={[0, 4, 4, 0]} />)}</BarChart></ResponsiveContainer>);
       case "pie":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <RPieChart>
-              <Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={20} outerRadius={45} stroke="none">
-                {pieData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
-              </Pie>
-            </RPieChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><RPieChart><Pie data={pieData} dataKey="value" cx="50%" cy="50%" innerRadius={h * 0.18} outerRadius={h * 0.4} stroke="none">{pieData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}</Pie></RPieChart></ResponsiveContainer>);
       case "radar":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <RadarChart data={pieData} cx="50%" cy="50%" outerRadius={38}>
-              <PolarGrid stroke="hsl(var(--border))" />
-              <PolarAngleAxis dataKey="name" tick={{ fontSize: 7 }} />
-              <Radar dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} />
-            </RadarChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><RadarChart data={pieData} cx="50%" cy="50%" outerRadius={h * 0.35}><PolarGrid stroke="hsl(var(--border))" /><PolarAngleAxis dataKey="name" tick={{ fontSize: 7 }} /><Radar dataKey="value" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} /></RadarChart></ResponsiveContainer>);
       case "pareto":
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <ComposedChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} barSize={20} radius={[3, 3, 0, 0]} />
-              ))}
-            </ComposedChart>
-          </ResponsiveContainer>
-        );
-      default: // column
-        return (
-          <ResponsiveContainer width="100%" height={h}>
-            <BarChart data={chartData} barSize={16} barGap={2}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />
-              {catColors.map((d, i) => (
-                <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85}
-                  radius={i === catColors.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />
-              ))}
-            </BarChart>
-          </ResponsiveContainer>
-        );
+        return (<ResponsiveContainer width="100%" height={h}><ComposedChart data={chartData}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />{catColors.map((d, i) => <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} barSize={20} radius={[3, 3, 0, 0]} />)}</ComposedChart></ResponsiveContainer>);
+      default:
+        return (<ResponsiveContainer width="100%" height={h}><BarChart data={chartData} barSize={16} barGap={2}><CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} />{catColors.map((d, i) => <Bar key={i} dataKey={d.name} stackId="a" fill={d.color} fillOpacity={0.85} radius={i === catColors.length - 1 ? [3, 3, 0, 0] : [0, 0, 0, 0]} />)}</BarChart></ResponsiveContainer>);
     }
   };
 
-  // Supported styles for this chart
   const supportedStyles: ChartStyle[] = ["column", "bar", "line", "area", "pie", "radar", "pareto"];
   const filteredStyles = CHART_STYLES.filter(s => supportedStyles.includes(s.key));
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} p-4`}>
-      <div className="flex items-start gap-4">
-        {/* Legend */}
-        <div className="space-y-1.5 shrink-0 pt-1">
-          {legendItems.map((item, i) => (
-            <div key={i} className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-              <span className="text-[10px] text-muted-foreground">{item.label}</span>
-            </div>
-          ))}
-        </div>
-        {/* Chart with context menu */}
-        <div className="flex-1 min-w-0" onContextMenu={handleContextMenu}>
-          {renderChart()}
-        </div>
-      </div>
-
-      {/* Context menu */}
-      {ctxMenu && (
-        <>
-          <div className="fixed inset-0 z-[9998]" onClick={closeMenu} onContextMenu={(e) => { e.preventDefault(); closeMenu(); }} />
-          <div
-            ref={menuRef}
-            className="fixed z-[9999] bg-card border border-border/60 rounded-xl shadow-xl py-1.5 px-1 min-w-[200px] backdrop-blur-xl"
-            style={{
-              left: Math.min(ctxMenu.x, window.innerWidth - 220),
-              top: Math.min(ctxMenu.y, window.innerHeight - 400),
-            }}
-          >
-            <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Estilo do Gráfico</div>
-            {filteredStyles.map(config => (
-              <ChartStyleMenuItem
-                key={config.key}
-                config={config}
-                isActive={chartStyle === config.key}
-                onSelect={() => { setChartStyle(config.key); closeMenu(); }}
-              />
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc} p-4`} onContextMenu={handleContextMenu}>
+        <div className="flex items-start gap-4">
+          <div className="space-y-1.5 shrink-0 pt-1">
+            {legendItems.map((item, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                <span className="text-[10px] text-muted-foreground">{item.label}</span>
+              </div>
             ))}
           </div>
-        </>
+          <div className="flex-1 min-w-0">{renderChart()}</div>
+        </div>
+      </motion.div>
+
+      {ctxMenu && createPortal(
+        <>
+          <div className="fixed inset-0 z-[9998]" onClick={closeMenu} onContextMenu={(e) => { e.preventDefault(); closeMenu(); }} />
+          <div ref={menuRef}
+            className="fixed z-[9999] bg-card border border-border/60 rounded-xl shadow-xl py-1.5 px-1 min-w-[200px] backdrop-blur-xl"
+            style={{ left: Math.min(ctxMenu.x, window.innerWidth - 220), top: Math.min(ctxMenu.y, window.innerHeight - 500) }}>
+            <button onClick={() => { setIsRenaming(true); closeMenu(); }}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent/40 transition-colors text-foreground">
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" /><span>Renomear</span>
+            </button>
+            <button onClick={() => { setIsFullscreen(true); closeMenu(); }}
+              className="flex items-center gap-2.5 w-full px-3 py-2 text-sm rounded-lg hover:bg-accent/40 transition-colors text-foreground">
+              <Maximize2 className="h-3.5 w-3.5 text-muted-foreground" /><span>Abrir em tela cheia</span>
+            </button>
+            <div className="h-px bg-border/40 my-1" />
+            <div className="px-2 py-1 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Estilo do Gráfico</div>
+            {filteredStyles.map(cfg => (
+              <ChartStyleMenuItem key={cfg.key} config={cfg} isActive={chartStyle === cfg.key}
+                onSelect={() => { setChartStyle(cfg.key); closeMenu(); }} />
+            ))}
+          </div>
+        </>,
+        document.body
       )}
-    </motion.div>
+
+      {isRenaming && createPortal(
+        <div className="fixed inset-0 z-[9990] bg-background/60 backdrop-blur-sm flex items-center justify-center"
+          onClick={() => { setCustomLabel(renameValue); setIsRenaming(false); }}>
+          <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+            className={`${gc} p-6 min-w-[300px]`} onClick={e => e.stopPropagation()}>
+            <p className="text-xs font-bold text-muted-foreground mb-2">Renomear painel</p>
+            <input autoFocus value={renameValue} onChange={e => setRenameValue(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter") { setCustomLabel(renameValue); setIsRenaming(false); } }}
+              className="w-full bg-muted/30 border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-primary" />
+          </motion.div>
+        </div>,
+        document.body
+      )}
+
+      {isFullscreen && (
+        <FullscreenPanel title={customLabel} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-4xl mx-auto p-6`}>
+            <div className="flex items-start gap-6">
+              <div className="space-y-2 shrink-0">
+                {legendItems.map((item, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full" style={{ backgroundColor: item.color }} />
+                    <span className="text-sm text-muted-foreground">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex-1">{renderChart(350)}</div>
+            </div>
+          </div>
+        </FullscreenPanel>
+      )}
+    </>
   );
 }
 
@@ -470,6 +621,8 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
   entries: any[]; config: typeof categoryConfig.despesa; total: number; onAdd: () => void; delay: number;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu } = useCardMenu();
+  const [customLabel, setCustomLabel] = useState<string | undefined>();
   const detailRows = [
     { type: "Expense type", color: "#3B82F6", ret: 37, total: "R$ 11.3%" },
     { type: "Expense type", color: "#10B981", ret: 25, total: "R$ 11.5%" },
@@ -477,30 +630,44 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
     { type: "Other treakion", color: "#A78BFA", ret: 7, total: "0,00" },
   ];
 
-  return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} overflow-hidden`}>
-      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)} />
-      {expanded && (
-        <div className="px-4 pb-4">
-          <div className="border border-border/50 rounded-xl overflow-hidden">
-            <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-              <span>Type of</span><span className="w-14 text-right">Return</span><span className="w-16 text-right">Total</span>
-            </div>
-            {detailRows.map((row, i) => (
-              <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""}`}>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
-                  <span className="text-[11px] text-foreground/80">{row.type}</span>
-                </div>
-                <span className="w-14 text-right text-[11px] text-foreground/70">{row.ret}</span>
-                <span className="w-16 text-right text-[11px] text-foreground/70">{row.total}</span>
-              </div>
-            ))}
-          </div>
+  const tableContent = (
+    <div className="px-4 pb-4">
+      <div className="border border-border/50 rounded-xl overflow-hidden">
+        <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+          <span>Type of</span><span className="w-14 text-right">Return</span><span className="w-16 text-right">Total</span>
         </div>
+        {detailRows.map((row, i) => (
+          <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""}`}>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
+              <span className="text-[11px] text-foreground/80">{row.type}</span>
+            </div>
+            <span className="w-14 text-right text-[11px] text-foreground/70">{row.ret}</span>
+            <span className="w-16 text-right text-[11px] text-foreground/70">{row.total}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
+        <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)}
+          customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
+        {expanded && tableContent}
+      </motion.div>
+      {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
+      {isFullscreen && (
+        <FullscreenPanel title={customLabel || config.label} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-2xl mx-auto overflow-hidden`}>
+            <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={true} onToggle={() => {}} customLabel={customLabel} />
+            {tableContent}
+          </div>
+        </FullscreenPanel>
       )}
-    </motion.div>
+    </>
   );
 }
 function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: boolean; onClose: () => void }) {
