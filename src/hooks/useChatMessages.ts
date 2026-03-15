@@ -7,6 +7,7 @@ export interface ChatMessage {
   user_id: string;
   content: string;
   mentions: string[];
+  task_id: string | null;
   created_at: string;
   profile?: {
     display_name: string | null;
@@ -22,13 +23,12 @@ export interface ChatProfile {
   avatar_url: string | null;
 }
 
-export function useChatMessages() {
+export function useChatMessages(taskId?: string) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [profiles, setProfiles] = useState<ChatProfile[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load profiles for @mention suggestions
   useEffect(() => {
     if (!user) return;
     supabase.from("profiles").select("id, display_name, email, avatar_url").then(({ data }) => {
@@ -36,16 +36,22 @@ export function useChatMessages() {
     });
   }, [user]);
 
-  // Load messages
   const fetchMessages = useCallback(async () => {
-    const { data } = await supabase
+    let query = supabase
       .from("chat_messages")
       .select("*")
       .order("created_at", { ascending: true })
       .limit(200);
 
+    if (taskId) {
+      query = query.eq("task_id", taskId);
+    } else {
+      query = query.is("task_id", null);
+    }
+
+    const { data } = await query;
+
     if (data) {
-      // Enrich with profiles
       const profileMap = new Map<string, ChatProfile>();
       const { data: profs } = await supabase.from("profiles").select("id, display_name, email, avatar_url");
       profs?.forEach((p) => profileMap.set(p.id, p));
@@ -58,32 +64,23 @@ export function useChatMessages() {
       setMessages(enriched);
     }
     setLoading(false);
-  }, []);
+  }, [taskId]);
 
   useEffect(() => {
     if (!user) return;
     fetchMessages();
   }, [user, fetchMessages]);
 
-  // Realtime subscription
   useEffect(() => {
     if (!user) return;
-
     const channel = supabase
-      .channel("chat_messages_realtime")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "chat_messages" },
-        () => {
-          fetchMessages();
-        }
-      )
+      .channel(`chat_${taskId || "global"}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "chat_messages" }, () => {
+        fetchMessages();
+      })
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, fetchMessages]);
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchMessages, taskId]);
 
   const sendMessage = useCallback(
     async (content: string, mentions: string[]) => {
@@ -92,17 +89,15 @@ export function useChatMessages() {
         user_id: user.id,
         content,
         mentions,
+        task_id: taskId || null,
       } as any);
     },
-    [user]
+    [user, taskId]
   );
 
-  const deleteMessage = useCallback(
-    async (id: string) => {
-      await supabase.from("chat_messages").delete().eq("id", id);
-    },
-    []
-  );
+  const deleteMessage = useCallback(async (id: string) => {
+    await supabase.from("chat_messages").delete().eq("id", id);
+  }, []);
 
   return { messages, profiles, loading, sendMessage, deleteMessage };
 }
