@@ -79,7 +79,7 @@ function EntryTable({ entries, config, onUpdate, onRemove, profiles, onTogglePar
     return c[Math.abs(h) % c.length];
   };
 
-  if (entries.length === 0) return <p className="text-xs text-muted-foreground text-center py-6">Nenhum item ainda.</p>;
+  if (entries.length === 0) return <p className="text-xs text-muted-foreground text-center py-4">Nenhum item ainda.</p>;
 
   return (
     <div className="border border-border/50 rounded-xl overflow-hidden">
