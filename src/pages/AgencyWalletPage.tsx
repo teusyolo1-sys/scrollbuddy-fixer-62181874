@@ -272,8 +272,15 @@ export default function AgencyWalletPage() {
                 Caixa da Agência
               </h1>
               <p className="text-sm text-muted-foreground mt-0.5">Visão consolidada do fluxo financeiro</p>
-            </div>
           </div>
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+            className="w-10 h-10 rounded-xl flex items-center justify-center bg-secondary/50 border border-border hover:bg-secondary transition-colors"
+          >
+            {resolvedTheme === "dark" ? <Sun className="h-5 w-5 text-amber-400" /> : <Moon className="h-5 w-5 text-foreground" />}
+          </motion.button>
+        </div>
         </div>
 
         {/* KPI Cards */}
