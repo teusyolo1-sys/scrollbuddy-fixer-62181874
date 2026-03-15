@@ -13,6 +13,9 @@ export interface BudgetEntry {
   notes: string;
   created_by: string;
   participants: string[]; // user_ids
+  agency_fee: number;
+  agency_fee_type: 'fixed' | 'percent';
+  company_id: string | null;
 }
 
 export interface UserProfile {
