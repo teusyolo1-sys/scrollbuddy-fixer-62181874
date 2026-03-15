@@ -1020,6 +1020,7 @@ export function EndocenterProvider({ children }: { children: ReactNode }) {
         inputs: ["Entrada"],
         outputs: ["Saída"],
         rules: ["Regra"],
+        tasks: [],
       },
     ]);
   };
