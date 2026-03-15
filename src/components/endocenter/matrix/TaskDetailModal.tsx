@@ -296,13 +296,23 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 </span>
                 <h2 className="text-sm font-bold text-foreground truncate">{item.task}</h2>
               </div>
-              <motion.button onClick={onClose}
-                whileHover={{ scale: 1.12, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                transition={{ type: "spring", stiffness: 400, damping: 14 }}
-                className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
-                <X className="h-3.5 w-3.5" />
-              </motion.button>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <motion.button onClick={() => setChatBalloonOpen(!chatBalloonOpen)}
+                  whileHover={{ scale: 1.12 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${chatBalloonOpen ? "bg-primary/15 text-primary" : "bg-secondary/60 text-muted-foreground hover:text-foreground"}`}
+                  title="Chat">
+                  <MessageCircle className="h-3.5 w-3.5" />
+                </motion.button>
+                <motion.button onClick={onClose}
+                  whileHover={{ scale: 1.12, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                  className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
+                  <X className="h-3.5 w-3.5" />
+                </motion.button>
+              </div>
             </div>
           )}
 
