@@ -113,7 +113,7 @@ export default function ResponsibilityMatrix() {
       </div>
 
       {/* Content area */}
-      <motion.div className="ios-card overflow-visible" layout>
+      <div className="ios-card overflow-visible">
         {/* Tabs + search */}
         <div className="p-4 border-b border-border/50 space-y-3">
           <div className="flex items-center gap-3 flex-wrap">
