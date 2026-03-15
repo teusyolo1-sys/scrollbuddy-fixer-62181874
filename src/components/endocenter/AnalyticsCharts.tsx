@@ -471,9 +471,11 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
             </div>
           )}
 
-          <ChartByStyle style={chartStyle} data={data} color={color} type={type} />
+          <div className="flex-1 min-h-0">
+            <ChartByStyle style={chartStyle} data={data} color={color} type={type} />
+          </div>
 
-          <div className="mt-2 text-[10px] text-muted-foreground/50 text-right">
+          <div className="mt-auto pt-1 text-[10px] text-muted-foreground/50 text-right">
             Clique direito para alterar estilo
           </div>
         </motion.div>
