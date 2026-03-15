@@ -1,10 +1,15 @@
-import { useRef, useCallback, useState, useEffect } from "react";
+import { useRef, useCallback, useState, useEffect, useImperativeHandle, forwardRef } from "react";
 import {
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight,
   AlignJustify, List, ListOrdered, Heading1, Heading2, Heading3, Type,
   Minus, Link2, Image, Undo2, Redo2, ChevronDown,
-  Subscript, Superscript, Quote, Code, RemoveFormatting
+  Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+export interface RichTextEditorHandle {
+  insertImageUrl: (url: string) => void;
+}
 
 interface RichTextEditorProps {
   value: string;
@@ -53,12 +58,14 @@ const textColors = [
 
 type DropdownType = "font" | "size" | "weight" | "color" | "highlight" | null;
 
-export default function RichTextEditor({ value, onChange, placeholder = "Comece a escrever...", minHeight = "400px" }: RichTextEditorProps) {
+const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(function RichTextEditor({ value, onChange, placeholder = "Comece a escrever...", minHeight = "400px" }, ref) {
   const editorRef = useRef<HTMLDivElement>(null);
   const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
   const [currentFont, setCurrentFont] = useState("Sans Serif");
   const [currentSize, setCurrentSize] = useState("14");
   const savedSelectionRef = useRef<Range | null>(null);
+  const [hoveredImg, setHoveredImg] = useState<{ el: HTMLImageElement; rect: DOMRect } | null>(null);
+  const editorWrapperRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (editorRef.current && !editorRef.current.innerHTML && value) {
@@ -92,6 +99,15 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
       onChange(editorRef.current.innerHTML);
     }
   }, [onChange]);
+
+  // Expose insertImageUrl to parent
+  useImperativeHandle(ref, () => ({
+    insertImageUrl: (url: string) => {
+      editorRef.current?.focus();
+      document.execCommand("insertImage", false, url);
+      emitChange();
+    },
+  }), [emitChange]);
 
   const exec = useCallback((command: string, val?: string) => {
     restoreSelection();
@@ -314,26 +330,91 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
         <ToolBtn onClick={() => exec("removeFormat")} title="Limpar formatação"><RemoveFormatting className="h-3.5 w-3.5" /></ToolBtn>
       </div>
 
-      {/* Editor area */}
-      <div
-        ref={editorRef}
-        contentEditable
-        suppressContentEditableWarning
-        onInput={handleInput}
-        data-placeholder={placeholder}
-        className="flex-1 px-5 py-4 text-sm text-foreground outline-none overflow-y-auto
-          [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground/50 [&:empty]:before:pointer-events-none
-          [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3
-          [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-2
-          [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2
-          [&_blockquote]:border-l-4 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
-          [&_pre]:bg-secondary [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-xs
-          [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
-          [&_a]:text-primary [&_a]:underline
-          [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-2
-          [&_hr]:border-border/50 [&_hr]:my-3"
-        style={{ minHeight }}
-      />
+      {/* Editor area wrapper */}
+      <div ref={editorWrapperRef} className="relative flex-1 min-h-0">
+        <div
+          ref={editorRef}
+          contentEditable
+          suppressContentEditableWarning
+          onInput={handleInput}
+          onMouseOver={(e) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === "IMG") {
+              const rect = target.getBoundingClientRect();
+              const wrapperRect = editorWrapperRef.current?.getBoundingClientRect();
+              if (wrapperRect) {
+                setHoveredImg({
+                  el: target as HTMLImageElement,
+                  rect: {
+                    ...rect,
+                    x: rect.x - wrapperRect.x,
+                    y: rect.y - wrapperRect.y,
+                  } as DOMRect,
+                });
+              }
+            }
+          }}
+          onMouseOut={(e) => {
+            const target = e.target as HTMLElement;
+            if (target.tagName === "IMG") setHoveredImg(null);
+          }}
+          data-placeholder={placeholder}
+          className="h-full px-5 py-4 text-sm text-foreground outline-none overflow-y-auto
+            [&:empty]:before:content-[attr(data-placeholder)] [&:empty]:before:text-muted-foreground/50 [&:empty]:before:pointer-events-none
+            [&_h1]:text-2xl [&_h1]:font-bold [&_h1]:mb-3
+            [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:mb-2
+            [&_h3]:text-lg [&_h3]:font-medium [&_h3]:mb-2
+            [&_blockquote]:border-l-4 [&_blockquote]:border-primary/30 [&_blockquote]:pl-4 [&_blockquote]:italic [&_blockquote]:text-muted-foreground
+            [&_pre]:bg-secondary [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-xs
+            [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
+            [&_a]:text-primary [&_a]:underline
+            [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-2 [&_img]:transition-[filter] [&_img]:duration-300
+            [&_hr]:border-border/50 [&_hr]:my-3"
+          style={{ minHeight }}
+        />
+
+        {/* Image hover overlay */}
+        <AnimatePresence>
+          {hoveredImg && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute pointer-events-none flex items-center justify-center overflow-hidden"
+              style={{
+                left: hoveredImg.rect.x,
+                top: hoveredImg.rect.y,
+                width: hoveredImg.rect.width,
+                height: hoveredImg.rect.height,
+                borderRadius: "0.75rem",
+              }}
+            >
+              {/* Blurred background overlay */}
+              <div className="absolute inset-0 bg-black/30 backdrop-blur-[3px]" />
+              {/* Animated click icon */}
+              <motion.div
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: [0.8, 1.1, 1], opacity: 1 }}
+                exit={{ scale: 0.5, opacity: 0 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="relative z-10 flex flex-col items-center gap-1.5"
+              >
+                <motion.div
+                  animate={{ y: [0, -3, 0] }}
+                  transition={{ repeat: Infinity, duration: 1.2, ease: "easeInOut" }}
+                  className="w-10 h-10 rounded-full bg-white/90 shadow-lg flex items-center justify-center"
+                >
+                  <MousePointer2 className="h-5 w-5 text-foreground" />
+                </motion.div>
+                <span className="text-[10px] font-semibold text-white drop-shadow-md">Clique para ampliar</span>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
-}
+});
+
+export default RichTextEditor;
