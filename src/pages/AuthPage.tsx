@@ -53,11 +53,16 @@ const strengthIcons: Record<PasswordStrength, typeof ShieldCheck> = {
 };
 
 const AuthPage = () => {
-  const [isLogin, setIsLogin] = useState(true);
+  const [searchParams] = useSearchParams();
+  const inviteCodeFromUrl = searchParams.get('invite') || '';
+  const [isLogin, setIsLogin] = useState(!inviteCodeFromUrl);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
+  const [inviteCode, setInviteCode] = useState(inviteCodeFromUrl);
+  const [inviteValid, setInviteValid] = useState<boolean | null>(null);
+  const [inviteChecking, setInviteChecking] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -66,6 +71,18 @@ const AuthPage = () => {
   const [forgotLoading, setForgotLoading] = useState(false);
   const { signIn, signUp } = useAuth();
   const navigate = useNavigate();
+
+  // Validate invite code
+  useEffect(() => {
+    if (!inviteCode || inviteCode.length < 8) { setInviteValid(null); return; }
+    const timer = setTimeout(async () => {
+      setInviteChecking(true);
+      const { data } = await supabase.rpc('validate_invite', { _code: inviteCode });
+      setInviteValid(!!data);
+      setInviteChecking(false);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [inviteCode]);
 
   const strength = useMemo(() => getPasswordStrength(password), [password]);
   const passwordsMatch = confirmPassword === '' || password === confirmPassword;
