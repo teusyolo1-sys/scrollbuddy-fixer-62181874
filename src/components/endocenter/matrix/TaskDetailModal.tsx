@@ -518,8 +518,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                         <Trash2 className="h-3.5 w-3.5" /> Excluir tarefa
                       </button>
                     </div>{/* footer */}
-                  </div>{/* w-300 */}
-                </div>{/* sidebar */}
+                  </div>{/* py-2 */}
+                </div>{/* glass inner */}
+              </div>{/* absolute outer */}
               </div>{/* flex */}
         </motion.div>
       </motion.div>
