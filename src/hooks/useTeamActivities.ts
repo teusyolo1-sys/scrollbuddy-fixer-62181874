@@ -39,9 +39,10 @@ export function useTeamActivities() {
 
   const addActivity = async (member_name: string, activity_type: string, value: number, unit: string, date: string, notes = '') => {
     if (!user) return;
-    await supabase.from('team_activities' as any).insert({
+    const { error } = await supabase.from('team_activities' as any).insert({
       user_id: user.id, member_name, activity_type, value, unit, date, notes,
     } as any);
+    if (error) throw new Error(error.message);
     await fetch();
   };
 
