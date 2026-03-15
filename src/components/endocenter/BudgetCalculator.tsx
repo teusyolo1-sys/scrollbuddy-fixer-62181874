@@ -190,40 +190,63 @@ function GastosChartCard({ entries, config, total, onAdd, delay }: {
 }
 
 /* ── Pipeline Placeholder (center Faturamento) ── */
-function PipelineCard({ faturamentoEntries, delay }: { faturamentoEntries: any[]; delay: number }) {
+function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries: any[]; onAdd: () => void; delay: number }) {
   const upcoming = faturamentoEntries.filter(e => e.amount > 0).slice(0, 2);
+  const total = faturamentoEntries.reduce((s, e) => s + e.amount, 0);
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
       className={`${gc} overflow-hidden flex flex-col row-span-2`}>
-      <div className="p-4">
+      <button onClick={() => setExpanded(!expanded)} className="p-4 hover:bg-accent/20 transition-colors w-full">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
             <TrendingUp className="h-4 w-4 text-emerald-500" />
           </div>
-          <div>
+          <div className="text-left">
             <p className="text-sm font-bold text-foreground">Faturamento</p>
-            <p className="text-[11px] text-muted-foreground">0 itens · R$ 0,00</p>
+            <p className="text-[11px] text-muted-foreground">{faturamentoEntries.length} {faturamentoEntries.length === 1 ? "item" : "itens"} · {formatCurrency(total)}</p>
           </div>
           <div className="ml-auto flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500">
+            <motion.div whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); onAdd(); }}
+              className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500 cursor-pointer">
               <Plus className="h-3.5 w-3.5" />
-            </div>
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
+            <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+              <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            </motion.div>
           </div>
         </div>
-      </div>
+      </button>
 
-      <div className="flex-1 flex items-center justify-center px-4">
-        <div className="text-center space-y-2">
-          <div className="flex flex-col items-center gap-1.5 opacity-10">
-            <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
-            <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
-            <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
+      <AnimatePresence>
+        {expanded && faturamentoEntries.length > 0 && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden px-4 pb-3">
+            <div className="space-y-1.5">
+              {faturamentoEntries.map((e, i) => (
+                <div key={e.id} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-muted/30">
+                  <span className="text-[11px] text-foreground/80 truncate max-w-[140px]">{e.description || `Item ${i + 1}`}</span>
+                  <span className="text-[11px] font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {!expanded && (
+        <div className="flex-1 flex items-center justify-center px-4">
+          <div className="text-center space-y-2">
+            <div className="flex flex-col items-center gap-1.5 opacity-10">
+              <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
+              <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
+              <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
+            </div>
+            <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
           </div>
-          <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
         </div>
-      </div>
+      )}
 
       {/* Upcoming Invoices floating card */}
       <div className="p-4">
@@ -552,7 +575,7 @@ export default function BudgetCalculator() {
         </div>
 
         {/* Center: Pipeline spanning 2 rows */}
-        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} delay={0.25} />
+        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} onAdd={() => { addEntry("faturamento"); setExpandedCategory("faturamento"); }} delay={0.25} />
 
         {/* Right: Legend + Bar, then Despesas detail */}
         <div className="space-y-4">
