@@ -888,7 +888,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
       </div>
 
       {/* Row 3: Faturamento (table) | Pipeline | Legend + Bar */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
         <div className="space-y-4">
           <CategoryCard {...catProps("faturamento")} delay={0.2} />
           {/* Row 4 left: Despesas */}
