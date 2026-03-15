@@ -469,13 +469,18 @@ const AuthPage = () => {
             </motion.button>
           </form>
 
-          <div className="mt-6 text-center">
+          <div className="mt-6 text-center space-y-2">
             <button
               onClick={() => { setIsLogin(!isLogin); setLoginError(false); setConfirmPassword(''); }}
               className="text-sm text-muted-foreground hover:text-primary transition-colors"
             >
-              {isLogin ? 'Não tem conta? Criar conta' : 'Já tem conta? Entrar'}
+              {isLogin ? 'Tem um convite? Criar conta' : 'Já tem conta? Entrar'}
             </button>
+            {!isLogin && (
+              <p className="text-[11px] text-muted-foreground">
+                O cadastro requer um link de convite válido
+              </p>
+            )}
           </div>
         </motion.div>
 
