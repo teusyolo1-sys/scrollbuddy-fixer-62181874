@@ -164,6 +164,21 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
     if (url) exec("insertImage", url);
   }, [exec]);
 
+  const toggleBlock = useCallback((tag: string) => {
+    restoreSelection();
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const node = sel.anchorNode;
+      const block = node?.nodeType === 1 ? node as HTMLElement : node?.parentElement;
+      const current = block?.closest("blockquote, pre, h1, h2, h3");
+      if (current && current.tagName.toLowerCase() === tag.replace(/[<>]/g, "")) {
+        exec("formatBlock", "<p>");
+        return;
+      }
+    }
+    exec("formatBlock", tag);
+  }, [restoreSelection, exec]);
+
   const handleInput = useCallback(() => {
     emitChange();
   }, [emitChange]);
@@ -259,8 +274,8 @@ export default function RichTextEditor({ value, onChange, placeholder = "Comece 
         <ToolBtn onClick={() => exec("formatBlock", "<h2>")} title="Título 2"><Heading2 className="h-3.5 w-3.5" /></ToolBtn>
         <ToolBtn onClick={() => exec("formatBlock", "<h3>")} title="Título 3"><Heading3 className="h-3.5 w-3.5" /></ToolBtn>
         <ToolBtn onClick={() => exec("formatBlock", "<p>")} title="Parágrafo"><Type className="h-3.5 w-3.5" /></ToolBtn>
-        <ToolBtn onClick={() => exec("formatBlock", "<blockquote>")} title="Citação"><Quote className="h-3.5 w-3.5" /></ToolBtn>
-        <ToolBtn onClick={() => exec("formatBlock", "<pre>")} title="Código"><Code className="h-3.5 w-3.5" /></ToolBtn>
+        <ToolBtn onClick={() => toggleBlock("<blockquote>")} title="Citação"><Quote className="h-3.5 w-3.5" /></ToolBtn>
+        <ToolBtn onClick={() => toggleBlock("<pre>")} title="Código"><Code className="h-3.5 w-3.5" /></ToolBtn>
         <Divider />
 
         <ToolBtn onClick={() => exec("justifyLeft")} title="Esquerda"><AlignLeft className="h-3.5 w-3.5" /></ToolBtn>
