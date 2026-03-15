@@ -549,6 +549,11 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                       )}
                     </SideSection>
 
+                    {/* Chat */}
+                    <SideSection icon={MessageCircle} label="Chat" defaultOpen>
+                      <TaskChat />
+                    </SideSection>
+
                     {/* Footer actions */}
                     <div className="px-4 py-4 mt-2 space-y-2.5">
                       <div className="flex gap-2">
