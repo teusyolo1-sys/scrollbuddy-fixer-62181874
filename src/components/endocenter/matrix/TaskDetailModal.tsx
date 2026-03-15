@@ -310,6 +310,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               {editingDescription ? (
                 <div className="flex flex-col h-full">
                   <RichTextEditor
+                    ref={editorRef}
                     value={description}
                     onChange={handleDescriptionChange}
                     minHeight="100%"
