@@ -415,7 +415,7 @@ function PipelinePlaceholder() {
             <div className="w-24 h-8 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
             <div className="w-16 h-8 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
           </div>
-          <p className="text-xs text-white/25 mt-4">Add first invoice to view pipeline</p>
+          <p className="text-xs text-muted-foreground/50 mt-4">Add first invoice to view pipeline</p>
         </div>
       </div>
       {/* Floating mini-card */}
