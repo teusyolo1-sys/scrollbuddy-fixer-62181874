@@ -472,7 +472,15 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
   const [password, setPassword] = useState("");
   const [deleteError, setDeleteError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const deleteRef = useRef<HTMLDivElement>(null);
+
   const hourlyRate = form.hours > 0 ? form.remuneration / form.hours : 0;
+
+  useEffect(() => {
+    if (deleteStep !== "idle" && deleteRef.current) {
+      deleteRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [deleteStep]);
 
   const handleSave = () => {
     if (isAdmin) {
@@ -648,7 +656,7 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
 
               {/* Delete member */}
               {isAdmin && onDelete && (
-                <div className="pt-2 space-y-3">
+                <div ref={deleteRef} className="pt-2 space-y-3">
                   {deleteStep === "idle" && (
                     <button
                       onClick={() => setDeleteStep("confirm")}
