@@ -50,6 +50,104 @@ export type Database = {
         }
         Relationships: []
       }
+      agency_invoices: {
+        Row: {
+          amount: number
+          category: string
+          company_id: string | null
+          created_at: string
+          created_by: string
+          description: string
+          due_date: string
+          id: string
+          invoice_number: string | null
+          notes: string
+          payment_date: string | null
+          payment_method: string | null
+          payment_status: string
+          recurrence: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by: string
+          description?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string | null
+          notes?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          recurrence?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          category?: string
+          company_id?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string
+          due_date?: string
+          id?: string
+          invoice_number?: string | null
+          notes?: string
+          payment_date?: string | null
+          payment_method?: string | null
+          payment_status?: string
+          recurrence?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_invoices_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agency_monthly_goals: {
+        Row: {
+          clients_goal: number
+          created_at: string
+          created_by: string
+          id: string
+          month: string
+          notes: string
+          profit_goal: number
+          revenue_goal: number
+          updated_at: string
+        }
+        Insert: {
+          clients_goal?: number
+          created_at?: string
+          created_by: string
+          id?: string
+          month: string
+          notes?: string
+          profit_goal?: number
+          revenue_goal?: number
+          updated_at?: string
+        }
+        Update: {
+          clients_goal?: number
+          created_at?: string
+          created_by?: string
+          id?: string
+          month?: string
+          notes?: string
+          profit_goal?: number
+          revenue_goal?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       agency_revenue_categories: {
         Row: {
           color: string
