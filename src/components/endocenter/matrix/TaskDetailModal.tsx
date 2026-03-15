@@ -273,7 +273,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
-          )
+          )}
 
           {/* Main content area: Editor (75%) + Sidebar (25%) */}
           <div className="flex flex-1 min-h-0 overflow-hidden">
