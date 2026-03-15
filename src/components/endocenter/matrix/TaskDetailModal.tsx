@@ -575,6 +575,50 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                       <TaskChat taskId={item.id} taskName={item.task} />
                     </SideSection>
 
+                    {/* Sinalizar Problema — discreto */}
+                    <SideSection icon={Flag} label="Sinalizar" defaultOpen={false}>
+                      <div className="space-y-2">
+                        <select
+                          value={complaintCategory}
+                          onChange={(e) => setComplaintCategory(e.target.value)}
+                          className="ios-input w-full px-2 py-1.5 text-[11px]"
+                        >
+                          {COMPLAINT_CATEGORIES.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                        <textarea
+                          value={complaintDesc}
+                          onChange={(e) => setComplaintDesc(e.target.value)}
+                          placeholder="Descreva o problema..."
+                          className="ios-input w-full px-2 py-1.5 text-[11px] resize-none"
+                          rows={2}
+                        />
+                        <button
+                          disabled={submittingComplaint || !complaintDesc.trim()}
+                          onClick={async () => {
+                            if (!complaintDesc.trim()) return;
+                            setSubmittingComplaint(true);
+                            try {
+                              const assignedTo = item.assignees.join(", ") || roleName;
+                              await addComplaint(item.id, item.task, assignedTo, roleName, complaintCategory, complaintDesc.trim());
+                              toast.success("Sinalização enviada");
+                              setComplaintDesc("");
+                              setShowComplaintForm(false);
+                            } catch (e: any) {
+                              toast.error("Erro ao sinalizar: " + (e?.message || ""));
+                            } finally {
+                              setSubmittingComplaint(false);
+                            }
+                          }}
+                          className="w-full text-[11px] font-medium px-3 py-2 bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                          style={{ borderRadius: "var(--ios-radius-sm)" }}
+                        >
+                          <Flag className="h-3 w-3" /> {submittingComplaint ? "Enviando..." : "Enviar sinalização"}
+                        </button>
+                      </div>
+                    </SideSection>
+
                     {/* Footer actions */}
                     <div className="px-4 py-4 mt-2 space-y-2.5">
                       <div className="flex gap-2">
