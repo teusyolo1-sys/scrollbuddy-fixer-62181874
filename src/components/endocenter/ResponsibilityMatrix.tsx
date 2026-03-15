@@ -142,8 +142,8 @@ export default function ResponsibilityMatrix() {
       </div>
 
       {/* Role cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {responsibilityRoles.map((item) => {
+      <div className={`grid gap-3 ${visibleRoles.length === 1 ? "grid-cols-1 max-w-sm" : "grid-cols-2 lg:grid-cols-4"}`}>
+        {visibleRoles.map((item) => {
           const total = item.weekly.length + item.monthly.length + item.quality.length;
           const done = item.weekly.filter((e) => e.done).length + item.monthly.filter((e) => e.done).length + item.quality.filter((e) => e.done).length;
           const pct = total ? Math.round((done / total) * 100) : 0;
@@ -173,6 +173,30 @@ export default function ResponsibilityMatrix() {
           );
         })}
       </div>
+
+      {/* Mentioned tasks from other roles (cross-role visibility) */}
+      {mentionedTasksFromOtherRoles.length > 0 && (
+        <div className="ios-card p-4 space-y-3">
+          <h3 className="text-sm font-semibold text-foreground">📌 Tarefas compartilhadas com você</h3>
+          <p className="text-xs text-muted-foreground">Tarefas de outras áreas onde você foi atribuído</p>
+          <div className="grid gap-2">
+            {mentionedTasksFromOtherRoles.map((mt) => (
+              <button
+                key={`${mt.roleId}-${mt.tab}-${mt.item.id}`}
+                onClick={() => setSelectedItem({ roleId: mt.roleId, tab: mt.tab, item: mt.item })}
+                className="flex items-center gap-3 p-3 rounded-xl bg-secondary/40 hover:bg-secondary/70 transition-colors text-left"
+              >
+                <div className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: mt.roleColor }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate">{mt.item.task}</p>
+                  <p className="text-[10px] text-muted-foreground">{mt.roleName} · {tabLabels[mt.tab]}</p>
+                </div>
+                {mt.item.done && <span className="text-[10px] text-emerald-500 font-medium">✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Content area */}
       <div className="ios-card overflow-visible">
