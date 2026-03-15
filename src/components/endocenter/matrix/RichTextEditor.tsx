@@ -342,25 +342,29 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
           suppressContentEditableWarning
           onInput={handleInput}
           onMouseOver={(e) => {
+            if (resizing) return;
             const target = e.target as HTMLElement;
             if (target.tagName === "IMG") {
-              const rect = target.getBoundingClientRect();
-              const wrapperRect = editorWrapperRef.current?.getBoundingClientRect();
-              if (wrapperRect) {
-                setHoveredImg({
-                  el: target as HTMLImageElement,
-                  rect: {
-                    ...rect,
-                    x: rect.x - wrapperRect.x,
-                    y: rect.y - wrapperRect.y,
-                  } as DOMRect,
-                });
-              }
+              setHoveredImg(target as HTMLImageElement);
+              updateOverlayRect(target as HTMLImageElement);
             }
           }}
           onMouseOut={(e) => {
+            if (resizing) return;
+            const related = e.relatedTarget as HTMLElement | null;
+            if ((e.target as HTMLElement).tagName === "IMG" && related?.tagName !== "IMG") {
+              setHoveredImg(null);
+              setHoveredRect(null);
+            }
+          }}
+          onClick={(e) => {
             const target = e.target as HTMLElement;
-            if (target.tagName === "IMG") setHoveredImg(null);
+            if (target.tagName === "IMG") {
+              e.preventDefault();
+              setSelectedImg(target as HTMLImageElement);
+            } else {
+              setSelectedImg(null);
+            }
           }}
           data-placeholder={placeholder}
           className="h-full px-5 py-4 text-sm text-foreground outline-none overflow-y-auto
@@ -372,14 +376,14 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
             [&_pre]:bg-secondary [&_pre]:rounded-xl [&_pre]:p-3 [&_pre]:font-mono [&_pre]:text-xs
             [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5
             [&_a]:text-primary [&_a]:underline
-            [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-2 [&_img]:transition-[filter] [&_img]:duration-300
+            [&_img]:max-w-full [&_img]:rounded-xl [&_img]:my-2
             [&_hr]:border-border/50 [&_hr]:my-3"
           style={{ minHeight }}
         />
 
-        {/* Image hover overlay */}
+        {/* Image hover overlay — covers entire image */}
         <AnimatePresence>
-          {hoveredImg && (
+          {hoveredImg && hoveredRect && !selectedImg && (
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -387,16 +391,14 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
               transition={{ duration: 0.2 }}
               className="absolute pointer-events-none flex items-center justify-center overflow-hidden"
               style={{
-                left: hoveredImg.rect.x,
-                top: hoveredImg.rect.y,
-                width: hoveredImg.rect.width,
-                height: hoveredImg.rect.height,
+                left: hoveredRect.x,
+                top: hoveredRect.y,
+                width: hoveredRect.w,
+                height: hoveredRect.h,
                 borderRadius: "0.75rem",
               }}
             >
-              {/* Blurred background overlay */}
               <div className="absolute inset-0 bg-black/30 backdrop-blur-[3px]" />
-              {/* Animated click icon */}
               <motion.div
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: [0.8, 1.1, 1], opacity: 1 }}
@@ -416,6 +418,78 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
             </motion.div>
           )}
         </AnimatePresence>
+
+        {/* Resize handles when image is selected */}
+        {selectedImg && (() => {
+          const wrapperRect = editorWrapperRef.current?.getBoundingClientRect();
+          const imgRect = selectedImg.getBoundingClientRect();
+          if (!wrapperRect) return null;
+          const x = imgRect.left - wrapperRect.left + (editorRef.current?.scrollLeft || 0);
+          const y = imgRect.top - wrapperRect.top + (editorRef.current?.scrollTop || 0);
+          return (
+            <div
+              className="absolute pointer-events-none"
+              style={{ left: x, top: y, width: imgRect.width, height: imgRect.height }}
+            >
+              {/* Selection border */}
+              <div className="absolute inset-0 border-2 border-primary rounded-xl" />
+              {/* Corner handles */}
+              {(["nw", "ne", "sw", "se"] as const).map((corner) => {
+                const isRight = corner.includes("e");
+                const isBottom = corner.includes("s");
+                const cursor = corner === "nw" || corner === "se" ? "nwse-resize" : "nesw-resize";
+                return (
+                  <div
+                    key={corner}
+                    className="absolute w-3 h-3 bg-primary rounded-sm border-2 border-white shadow pointer-events-auto"
+                    style={{
+                      cursor,
+                      left: isRight ? "calc(100% - 6px)" : "-6px",
+                      top: isBottom ? "calc(100% - 6px)" : "-6px",
+                    }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setResizing(true);
+                      resizeStartRef.current = {
+                        startX: e.clientX,
+                        startY: e.clientY,
+                        startW: selectedImg.offsetWidth,
+                        startH: selectedImg.offsetHeight,
+                      };
+                      const aspect = selectedImg.offsetWidth / selectedImg.offsetHeight;
+
+                      const onMove = (ev: MouseEvent) => {
+                        if (!resizeStartRef.current) return;
+                        const { startX, startW } = resizeStartRef.current;
+                        let dx = ev.clientX - startX;
+                        if (!isRight) dx = -dx;
+                        const newW = Math.max(50, startW + dx);
+                        const newH = newW / aspect;
+                        selectedImg.style.width = `${newW}px`;
+                        selectedImg.style.height = `${newH}px`;
+                      };
+
+                      const onUp = () => {
+                        setResizing(false);
+                        resizeStartRef.current = null;
+                        emitChange();
+                        // Force re-render of handles
+                        setSelectedImg(null);
+                        setTimeout(() => setSelectedImg(selectedImg), 0);
+                        document.removeEventListener("mousemove", onMove);
+                        document.removeEventListener("mouseup", onUp);
+                      };
+
+                      document.addEventListener("mousemove", onMove);
+                      document.addEventListener("mouseup", onUp);
+                    }}
+                  />
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
