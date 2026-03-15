@@ -102,7 +102,8 @@ function MetricChartCard({ type, data, delay }: {
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: "spring", damping: 22 }}
-      className="ios-card p-5"
+      className="ios-card p-5 min-h-[280px]"
+      style={{ overflow: "visible" }}
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-1">
