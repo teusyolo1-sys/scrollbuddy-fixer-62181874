@@ -515,12 +515,18 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
           <motion.div
             key={col.key}
             layout="position"
-            transition={{ type: "spring", stiffness: 320, damping: 26 }}
+            transition={draggingColKey === col.key 
+              ? { type: "tween", duration: 0 } 
+              : { type: "spring", stiffness: 400, damping: 30 }
+            }
             ref={(el) => { colRefs.current[index] = el; }}
-            style={draggingColKey === col.key ? { x: columnDragOffsetX, zIndex: 40 } : { x: 0 }}
-            className={`space-y-2 group/col transition-colors duration-200 ${
-              draggingColKey === col.key ? "opacity-40 scale-95" : ""
-            } ${dragOverColIdx === index && draggingColKey !== col.key ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5" : ""}`}
+            style={draggingColKey === col.key 
+              ? { x: columnDragOffsetX, zIndex: 40, position: "relative" as const } 
+              : { x: 0 }
+            }
+            className={`space-y-2 group/col ${
+              draggingColKey === col.key ? "opacity-70 scale-[1.02]" : ""
+            } ${dragOverColIdx === index && draggingColKey !== col.key ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5 scale-[0.97] opacity-80" : ""}`}
           >
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
