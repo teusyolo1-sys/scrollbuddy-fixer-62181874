@@ -66,6 +66,7 @@ const gradients = [
 ];
 
 export default function LobbyPage() {
+  const { user, loading: authLoading, signOut } = useAuth();
   const [companies, setCompanies] = useState<CompanyCard[]>(loadCompanies);
   const navigate = useNavigate();
 
