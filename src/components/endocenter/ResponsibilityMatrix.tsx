@@ -330,11 +330,6 @@ function SortableTaskCard({ item, roleColor, onClick, onToggleDone }: {
     </div>
   );
 }
-        </div>
-      ))}
-    </div>
-  );
-}
 
 /* ── List View ── */
 function ListView({ items, roleColor, onSelect, onToggleDone, onAdd }: {
