@@ -156,11 +156,16 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(0,0,0,0.1) transparent;
   }
+  .dark * {
+    scrollbar-color: rgba(255,255,255,0.1) transparent;
+  }
   ::-webkit-scrollbar { width: 5px; height: 5px; background: transparent; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-corner { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 999px; }
   ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+  .dark ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+  .dark ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
 }
 
 @layer utilities {
