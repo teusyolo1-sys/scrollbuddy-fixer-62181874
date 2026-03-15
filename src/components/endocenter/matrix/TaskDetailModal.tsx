@@ -292,9 +292,13 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 </span>
                 <h2 className="text-sm font-bold text-foreground truncate">{item.task}</h2>
               </div>
-              <button onClick={onClose} className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
+              <motion.button onClick={onClose}
+                whileHover={{ scale: 1.12, rotate: 90 }}
+                whileTap={{ scale: 0.9 }}
+                transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                className="w-7 h-7 rounded-xl bg-secondary/60 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors shrink-0">
                 <X className="h-3.5 w-3.5" />
-              </button>
+              </motion.button>
             </div>
           )}
 
