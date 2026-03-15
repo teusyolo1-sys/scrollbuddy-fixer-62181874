@@ -875,7 +875,15 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
       {/* Row 2: Gastos | Gastos (charts) | Receita */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <CategoryCard {...catProps("gasto")} delay={0.05} />
-        <GastosChartCard entries={entries.filter(e => e.category === "gasto")} config={categoryConfig.gasto} total={totals.gasto} onAdd={() => { addEntry("gasto"); expandCat("gasto"); }} delay={0.1} />
+        <GastosChartCard
+          entries={entries.filter(e => e.category === "gasto")}
+          config={categoryConfig.gasto}
+          total={totals.gasto}
+          onAdd={() => openPanelAndAdd("gasto-chart", "gasto")}
+          isExpanded={openPanel === "gasto-chart"}
+          onToggle={() => togglePanel("gasto-chart")}
+          delay={0.1}
+        />
         <CategoryCard {...catProps("receita")} delay={0.15} />
       </div>
 
@@ -888,12 +896,26 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
         </div>
 
         {/* Center: Pipeline spanning 2 rows */}
-        <PipelineCard faturamentoEntries={entries.filter(e => e.category === "faturamento")} onAdd={() => { addEntry("faturamento"); expandCat("faturamento"); }} delay={0.25} />
+        <PipelineCard
+          faturamentoEntries={entries.filter(e => e.category === "faturamento")}
+          onAdd={() => openPanelAndAdd("pipeline", "faturamento")}
+          isExpanded={openPanel === "pipeline"}
+          onToggle={() => togglePanel("pipeline")}
+          delay={0.25}
+        />
 
         {/* Right: Legend + Bar, then Despesas detail */}
         <div className="space-y-4">
           <LegendBarCard entries={entries} delay={0.3} />
-          <DespesasDetailCard entries={entries.filter(e => e.category === "despesa")} config={categoryConfig.despesa} total={totals.despesa} onAdd={() => { addEntry("despesa"); expandCat("despesa"); }} delay={0.35} />
+          <DespesasDetailCard
+            entries={entries.filter(e => e.category === "despesa")}
+            config={categoryConfig.despesa}
+            total={totals.despesa}
+            onAdd={() => openPanelAndAdd("despesa-detail", "despesa")}
+            isExpanded={openPanel === "despesa-detail"}
+            onToggle={() => togglePanel("despesa-detail")}
+            delay={0.35}
+          />
         </div>
       </div>
     </div>
