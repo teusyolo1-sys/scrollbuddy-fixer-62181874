@@ -4,6 +4,21 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
 import { lovable } from '@/integrations/lovable/index';
+import { motion } from 'framer-motion';
+
+const FloatingOrb = ({ delay, duration, x, y, size, color }: { delay: number; duration: number; x: string; y: string; size: string; color: string }) => (
+  <motion.div
+    className="absolute rounded-full"
+    style={{ width: size, height: size, left: x, top: y, background: color, filter: 'blur(80px)' }}
+    animate={{
+      x: [0, 30, -20, 15, 0],
+      y: [0, -25, 15, -10, 0],
+      scale: [1, 1.15, 0.9, 1.05, 1],
+      opacity: [0.3, 0.5, 0.25, 0.45, 0.3],
+    }}
+    transition={{ duration, delay, repeat: Infinity, ease: 'easeInOut' }}
+  />
+);
 
 const AuthPage = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -55,21 +70,57 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4 relative overflow-hidden">
+      {/* Animated background orbs */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        <FloatingOrb delay={0} duration={12} x="-5%" y="10%" size="400px" color="hsl(215 100% 60% / 0.15)" />
+        <FloatingOrb delay={2} duration={15} x="60%" y="-10%" size="350px" color="hsl(265 80% 65% / 0.12)" />
+        <FloatingOrb delay={4} duration={18} x="30%" y="60%" size="300px" color="hsl(170 70% 50% / 0.1)" />
+        <FloatingOrb delay={1} duration={14} x="80%" y="70%" size="250px" color="hsl(330 70% 60% / 0.1)" />
+        <FloatingOrb delay={3} duration={16} x="10%" y="80%" size="200px" color="hsl(45 90% 55% / 0.08)" />
+
+        {/* Grid pattern overlay */}
+        <div
+          className="absolute inset-0 opacity-[0.03]"
+          style={{
+            backgroundImage: 'linear-gradient(hsl(var(--foreground)) 1px, transparent 1px), linear-gradient(90deg, hsl(var(--foreground)) 1px, transparent 1px)',
+            backgroundSize: '60px 60px',
+          }}
+        />
+      </div>
+
+      <motion.div
+        className="w-full max-w-md relative z-10"
+        initial={{ opacity: 0, y: 30, scale: 0.96 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+      >
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
-            Site Editor <span className="text-primary">Pro</span>
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            {isLogin ? 'Entre para acessar seus projetos' : 'Crie sua conta gratuita'}
-          </p>
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.15, type: 'spring', damping: 20 }}
+          >
+            <h1 className="text-3xl font-bold text-foreground mb-1">
+              Task<span className="text-primary">Flow</span>
+            </h1>
+            <p className="text-muted-foreground text-sm">
+              {isLogin ? 'Entre para gerenciar seus projetos' : 'Crie sua conta gratuita'}
+            </p>
+          </motion.div>
         </div>
 
-        <div className="bg-card border border-border rounded-2xl p-8 shadow-xl">
+        <motion.div
+          className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-8 shadow-2xl"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, type: 'spring', damping: 25 }}
+        >
           {/* Social Login Buttons */}
           <div className="space-y-3 mb-6">
-            <button
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleSocialLogin('google')}
               disabled={!!socialLoading}
               className="w-full py-3 bg-secondary/50 border border-border rounded-xl text-sm font-medium text-foreground flex items-center justify-center gap-3 hover:bg-secondary transition-colors disabled:opacity-50"
@@ -85,9 +136,11 @@ const AuthPage = () => {
                 </svg>
               )}
               Continuar com Google
-            </button>
+            </motion.button>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => handleSocialLogin('apple')}
               disabled={!!socialLoading}
               className="w-full py-3 bg-secondary/50 border border-border rounded-xl text-sm font-medium text-foreground flex items-center justify-center gap-3 hover:bg-secondary transition-colors disabled:opacity-50"
@@ -100,7 +153,7 @@ const AuthPage = () => {
                 </svg>
               )}
               Continuar com Apple
-            </button>
+            </motion.button>
           </div>
 
           {/* Divider */}
@@ -109,13 +162,18 @@ const AuthPage = () => {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-3 text-muted-foreground">ou</span>
+              <span className="bg-card/80 px-3 text-muted-foreground">ou</span>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <div className="relative">
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="relative"
+              >
                 <User size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <input
                   type="text"
@@ -124,7 +182,7 @@ const AuthPage = () => {
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 bg-secondary/50 border border-border rounded-xl text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
                 />
-              </div>
+              </motion.div>
             )}
 
             <div className="relative">
@@ -152,7 +210,9 @@ const AuthPage = () => {
               />
             </div>
 
-            <button
+            <motion.button
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={loading}
               className="w-full py-3 bg-primary text-primary-foreground rounded-xl font-semibold text-sm flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50"
@@ -165,7 +225,7 @@ const AuthPage = () => {
                   <ArrowRight size={16} />
                 </>
               )}
-            </button>
+            </motion.button>
           </form>
 
           <div className="mt-6 text-center">
@@ -176,8 +236,17 @@ const AuthPage = () => {
               {isLogin ? 'Não tem conta? Criar conta' : 'Já tem conta? Entrar'}
             </button>
           </div>
-        </div>
-      </div>
+        </motion.div>
+
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-center text-xs text-muted-foreground mt-6"
+        >
+          Gerencie equipes e projetos com eficiência
+        </motion.p>
+      </motion.div>
     </div>
   );
 };

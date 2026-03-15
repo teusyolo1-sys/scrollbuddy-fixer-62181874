@@ -70,6 +70,20 @@ export default function LobbyPage() {
   const [companies, setCompanies] = useState<CompanyCard[]>(loadCompanies);
   const navigate = useNavigate();
 
+  // Redirect to auth if not logged in
+  if (!authLoading && !user) {
+    navigate("/auth", { replace: true });
+    return null;
+  }
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-muted-foreground text-sm">Carregando...</div>
+      </div>
+    );
+  }
+
   const addCompany = () => {
     const newCompany: CompanyCard = {
       id: `company_${Date.now()}`,
@@ -86,7 +100,6 @@ export default function LobbyPage() {
   };
 
   const openCompany = (company: CompanyCard) => {
-    // For now, all companies share the same store; future: per-company stores
     navigate("/endocenter");
   };
 
