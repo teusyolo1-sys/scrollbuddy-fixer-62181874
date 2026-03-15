@@ -65,7 +65,7 @@ const gradients = [
 /* ── Framer-inspired animated mesh background ── */
 function AnimatedBackground() {
   return (
-    <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10">
+    <div className="fixed inset-0 overflow-hidden pointer-events-none" style={{ zIndex: -1 }}>
       {/* Mesh gradient base */}
       <div
         className="absolute inset-0"
@@ -225,7 +225,7 @@ export default function LobbyPage() {
   const openCompany = (company: CompanyCard) => navigate("/endocenter");
 
   return (
-    <div className="min-h-screen relative">
+    <div className="min-h-screen relative" style={{ isolation: "isolate" }}>
       {/* Animated background */}
       <AnimatedBackground />
 
