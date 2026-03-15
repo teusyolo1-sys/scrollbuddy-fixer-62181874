@@ -256,7 +256,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
                       </div>
                       <button
                         onClick={() => onRemove(entry.id)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-red-500/40 hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-destructive/40 hover:text-destructive hover:bg-destructive/10 transition-all opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
