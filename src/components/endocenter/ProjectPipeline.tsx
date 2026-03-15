@@ -30,7 +30,7 @@ function StatusPill({ value, onChange }: { value: TaskStatus; onChange: (s: Task
   const toggle = useCallback(() => {
     if (!open && btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
-      setOpenUp(rect.bottom + 140 > window.innerHeight);
+      setOpenUp(rect.bottom + 160 > window.innerHeight);
     }
     setOpen((p) => !p);
   }, [open]);
@@ -47,37 +47,54 @@ function StatusPill({ value, onChange }: { value: TaskStatus; onChange: (s: Task
   const cfg = statusConfig[value];
 
   return (
-    <div ref={ref} className="relative z-20">
+    <div ref={ref} className="relative" style={{ zIndex: open ? 50 : 1 }}>
       <button
         ref={btnRef}
         onClick={(e) => { e.stopPropagation(); toggle(); }}
-        className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-semibold transition-all"
-        style={{ background: cfg.bg, color: cfg.text }}
+        className="inline-flex items-center gap-1.5 text-[11px] px-3 py-1.5 font-semibold transition-all"
+        style={{
+          background: cfg.bg,
+          color: cfg.text,
+          borderRadius: "var(--ios-radius)",
+          border: `1px solid ${cfg.text}20`,
+        }}
       >
         {cfg.label}
-        <ChevronDown className="h-3 w-3" />
+        <ChevronDown className="h-3 w-3" style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform 0.2s" }} />
       </button>
 
       <AnimatePresence>
         {open && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.92 }}
-            transition={{ duration: 0.12 }}
-            className="absolute right-0 z-50 ios-card p-1 shadow-2xl min-w-[130px]"
-            style={openUp ? { bottom: "100%", marginBottom: 4 } : { top: "100%", marginTop: 4 }}
+            initial={{ opacity: 0, y: openUp ? 4 : -4 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: openUp ? 4 : -4 }}
+            transition={{ type: "spring", damping: 24, stiffness: 400 }}
+            className="absolute right-0 min-w-[150px] p-1.5"
+            style={{
+              ...(openUp ? { bottom: "100%", marginBottom: 6 } : { top: "100%", marginTop: 6 }),
+              background: "hsl(var(--card))",
+              borderRadius: "var(--ios-radius-lg)",
+              border: "1px solid hsl(var(--border) / 0.5)",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06)",
+              zIndex: 60,
+            }}
           >
             {allStatus.map((s) => {
               const sc = statusConfig[s];
+              const active = s === value;
               return (
                 <button
                   key={s}
                   onClick={(e) => { e.stopPropagation(); onChange(s); setOpen(false); }}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors hover:bg-secondary"
-                  style={s === value ? { background: sc.bg, color: sc.text } : {}}
+                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium transition-colors"
+                  style={{
+                    borderRadius: "var(--ios-radius-sm)",
+                    background: active ? sc.bg : "transparent",
+                    color: active ? sc.text : "hsl(var(--foreground))",
+                  }}
                 >
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sc.text }} />
+                  <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: sc.text }} />
                   {sc.label}
                 </button>
               );
