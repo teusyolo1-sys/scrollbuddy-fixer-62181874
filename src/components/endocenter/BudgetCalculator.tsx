@@ -248,7 +248,7 @@ function GastosChartCard({ entries, config, total, onAdd, delay, isExpanded, onT
         className={`${gc} overflow-hidden`} onContextMenu={handleContextMenu}>
         <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={isExpanded} onToggle={onToggle}
           customLabel={customLabel} isRenaming={isRenaming} onRenameSubmit={(name) => { setCustomLabel(name); setIsRenaming(false); }} />
-        {expanded && (
+        {isExpanded && (
           <div className="px-4 pb-4 flex items-center justify-center gap-4">
             <ResponsiveContainer width={90} height={90}>
               <RPieChart>
