@@ -1,10 +1,15 @@
-import { useRef, useCallback, useState, useEffect } from "react";
+import { useRef, useCallback, useState, useEffect, useImperativeHandle, forwardRef } from "react";
 import {
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight,
   AlignJustify, List, ListOrdered, Heading1, Heading2, Heading3, Type,
   Minus, Link2, Image, Undo2, Redo2, ChevronDown,
-  Subscript, Superscript, Quote, Code, RemoveFormatting
+  Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+
+export interface RichTextEditorHandle {
+  insertImageUrl: (url: string) => void;
+}
 
 interface RichTextEditorProps {
   value: string;
