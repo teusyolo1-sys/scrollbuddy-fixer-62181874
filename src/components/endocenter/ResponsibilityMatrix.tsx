@@ -617,7 +617,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
                 </motion.div>
               )}
             </DroppableColumn>
-          </div>
+          </motion.div>
         ))}
 
         {/* Add column button */}
