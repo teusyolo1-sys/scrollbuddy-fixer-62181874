@@ -350,6 +350,64 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     setColumns(newCols);
   };
 
+  const startColumnDrag = (startIndex: number) => {
+    let latestOverIdx: number | null = null;
+
+    setDraggingColIdx(startIndex);
+    setDragOverColIdx(null);
+    setGlobalDraggingCursor();
+    document.body.style.userSelect = "none";
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const pointerX = event.clientX;
+      const pointerY = event.clientY;
+
+      let bestIdx: number | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      colRefs.current.forEach((colEl, idx) => {
+        if (!colEl) return;
+        const rect = colEl.getBoundingClientRect();
+        const withinY = pointerY >= rect.top - 24 && pointerY <= rect.bottom + 24;
+        if (!withinY) return;
+
+        const centerX = rect.left + rect.width / 2;
+        const distance = Math.abs(centerX - pointerX);
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIdx = idx;
+        }
+      });
+
+      latestOverIdx = bestIdx !== null && bestIdx !== startIndex ? bestIdx : null;
+      setDragOverColIdx(latestOverIdx);
+    };
+
+    const finishDrag = () => {
+      if (latestOverIdx !== null && latestOverIdx !== startIndex) {
+        setColumns((prev) => {
+          if (startIndex < 0 || startIndex >= prev.length || latestOverIdx === null || latestOverIdx >= prev.length) {
+            return prev;
+          }
+          const next = [...prev];
+          const [moved] = next.splice(startIndex, 1);
+          next.splice(latestOverIdx, 0, moved);
+          return next;
+        });
+      }
+
+      setDraggingColIdx(null);
+      setDragOverColIdx(null);
+      clearGlobalDraggingCursor();
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", finishDrag, { once: true });
+  };
+
   const addColumn = () => {
     const id = `custom_${Math.random().toString(36).slice(2, 6)}`;
     setColumns([...columns, {
