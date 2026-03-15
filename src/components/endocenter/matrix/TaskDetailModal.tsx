@@ -32,6 +32,8 @@ interface Props {
   onClose: () => void;
 }
 
+const COMPLAINT_CATEGORIES = ["Qualidade", "Atraso", "Refação", "Comunicação"];
+
 const createId = () => `id_${Math.random().toString(36).slice(2, 10)}`;
 
 export default function TaskDetailModal({ item, roleColor, roleName, teamMembers, onUpdate, onDelete, onClose }: Props) {
