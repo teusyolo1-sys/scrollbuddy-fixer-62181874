@@ -546,7 +546,8 @@ export default function AgencyWalletPage() {
             </motion.div>
 
             {/* Manual Revenues */}
-            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, type: "spring", damping: 22 }}
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.01, y: -2 }}
+              transition={{ delay: 0.38, type: "spring", damping: 22 }}
               className={`${gc} overflow-hidden`}>
               <button onClick={() => setRevenuesOpen(!revenuesOpen)}
                 className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
