@@ -463,10 +463,14 @@ function MemberCard({ member, index, isExpanded, onToggle, showFinancials = true
 }
 
 /* ── Profile Modal ── */
-function ProfileModal({ member, onClose, isAdmin = false, canEdit = true }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean; canEdit?: boolean }) {
+function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDelete }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean; canEdit?: boolean; onDelete?: (id: string) => void }) {
   const { updateMember } = useEndocenter();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ ...member });
+  const [deleteStep, setDeleteStep] = useState<"idle" | "confirm" | "password">("idle");
+  const [password, setPassword] = useState("");
+  const [deleteError, setDeleteError] = useState("");
+  const [deleting, setDeleting] = useState(false);
   const hourlyRate = form.hours > 0 ? form.remuneration / form.hours : 0;
 
   const handleSave = () => {
