@@ -353,89 +353,116 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
   const upcoming = faturamentoEntries.filter(e => e.amount > 0).slice(0, 2);
   const total = faturamentoEntries.reduce((s, e) => s + e.amount, 0);
   const [expanded, setExpanded] = useState(false);
+  const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu: handleCtx } = useCardMenu();
+  const [customLabel, setCustomLabel] = useState("Faturamento");
+  const [renameValue, setRenameValue] = useState("Faturamento");
 
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-      className={`${gc} overflow-hidden flex flex-col ${expanded ? "row-span-2" : ""}`}>
-      <button onClick={() => setExpanded(!expanded)} className="p-4 hover:bg-accent/20 transition-colors w-full">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
-            <TrendingUp className="h-4 w-4 text-emerald-500" />
-          </div>
-          <div className="text-left">
-            <p className="text-sm font-bold text-foreground">Faturamento</p>
-            <p className="text-[11px] text-muted-foreground">{faturamentoEntries.length} {faturamentoEntries.length === 1 ? "item" : "itens"} · {formatCurrency(total)}</p>
-          </div>
-          <div className="ml-auto flex items-center gap-2">
-            <motion.div whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); onAdd(); }}
-              className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500 cursor-pointer">
-              <Plus className="h-3.5 w-3.5" />
-            </motion.div>
-            <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
-              <ChevronDown className="h-4 w-4 text-muted-foreground" />
-            </motion.div>
-          </div>
-        </div>
-      </button>
-
-      {expanded && (
-        <>
-          <AnimatePresence>
-            {faturamentoEntries.length > 0 && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
-                transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden px-4 pb-3">
-                <div className="space-y-1.5">
-                  {faturamentoEntries.map((e, i) => (
-                    <div key={e.id} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-muted/30">
-                      <span className="text-[11px] text-foreground/80 truncate max-w-[140px]">{e.description || `Item ${i + 1}`}</span>
-                      <span className="text-[11px] font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {faturamentoEntries.length === 0 && (
-            <div className="flex-1 flex items-center justify-center px-4">
-              <div className="text-center space-y-2">
-                <div className="flex flex-col items-center gap-1.5 opacity-10">
-                  <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
-                  <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
-                  <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
-                </div>
-                <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
-              </div>
+    <>
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
+        className={`${gc} overflow-hidden flex flex-col ${expanded ? "row-span-2" : ""}`}
+        onContextMenu={handleCtx}>
+        <button onClick={() => setExpanded(!expanded)} className="p-4 hover:bg-accent/20 transition-colors w-full">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
+              <TrendingUp className="h-4 w-4 text-emerald-500" />
             </div>
-          )}
-
-          {/* Upcoming Invoices floating card */}
-          <div className="p-4">
-            <div className={`${gc} p-3`}>
-              <div className="flex items-center gap-2 mb-2">
-                <FileText className="h-3 w-3 text-muted-foreground" />
-                <h4 className="text-[11px] font-bold text-muted-foreground">Upcoming Invoices</h4>
-              </div>
-              {upcoming.length === 0 ? (
-                <div className="space-y-1.5">
-                  <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Invoice 1</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
-                  <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Feb. 2022</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
-                </div>
+            <div className="text-left">
+              {isRenaming ? (
+                <input autoFocus value={renameValue} onChange={(e) => setRenameValue(e.target.value)}
+                  onBlur={() => { setCustomLabel(renameValue); setIsRenaming(false); }}
+                  onKeyDown={(e) => { if (e.key === "Enter") { setCustomLabel(renameValue); setIsRenaming(false); } }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-sm font-bold text-foreground bg-transparent border-b border-primary outline-none w-full" />
               ) : (
-                <div className="space-y-1.5">
-                  {upcoming.map((inv, i) => (
-                    <div key={i} className="flex justify-between">
-                      <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{inv.description || `Invoice ${i + 1}`}</span>
-                      <span className="text-[10px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-sm font-bold text-foreground">{customLabel}</p>
               )}
+              <p className="text-[11px] text-muted-foreground">{faturamentoEntries.length} {faturamentoEntries.length === 1 ? "item" : "itens"} · {formatCurrency(total)}</p>
+            </div>
+            <div className="ml-auto flex items-center gap-2">
+              <motion.div whileTap={{ scale: 0.9 }} onClick={(e) => { e.stopPropagation(); onAdd(); }}
+                className="w-7 h-7 rounded-lg flex items-center justify-center bg-emerald-500/20 text-emerald-500 cursor-pointer">
+                <Plus className="h-3.5 w-3.5" />
+              </motion.div>
+              <motion.div animate={{ rotate: expanded ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              </motion.div>
             </div>
           </div>
-        </>
+        </button>
+
+        {expanded && (
+          <>
+            <AnimatePresence>
+              {faturamentoEntries.length > 0 && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 300 }} className="overflow-hidden px-4 pb-3">
+                  <div className="space-y-1.5">
+                    {faturamentoEntries.map((e, i) => (
+                      <div key={e.id} className="flex justify-between items-center py-1.5 px-2.5 rounded-lg bg-muted/30">
+                        <span className="text-[11px] text-foreground/80 truncate max-w-[140px]">{e.description || `Item ${i + 1}`}</span>
+                        <span className="text-[11px] font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {faturamentoEntries.length === 0 && (
+              <div className="flex-1 flex items-center justify-center px-4">
+                <div className="text-center space-y-2">
+                  <div className="flex flex-col items-center gap-1.5 opacity-10">
+                    <div className="w-28 h-7 border-2 border-foreground/40 rounded-lg rotate-[-3deg]" />
+                    <div className="w-20 h-7 border-2 border-foreground/40 rounded-lg rotate-[2deg]" />
+                    <div className="w-14 h-7 border-2 border-foreground/40 rounded-lg rotate-[-1deg]" />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/40 mt-3">Add first invoice to view pipeline</p>
+                </div>
+              </div>
+            )}
+
+            <div className="p-4">
+              <div className={`${gc} p-3`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <FileText className="h-3 w-3 text-muted-foreground" />
+                  <h4 className="text-[11px] font-bold text-muted-foreground">Upcoming Invoices</h4>
+                </div>
+                {upcoming.length === 0 ? (
+                  <div className="space-y-1.5">
+                    <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Invoice 1</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
+                    <div className="flex justify-between"><span className="text-[10px] text-muted-foreground">Feb. 2022</span><span className="text-[10px] text-foreground/60">R$ 0,00</span></div>
+                  </div>
+                ) : (
+                  <div className="space-y-1.5">
+                    {upcoming.map((inv, i) => (
+                      <div key={i} className="flex justify-between">
+                        <span className="text-[10px] text-muted-foreground truncate max-w-[100px]">{inv.description || `Invoice ${i + 1}`}</span>
+                        <span className="text-[10px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </motion.div>
+      {ctxPos && <CardContextMenu pos={ctxPos} onClose={() => setCtxPos(null)} onRename={() => setIsRenaming(true)} onFullscreen={() => setIsFullscreen(true)} />}
+      {isFullscreen && (
+        <FullscreenPanel title={customLabel} onClose={() => setIsFullscreen(false)}>
+          <div className={`${gc} max-w-2xl mx-auto p-6 space-y-4`}>
+            {faturamentoEntries.map((e, i) => (
+              <div key={e.id} className="flex justify-between items-center py-2 px-3 rounded-lg bg-muted/30">
+                <span className="text-sm text-foreground/80">{e.description || `Item ${i + 1}`}</span>
+                <span className="text-sm font-bold text-emerald-500">{formatCurrency(e.amount)}</span>
+              </div>
+            ))}
+            {faturamentoEntries.length === 0 && <p className="text-center text-muted-foreground py-8">Nenhum item de faturamento.</p>}
+          </div>
+        </FullscreenPanel>
       )}
-    </motion.div>
+    </>
   );
 }
 
