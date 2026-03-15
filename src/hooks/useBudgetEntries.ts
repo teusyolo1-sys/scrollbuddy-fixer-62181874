@@ -34,10 +34,16 @@ export const useBudgetEntries = (companyId?: string) => {
   const fetchEntries = useCallback(async () => {
     if (!user) { setEntries([]); setLoading(false); return; }
 
-    const { data: entriesData } = await supabase
+    let query = supabase
       .from('budget_entries')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+
+    const { data: entriesData } = await query;
 
     if (!entriesData) { setLoading(false); return; }
 
