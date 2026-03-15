@@ -435,12 +435,10 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                       <button onClick={onDelete} className="w-full text-[10px] font-medium px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors flex items-center justify-center gap-1">
                         <Trash2 className="h-3 w-3" /> Excluir tarefa
                       </button>
-                    </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
