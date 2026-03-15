@@ -346,7 +346,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActiveId(String(e.active.id))} onDragEnd={handleDragEnd}>
       <div className={`grid grid-cols-1 ${gridCols} gap-4 min-h-[200px]`}>
         {columnData.map((col, index) => (
-          <div key={col.key} className="space-y-2">
+          <div key={col.key} className="space-y-2 group/col">
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
               {/* Column label */}
