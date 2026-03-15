@@ -81,7 +81,7 @@ function KPICard({ label, value, color, sparkData, sparkType, change, icon: Icon
           <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${color}20` }}>
             <IconComp className="h-4 w-4" style={{ color }} />
           </div>
-          <span className="text-xs text-white/50 font-medium tracking-wide">{label}</span>
+          <span className="text-xs text-muted-foreground font-medium tracking-wide">{label}</span>
           {change !== undefined && change !== 0 && (
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg ${change > 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
               {change > 0 ? "+" : ""}{change.toFixed(0)}% vs. Feb
