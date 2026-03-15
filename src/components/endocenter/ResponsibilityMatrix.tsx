@@ -350,6 +350,64 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     setColumns(newCols);
   };
 
+  const startColumnDrag = (startIndex: number) => {
+    let latestOverIdx: number | null = null;
+
+    setDraggingColIdx(startIndex);
+    setDragOverColIdx(null);
+    setGlobalDraggingCursor();
+    document.body.style.userSelect = "none";
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const pointerX = event.clientX;
+      const pointerY = event.clientY;
+
+      let bestIdx: number | null = null;
+      let bestDistance = Number.POSITIVE_INFINITY;
+
+      colRefs.current.forEach((colEl, idx) => {
+        if (!colEl) return;
+        const rect = colEl.getBoundingClientRect();
+        const withinY = pointerY >= rect.top - 24 && pointerY <= rect.bottom + 24;
+        if (!withinY) return;
+
+        const centerX = rect.left + rect.width / 2;
+        const distance = Math.abs(centerX - pointerX);
+
+        if (distance < bestDistance) {
+          bestDistance = distance;
+          bestIdx = idx;
+        }
+      });
+
+      latestOverIdx = bestIdx !== null && bestIdx !== startIndex ? bestIdx : null;
+      setDragOverColIdx(latestOverIdx);
+    };
+
+    const finishDrag = () => {
+      if (latestOverIdx !== null && latestOverIdx !== startIndex) {
+        setColumns((prev) => {
+          if (startIndex < 0 || startIndex >= prev.length || latestOverIdx === null || latestOverIdx >= prev.length) {
+            return prev;
+          }
+          const next = [...prev];
+          const [moved] = next.splice(startIndex, 1);
+          next.splice(latestOverIdx, 0, moved);
+          return next;
+        });
+      }
+
+      setDraggingColIdx(null);
+      setDragOverColIdx(null);
+      clearGlobalDraggingCursor();
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", handleMouseMove);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", finishDrag, { once: true });
+  };
+
   const addColumn = () => {
     const id = `custom_${Math.random().toString(36).slice(2, 6)}`;
     setColumns([...columns, {
@@ -448,25 +506,6 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
             className={`space-y-2 group/col transition-all duration-200 ${
               draggingColIdx === index ? "opacity-40 scale-95" : ""
             } ${dragOverColIdx === index && draggingColIdx !== index ? "ring-2 ring-primary/40 rounded-2xl" : ""}`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              if (draggingColIdx !== null && draggingColIdx !== index) {
-                setDragOverColIdx(index);
-              }
-            }}
-            onDragLeave={() => setDragOverColIdx(null)}
-            onDrop={(e) => {
-              e.preventDefault();
-              if (draggingColIdx !== null && draggingColIdx !== index) {
-                const newCols = [...columns];
-                const [moved] = newCols.splice(draggingColIdx, 1);
-                newCols.splice(index, 0, moved);
-                setColumns(newCols);
-              }
-              setDraggingColIdx(null);
-              setDragOverColIdx(null);
-              clearGlobalDraggingCursor();
-            }}
           >
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
@@ -490,16 +529,9 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
 
               {/* Drag grip - only on hover */}
               <div
-                draggable
-                onDragStart={(e) => {
-                  setDraggingColIdx(index);
-                  setGlobalDraggingCursor();
-                  e.dataTransfer.effectAllowed = "move";
-                }}
-                onDragEnd={() => {
-                  setDraggingColIdx(null);
-                  setDragOverColIdx(null);
-                  clearGlobalDraggingCursor();
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  startColumnDrag(index);
                 }}
                 className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary hover:text-foreground"
                 title="Arrastar para reordenar"
