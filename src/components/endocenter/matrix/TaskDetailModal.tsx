@@ -254,10 +254,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             <div className="flex-1 flex flex-col min-w-0">
               <RichTextEditor
                 value={description}
-                onChange={(html) => {
-                  setDescription(html);
-                  onUpdate({ description: html });
-                }}
+                onChange={handleDescriptionChange}
                 minHeight="100%"
                 placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
               />
