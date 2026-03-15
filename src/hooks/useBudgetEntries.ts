@@ -25,7 +25,7 @@ export interface UserProfile {
   avatar_url: string | null;
 }
 
-export const useBudgetEntries = () => {
+export const useBudgetEntries = (companyId?: string) => {
   const { user } = useAuth();
   const [entries, setEntries] = useState<BudgetEntry[]>([]);
   const [profiles, setProfiles] = useState<UserProfile[]>([]);
@@ -34,10 +34,16 @@ export const useBudgetEntries = () => {
   const fetchEntries = useCallback(async () => {
     if (!user) { setEntries([]); setLoading(false); return; }
 
-    const { data: entriesData } = await supabase
+    let query = supabase
       .from('budget_entries')
       .select('*')
       .order('created_at', { ascending: false });
+    
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+
+    const { data: entriesData } = await query;
 
     if (!entriesData) { setLoading(false); return; }
 
@@ -69,7 +75,7 @@ export const useBudgetEntries = () => {
     })));
 
     setLoading(false);
-  }, [user]);
+  }, [user, companyId]);
 
   const fetchProfiles = useCallback(async () => {
     if (!user) return;
@@ -83,7 +89,7 @@ export const useBudgetEntries = () => {
     if (!user) return;
     const { data, error } = await supabase
       .from('budget_entries')
-      .insert({ category, created_by: user.id, description: '', amount: 0, notes: '' })
+      .insert({ category, created_by: user.id, description: '', amount: 0, notes: '', ...(companyId ? { company_id: companyId } : {}) })
       .select()
       .single();
     if (!error && data) {
@@ -91,7 +97,7 @@ export const useBudgetEntries = () => {
         id: data.id, description: data.description, category: data.category as BudgetCategory,
         amount: Number(data.amount), date: data.date, notes: data.notes,
         created_by: data.created_by, participants: [],
-        agency_fee: 0, agency_fee_type: 'fixed', company_id: null,
+        agency_fee: 0, agency_fee_type: 'fixed', company_id: companyId || null,
       }, ...prev]);
     }
   };
