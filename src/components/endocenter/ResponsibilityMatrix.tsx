@@ -56,11 +56,11 @@ export default function ResponsibilityMatrix() {
       const item = currentItems.find((i) => i.id === itemId);
       const taskName = item?.task || "Tarefa";
       toast({ title: "✅ Tarefa concluída", description: taskName });
-      addNotification({ title: `${role.role} concluiu tarefa`, description: taskName, icon: "check" });
+      addNotification({ title: `${role.role} concluiu tarefa`, description: taskName, icon: "check", meta: { roleId: role.id, tab: activeTab, itemId } });
     } else if (updates.done === false) {
       const item = currentItems.find((i) => i.id === itemId);
       toast({ title: "🔄 Tarefa reaberta", description: "Movida para pendente" });
-      addNotification({ title: `${role.role} reabriu tarefa`, description: item?.task || "Tarefa", icon: "move" });
+      addNotification({ title: `${role.role} reabriu tarefa`, description: item?.task || "Tarefa", icon: "move", meta: { roleId: role.id, tab: activeTab, itemId } });
     }
   };
 

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Bell, Check, ArrowRightLeft, Plus, Trash2, Info, X } from "lucide-react";
+import { Bell, Check, ArrowRightLeft, Plus, Trash2, Info, X, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNotificationStore, type AppNotification } from "@/store/notificationStore";
 
@@ -27,7 +27,11 @@ function timeAgo(date: Date) {
   return `${Math.floor(s / 86400)}d`;
 }
 
-export default function NotificationCenter() {
+interface NotificationCenterProps {
+  onNavigateToTask?: (roleId: string, tab: string, itemId: string) => void;
+}
+
+export default function NotificationCenter({ onNavigateToTask }: NotificationCenterProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const { notifications, markAllRead, clearAll, unreadCount } = useNotificationStore();
@@ -44,6 +48,13 @@ export default function NotificationCenter() {
   const handleOpen = () => {
     setOpen(!open);
     if (!open && count > 0) markAllRead();
+  };
+
+  const handleClickNotification = (n: AppNotification) => {
+    if (n.meta?.roleId && n.meta?.tab && n.meta?.itemId && onNavigateToTask) {
+      onNavigateToTask(n.meta.roleId, n.meta.tab, n.meta.itemId);
+      setOpen(false);
+    }
   };
 
   return (
@@ -121,7 +132,12 @@ export default function NotificationCenter() {
               ) : (
                 <AnimatePresence initial={false}>
                   {notifications.map((n) => (
-                    <NotificationRow key={n.id} notification={n} />
+                    <NotificationRow
+                      key={n.id}
+                      notification={n}
+                      clickable={!!(n.meta?.itemId)}
+                      onClick={() => handleClickNotification(n)}
+                    />
                   ))}
                 </AnimatePresence>
               )}
@@ -133,7 +149,11 @@ export default function NotificationCenter() {
   );
 }
 
-function NotificationRow({ notification: n }: { notification: AppNotification }) {
+function NotificationRow({ notification: n, clickable, onClick }: {
+  notification: AppNotification;
+  clickable: boolean;
+  onClick: () => void;
+}) {
   const Icon = iconMap[n.icon];
   const colorClass = iconColorMap[n.icon];
 
@@ -142,9 +162,11 @@ function NotificationRow({ notification: n }: { notification: AppNotification })
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
+      whileHover={clickable ? { x: 2, backgroundColor: "hsl(var(--secondary) / 0.5)" } : undefined}
+      onClick={clickable ? onClick : undefined}
       className={`flex items-start gap-3 px-4 py-3 border-b border-border/20 last:border-0 transition-colors ${
         !n.read ? "bg-primary/[0.04]" : ""
-      }`}
+      } ${clickable ? "cursor-pointer" : ""}`}
     >
       <div className={`shrink-0 w-7 h-7 rounded-xl flex items-center justify-center ${colorClass}`}>
         <Icon className="h-3.5 w-3.5" />
@@ -152,6 +174,11 @@ function NotificationRow({ notification: n }: { notification: AppNotification })
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-foreground leading-snug">{n.title}</p>
         <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 line-clamp-2">{n.description}</p>
+        {clickable && (
+          <span className="inline-flex items-center gap-0.5 text-[10px] text-primary font-medium mt-1">
+            Ver tarefa <ChevronRight className="h-2.5 w-2.5" />
+          </span>
+        )}
       </div>
       <span className="text-[10px] text-muted-foreground/60 shrink-0 mt-0.5">{timeAgo(n.timestamp)}</span>
     </motion.div>
