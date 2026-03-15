@@ -347,7 +347,12 @@ export default function TeamDashboard() {
       {/* Profile Modal */}
       <AnimatePresence>
         {selectedMember && (
-          <ProfileModal member={selectedMember} onClose={() => setSelectedMember(null)} isAdmin={isAdmin} />
+          <ProfileModal
+            member={selectedMember}
+            onClose={() => setSelectedMember(null)}
+            isAdmin={isAdmin}
+            canEdit={isAdmin || selectedMember.role === teamRole}
+          />
         )}
       </AnimatePresence>
     </div>
