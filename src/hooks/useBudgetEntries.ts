@@ -89,7 +89,7 @@ export const useBudgetEntries = (companyId?: string) => {
     if (!user) return;
     const { data, error } = await supabase
       .from('budget_entries')
-      .insert({ category, created_by: user.id, description: '', amount: 0, notes: '' })
+      .insert({ category, created_by: user.id, description: '', amount: 0, notes: '', ...(companyId ? { company_id: companyId } : {}) })
       .select()
       .single();
     if (!error && data) {
