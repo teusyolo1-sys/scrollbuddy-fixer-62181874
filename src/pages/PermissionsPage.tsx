@@ -4,7 +4,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useTabPermissions, TAB_KEYS, TAB_LABELS } from '@/hooks/useTabPermissions';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Users, Check, X, Loader2, ArrowLeft, Building2, ChevronRight, User, Pencil, Eye } from 'lucide-react';
+import { Shield, Users, Check, X, Loader2, ArrowLeft, Building2, ChevronRight, User, Pencil, Eye, Info } from 'lucide-react';
+import { TabKey } from '@/hooks/useTabPermissions';
+
+const TAB_DESCRIPTIONS: Record<TabKey, string> = {
+  dashboard: 'Visão geral com métricas, gráficos de desempenho e resumo de atividades do projeto.',
+  schedule: 'Cronograma master com datas, marcos e prazos de cada etapa do projeto.',
+  pipeline: 'Pipeline de projetos com acompanhamento visual do progresso de cada entrega.',
+  matrix: 'Matriz de responsabilidades com Kanban, tarefas atribuídas por cargo e área.',
+  workflow: 'Fluxograma visual dos processos operacionais e suas dependências.',
+  deadlines: 'Gestão de prazos críticos, crises e alertas de vencimentos próximos.',
+  budget: 'Controle financeiro com entradas, categorias e participantes do orçamento.',
+  team: 'Painel do time com KPIs individuais, SLA, atividades e histórico de performance.',
+};
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
@@ -48,20 +60,47 @@ function getInitials(name: string | null, email: string | null) {
 }
 
 /* ── Toggle Pill ── */
-function TogglePill({ label, granted, onToggle }: { label: string; granted: boolean; onToggle: () => void }) {
+function TogglePill({ label, granted, onToggle, description }: { label: string; granted: boolean; onToggle: () => void; description?: string }) {
+  const [showInfo, setShowInfo] = useState(false);
+
   return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      onClick={onToggle}
-      className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
-        granted
-          ? 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
-          : 'bg-muted/40 text-muted-foreground border border-border/50 hover:bg-muted/60'
-      }`}
-    >
-      {granted ? <Check className="h-3.5 w-3.5" /> : <X className="h-3 w-3 opacity-40" />}
-      {label}
-    </motion.button>
+    <div className="relative">
+      <div className="flex items-center gap-1">
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={onToggle}
+          className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+            granted
+              ? 'bg-emerald-500/12 text-emerald-600 dark:text-emerald-400 border border-emerald-500/25'
+              : 'bg-muted/40 text-muted-foreground border border-border/50 hover:bg-muted/60'
+          }`}
+        >
+          {granted ? <Check className="h-3.5 w-3.5" /> : <X className="h-3 w-3 opacity-40" />}
+          {label}
+        </motion.button>
+        {description && (
+          <motion.button
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowInfo(!showInfo)}
+            className="w-5 h-5 rounded-full flex items-center justify-center text-muted-foreground/50 hover:text-primary hover:bg-primary/10 transition-colors"
+          >
+            <Info className="h-3 w-3" />
+          </motion.button>
+        )}
+      </div>
+      <AnimatePresence>
+        {showInfo && description && (
+          <motion.div
+            initial={{ opacity: 0, y: -4, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -4, height: 0 }}
+            className="absolute left-0 top-full mt-1.5 z-10 w-64 p-2.5 rounded-xl bg-popover border border-border shadow-lg"
+          >
+            <p className="text-[11px] text-muted-foreground leading-relaxed">{description}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 }
 
@@ -168,6 +207,7 @@ function UserProfilePanel({
                   label={TAB_LABELS[key]}
                   granted={getUserPerm(key)}
                   onToggle={() => onToggleTab(key, getUserPerm(key))}
+                  description={TAB_DESCRIPTIONS[key]}
                 />
               ))}
             </div>
