@@ -295,10 +295,11 @@ function GastosChartCard({ entries, config, total, onAdd, delay, isExpanded, onT
 }
 
 /* ── Pipeline Placeholder (center Faturamento) ── */
-function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries: any[]; onAdd: () => void; delay: number }) {
+function PipelineCard({ faturamentoEntries, onAdd, delay, isExpanded, onToggle }: {
+  faturamentoEntries: any[]; onAdd: () => void; delay: number; isExpanded: boolean; onToggle: () => void;
+}) {
   const upcoming = faturamentoEntries.filter(e => e.amount > 0).slice(0, 2);
   const total = faturamentoEntries.reduce((s, e) => s + e.amount, 0);
-  const [expanded, setExpanded] = useState(false);
   const { ctxPos, setCtxPos, isRenaming, setIsRenaming, isFullscreen, setIsFullscreen, handleContextMenu: handleCtx } = useCardMenu();
   const [customLabel, setCustomLabel] = useState("Faturamento");
   const [renameValue, setRenameValue] = useState("Faturamento");
@@ -306,9 +307,9 @@ function PipelineCard({ faturamentoEntries, onAdd, delay }: { faturamentoEntries
   return (
     <>
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
-        className={`${gc} overflow-hidden flex flex-col ${expanded ? "row-span-2" : ""}`}
+        className={`${gc} overflow-hidden flex flex-col ${isExpanded ? "row-span-2" : ""}`}
         onContextMenu={handleCtx}>
-        <button onClick={() => setExpanded(!expanded)} className="p-4 hover:bg-accent/20 transition-colors w-full">
+        <button onClick={onToggle} className="p-4 hover:bg-accent/20 transition-colors w-full">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-emerald-500/10">
               <TrendingUp className="h-4 w-4 text-emerald-500" />
