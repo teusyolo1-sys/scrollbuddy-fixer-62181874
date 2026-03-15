@@ -182,7 +182,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
     );
   };
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div
         initial={{ opacity: 0 }}
