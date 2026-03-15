@@ -3,9 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useTabPermissions, TAB_KEYS, TAB_LABELS } from '@/hooks/useTabPermissions';
+import { useSectionPermissions, TAB_SECTIONS } from '@/hooks/useSectionPermissions';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Users, Check, X, Loader2, ArrowLeft, Building2, ChevronRight, User, Pencil, Eye, Info } from 'lucide-react';
-import { TabKey } from '@/hooks/useTabPermissions';
+import { Shield, Users, Check, X, Loader2, ArrowLeft, Building2, ChevronRight, ChevronDown, User, Pencil, Eye, Info, EyeOff, Settings2 } from 'lucide-react';
+import type { TabKey } from '@/hooks/useTabPermissions';
 
 const TAB_DESCRIPTIONS: Record<TabKey, string> = {
   dashboard: 'Visão geral com métricas, gráficos de desempenho e resumo de atividades do projeto.',
