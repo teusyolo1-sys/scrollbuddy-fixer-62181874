@@ -663,7 +663,7 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
                     <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} className="p-4 rounded-2xl border border-destructive/30 bg-destructive/5 space-y-3">
                       <p className="text-sm text-destructive font-semibold">Tem certeza que deseja remover {member.name}?</p>
                       <div className="flex gap-2">
-                        <button onClick={() => setDeleteStep("idle")} className="flex-1 py-2 rounded-xl border border-border text-sm font-semibold text-muted-foreground hover:bg-secondary/50 transition-colors">
+                        <button onClick={() => setDeleteStep("idle")} className="flex-1 py-2 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-sm font-semibold text-emerald-400 hover:bg-emerald-500/20 transition-colors">
                           CANCELAR
                         </button>
                         <button onClick={() => setDeleteStep("password")} className="flex-1 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold hover:bg-destructive/90 transition-colors">
