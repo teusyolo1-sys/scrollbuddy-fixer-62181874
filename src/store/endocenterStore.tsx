@@ -235,6 +235,24 @@ const STORAGE_KEY = "endocenter_settings";
 
 const createId = (prefix: string) => `${prefix}_${Math.random().toString(36).slice(2, 10)}`;
 
+const createRespItem = (task: string, critical: boolean): ResponsibilityItem => ({
+  id: createId("resp"),
+  task,
+  done: false,
+  critical,
+  description: "",
+  labels: [],
+  dueDate: "",
+  priority: critical ? "high" : "medium",
+  assignees: [],
+  checklist: [],
+  attachments: [],
+  timerSeconds: 0,
+  timerRunning: false,
+  createdAt: new Date().toISOString(),
+  cover: "",
+});
+
 const withColorPalette = (member: TeamMember): TeamMember => ({
   ...member,
   colorLight: `${member.color}1A`,
