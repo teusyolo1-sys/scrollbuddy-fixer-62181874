@@ -205,10 +205,12 @@ export default function TeamDashboard() {
   const [selectedMember, setSelectedMember] = useState<typeof team[number] | null>(null);
   const [periodFilter, setPeriodFilter] = useState<MetricPeriod | "Todas">("Todas");
 
-  // Filter team: non-admin users only see their own role's member
+  // Filter team: non-admin users only see members matching their role
   const visibleTeam = useMemo(() => {
     if (isAdmin || !teamRole) return team;
-    return team.filter((m) => m.role === teamRole);
+    const filtered = team.filter((m) => m.role === teamRole);
+    // If no match found, show all (role name might differ)
+    return filtered.length > 0 ? filtered : team;
   }, [team, isAdmin, teamRole]);
 
   const totalRemuneration = useMemo(() => visibleTeam.reduce((sum, m) => sum + m.remuneration, 0), [visibleTeam]);
