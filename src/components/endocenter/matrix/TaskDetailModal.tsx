@@ -331,18 +331,22 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               <div className="w-[300px] py-2">
                     {/* Priority */}
                     <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
-                      <div className="flex flex-wrap gap-1">
-                        {priorityOptions.map((p) => (
-                          <button key={p.value} onClick={() => onUpdate({ priority: p.value })}
-                            className="text-[10px] font-semibold px-2 py-1 rounded-lg transition-all"
-                            style={{
-                              backgroundColor: item.priority === p.value ? `${p.color}20` : "hsl(var(--secondary))",
-                              color: item.priority === p.value ? p.color : "hsl(var(--muted-foreground))",
-                              border: item.priority === p.value ? `1px solid ${p.color}40` : "1px solid transparent",
-                            }}>
-                            {p.label}
-                          </button>
-                        ))}
+                      <div className="flex gap-2">
+                        {priorityOptions.map((p) => {
+                          const isActive = item.priority === p.value;
+                          return (
+                            <button key={p.value} onClick={() => onUpdate({ priority: p.value })}
+                              className="text-[11px] font-semibold px-3.5 py-2 transition-all flex-1"
+                              style={{
+                                borderRadius: "var(--ios-radius-sm)",
+                                backgroundColor: isActive ? `${p.color}18` : "hsl(var(--secondary) / 0.5)",
+                                color: isActive ? p.color : "hsl(var(--muted-foreground))",
+                                boxShadow: isActive ? `0 0 0 1.5px ${p.color}50, var(--ios-shadow-subtle)` : "none",
+                              }}>
+                              {p.label}
+                            </button>
+                          );
+                        })}
                       </div>
                     </SideSection>
 
