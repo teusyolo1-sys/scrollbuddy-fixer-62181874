@@ -134,16 +134,18 @@ function DashboardContent() {
                 </motion.div>
               </motion.button>
 
-              <motion.button
-                whileTap={{ scale: 0.88, rotate: 90 }}
-                whileHover={{ scale: 1.12, rotate: 45 }}
-                transition={{ type: "spring", stiffness: 400, damping: 14 }}
-                onClick={() => setSettingsOpen(true)}
-                className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
-                title="Configurações"
-              >
-                <Settings className="h-4 w-4 text-white/80" />
-              </motion.button>
+              {isAdmin && (
+                <motion.button
+                  whileTap={{ scale: 0.88, rotate: 90 }}
+                  whileHover={{ scale: 1.12, rotate: 45 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                  onClick={() => setSettingsOpen(true)}
+                  className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                  title="Configurações"
+                >
+                  <Settings className="h-4 w-4 text-white/80" />
+                </motion.button>
+              )}
             </div>
           </div>
 
