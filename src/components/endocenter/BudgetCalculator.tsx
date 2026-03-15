@@ -384,8 +384,8 @@ function UpcomingInvoices({ entries }: { entries: any[] }) {
         <div className="space-y-2">
           {upcoming.map((inv, i) => (
             <div key={i} className="flex items-center justify-between">
-              <span className="text-[11px] text-white/50 truncate max-w-[120px]">{inv.description || `Invoice ${i + 1}`}</span>
-              <span className="text-[11px] font-bold text-white/70">{formatCurrency(inv.amount)}</span>
+              <span className="text-[11px] text-muted-foreground truncate max-w-[120px]">{inv.description || `Invoice ${i + 1}`}</span>
+              <span className="text-[11px] font-bold text-foreground/70">{formatCurrency(inv.amount)}</span>
             </div>
           ))}
         </div>
