@@ -41,6 +41,7 @@ export interface TabLabels {
   workflow: string;
   deadlines: string;
   budget: string;
+  team: string;
 }
 
 export const defaultTabLabels: TabLabels = {
@@ -51,6 +52,7 @@ export const defaultTabLabels: TabLabels = {
   workflow: "Fluxo",
   deadlines: "Prazos & Crises",
   budget: "Orçamento",
+  team: "Time",
 };
 
 export interface CompanyInfo {
