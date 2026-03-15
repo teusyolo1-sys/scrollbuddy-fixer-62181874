@@ -5,7 +5,7 @@ const Index = () => {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="text-center max-w-2xl px-6">
         <h1 className="mb-4 text-4xl font-bold text-foreground">
-          Site Editor Pro
+          TaskFlow
         </h1>
         <p className="text-xl text-muted-foreground">
           Crie sites profissionais com nosso editor visual. Rápido, intuitivo e poderoso.
