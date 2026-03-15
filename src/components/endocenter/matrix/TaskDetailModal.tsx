@@ -351,9 +351,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                   border: "1px solid hsl(var(--border) / 0.25)",
                 }}
               >
-                <div className="py-2">
+                <div className="py-2 [&>*:last-child]:overflow-hidden">
                     {/* Priority */}
-                    <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen>
+                    <SideSection icon={AlertTriangle} label="Prioridade" defaultOpen={!!item.priority}>
                       <div className="flex gap-2">
                         {priorityOptions.map((p) => {
                           const isActive = item.priority === p.value;
