@@ -309,7 +309,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
 }) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [columns, setColumns] = useState<KanbanColumn[]>(defaultColumns);
-  const [draggingColIdx, setDraggingColIdx] = useState<number | null>(null);
+  const [draggingColKey, setDraggingColKey] = useState<string | null>(null);
   const [dragOverColIdx, setDragOverColIdx] = useState<number | null>(null);
   const [columnDragOffsetX, setColumnDragOffsetX] = useState(0);
   const [editingCol, setEditingCol] = useState<string | null>(null);
@@ -351,10 +351,10 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
     setColumns(newCols);
   };
 
-  const startColumnDrag = (startIndex: number, startX: number) => {
+  const startColumnDrag = (startIndex: number, startX: number, startKey: string) => {
     let currentIdx = startIndex;
 
-    setDraggingColIdx(startIndex);
+    setDraggingColKey(startKey);
     setDragOverColIdx(null);
     setColumnDragOffsetX(0);
     setGlobalDraggingCursor();
@@ -395,13 +395,12 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
           next.splice(projectedIdx, 0, moved);
           return next;
         });
-        setDraggingColIdx(projectedIdx);
         currentIdx = projectedIdx;
       }
     };
 
     const finishDrag = () => {
-      setDraggingColIdx(null);
+      setDraggingColKey(null);
       setDragOverColIdx(null);
       setColumnDragOffsetX(0);
       clearGlobalDraggingCursor();
@@ -510,10 +509,10 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
             layout="position"
             transition={{ type: "spring", stiffness: 320, damping: 26 }}
             ref={(el) => { colRefs.current[index] = el; }}
-            style={draggingColIdx === index ? { x: columnDragOffsetX, zIndex: 40 } : { x: 0 }}
+            style={draggingColKey === col.key ? { x: columnDragOffsetX, zIndex: 40 } : { x: 0 }}
             className={`space-y-2 group/col transition-colors duration-200 ${
-              draggingColIdx === index ? "opacity-40 scale-95" : ""
-            } ${dragOverColIdx === index && draggingColIdx !== index ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5" : ""}`}
+              draggingColKey === col.key ? "opacity-40 scale-95" : ""
+            } ${dragOverColIdx === index && draggingColKey !== col.key ? "ring-2 ring-primary/40 rounded-2xl bg-primary/5" : ""}`}
           >
             {/* ── Column Header ── */}
             <div className="flex items-center gap-1.5">
@@ -539,7 +538,7 @@ function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveIte
               <div
                 onMouseDown={(e) => {
                   e.preventDefault();
-                  startColumnDrag(index, e.clientX);
+                  startColumnDrag(index, e.clientX, col.key);
                 }}
                 className="p-1 rounded-lg cursor-grab active:cursor-grabbing opacity-0 group-hover/col:opacity-100 transition-opacity text-muted-foreground hover:bg-secondary hover:text-foreground"
                 title="Arrastar para reordenar"
