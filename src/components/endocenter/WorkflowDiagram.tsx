@@ -39,8 +39,16 @@ export default function WorkflowDiagram() {
   const toggleTask = (stepId: string, taskId: string) => {
     const step = workflowSteps.find((s) => s.id === stepId);
     if (!step) return;
+    const task = (step.tasks || []).find((t) => t.id === taskId);
     const tasks = (step.tasks || []).map((t) => t.id === taskId ? { ...t, done: !t.done } : t);
     updateWorkflowStep(stepId, { tasks });
+    if (task) {
+      addNotification({
+        title: !task.done ? `Fluxo: tarefa concluída` : `Fluxo: tarefa reaberta`,
+        description: `${task.name} — ${step.title}`,
+        icon: !task.done ? "check" : "move",
+      });
+    }
   };
 
   const addTask = (stepId: string) => {

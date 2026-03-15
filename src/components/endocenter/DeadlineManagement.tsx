@@ -33,9 +33,17 @@ export default function DeadlineManagement() {
     removeCrisisScenario,
   } = useEndocenter();
 
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [filter, setFilter] = useState("Todos");
   const [editMode, setEditMode] = useState(false);
   const [openStatusDeadlineId, setOpenStatusDeadlineId] = useState<string | null>(null);
+
+  const handleDeadlineStatus = (deadlineId: string, status: DeadlineStatus) => {
+    const d = deadlines.find((x) => x.id === deadlineId);
+    updateDeadline(deadlineId, { status });
+    const label = statusConfig[status].label;
+    addNotification({ title: `Prazo: ${label}`, description: d?.task || "Prazo", icon: status === "done" ? "check" : status === "overdue" ? "info" : "move" });
+  };
 
   const filteredDeadlines = useMemo(
     () => (filter === "Todos" ? deadlines : deadlines.filter((deadline) => deadline.frequency === filter)),

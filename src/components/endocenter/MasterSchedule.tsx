@@ -96,6 +96,10 @@ export default function MasterSchedule() {
               onClick={() => {
                 setActiveWeekId(item.id);
                 setExpandedRole(null);
+                if (item.id !== prevWeekId) {
+                  setPrevWeekId(item.id);
+                  addNotification({ title: "📅 Semana selecionada", description: `${item.week} — ${item.theme}`, icon: "info" });
+                }
               }}
               whileTap={{ scale: 0.97 }}
               whileHover={{ scale: 1.03, transition: { duration: 0.15 } }}

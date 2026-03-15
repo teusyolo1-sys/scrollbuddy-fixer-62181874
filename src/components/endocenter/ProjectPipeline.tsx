@@ -113,8 +113,24 @@ export default function ProjectPipeline() {
     addPipelineTask, updatePipelineTask, removePipelineTask,
   } = useEndocenter();
 
+  const addNotification = useNotificationStore((s) => s.addNotification);
   const [activeProjectId, setActiveProjectId] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+
+  const handleProjectStatus = (projectId: string, status: TaskStatus) => {
+    const project = pipelineProjects.find((p) => p.id === projectId);
+    updatePipelineProject(projectId, { status });
+    const label = statusConfig[status].label;
+    addNotification({ title: `Pipeline: ${label}`, description: project?.name || "Projeto", icon: status === "done" ? "check" : "move" });
+  };
+
+  const handleTaskStatus = (projectId: string, taskId: string, status: TaskStatus) => {
+    const project = pipelineProjects.find((p) => p.id === projectId);
+    const task = project?.tasks.find((t) => t.id === taskId);
+    updatePipelineTask(projectId, taskId, { status });
+    const label = statusConfig[status].label;
+    addNotification({ title: `Tarefa pipeline: ${label}`, description: task?.name || "Tarefa", icon: status === "done" ? "check" : "move" });
+  };
 
   const totalInvestment = pipelineProjects.reduce(
     (sum, p) => sum + p.tasks.reduce((ts, t) => ts + t.remuneration, 0), 0
