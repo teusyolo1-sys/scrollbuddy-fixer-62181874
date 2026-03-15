@@ -3,7 +3,9 @@ import {
   Bold, Italic, Underline, Strikethrough, AlignLeft, AlignCenter, AlignRight,
   AlignJustify, List, ListOrdered, Heading1, Heading2, Heading3, Type,
   Minus, Link2, Image, Undo2, Redo2, ChevronDown,
-  Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2
+  Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2,
+  RectangleHorizontal, Square, Maximize, PanelLeft, PanelRight, Columns2,
+  CircleDot, BoxSelect, Trash2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
