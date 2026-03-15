@@ -314,6 +314,7 @@ function KanbanView({ items, roleColor, isAdmin, onSelect, onToggleDone, onAdd, 
   const [draggingColKey, setDraggingColKey] = useState<string | null>(null);
   const [dragOverColIdx, setDragOverColIdx] = useState<number | null>(null);
   const [columnDragOffsetX, setColumnDragOffsetX] = useState(0);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [editingCol, setEditingCol] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState("");
   const [menuCol, setMenuCol] = useState<string | null>(null);
