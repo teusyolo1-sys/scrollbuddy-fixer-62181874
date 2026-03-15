@@ -4,6 +4,9 @@ import { toast } from "@/hooks/use-toast";
 import { useNotificationStore } from "@/store/notificationStore";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type ResponsibilityItem } from "@/store/endocenterStore";
+import { DndContext, DragOverlay, closestCenter, useSensor, useSensors, PointerSensor, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import TaskCard from "./matrix/TaskCard";
 import TaskDetailModal from "./matrix/TaskDetailModal";
 
@@ -168,6 +171,16 @@ export default function ResponsibilityMatrix() {
                   onSelect={(item) => setSelectedItem({ roleId: role.id, tab: activeTab, item })}
                   onToggleDone={(id) => handleUpdateItem(id, { done: !currentItems.find((i) => i.id === id)?.done })}
                   onAdd={() => addResponsibilityRoleItem(role.id, activeTab)}
+                  onMoveItem={(itemId, target) => {
+                    if (target === "done") {
+                      handleUpdateItem(itemId, { done: true });
+                    } else if (target === "urgent") {
+                      handleUpdateItem(itemId, { done: false, priority: "urgent", critical: true });
+                    } else {
+                      const item = currentItems.find((i) => i.id === itemId);
+                      handleUpdateItem(itemId, { done: false, priority: item?.priority === "urgent" ? "medium" : item?.priority || "medium", critical: false });
+                    }
+                  }}
                 />
               ) : (
                 <ListView
@@ -199,52 +212,134 @@ export default function ResponsibilityMatrix() {
   );
 }
 
-/* ── Kanban View ── */
-function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd }: {
+/* ── Kanban View with Drag & Drop ── */
+function KanbanView({ items, roleColor, onSelect, onToggleDone, onAdd, onMoveItem }: {
   items: ResponsibilityItem[];
   roleColor: string;
   onSelect: (item: ResponsibilityItem) => void;
   onToggleDone: (id: string) => void;
   onAdd: () => void;
+  onMoveItem: (itemId: string, target: "todo" | "urgent" | "done") => void;
 }) {
-  const columns = [
-    { key: "todo", label: "A fazer", items: items.filter((i) => !i.done && i.priority !== "urgent"), color: "hsl(var(--primary))" },
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const columns: Array<{ key: "todo" | "urgent" | "done"; label: string; items: ResponsibilityItem[]; color: string }> = [
+    { key: "todo", label: "A fazer", items: items.filter((i) => !i.done && i.priority !== "urgent" && !i.critical), color: "hsl(var(--primary))" },
     { key: "urgent", label: "Urgente", items: items.filter((i) => !i.done && (i.priority === "urgent" || i.critical)), color: "#DC2626" },
     { key: "done", label: "Concluído", items: items.filter((i) => i.done), color: "#059669" },
   ];
 
-  // Dedupe urgent from todo
+  // Dedupe
   const urgentIds = new Set(columns[1].items.map((i) => i.id));
   columns[0].items = columns[0].items.filter((i) => !urgentIds.has(i.id));
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
+  const activeItem = activeId ? items.find((i) => i.id === activeId) : null;
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveId(null);
+    if (!over) return;
+    const overId = String(over.id);
+    const itemId = String(active.id);
+
+    // Determine target column
+    let targetCol: "todo" | "urgent" | "done" | null = null;
+    if (["todo", "urgent", "done"].includes(overId)) {
+      targetCol = overId as "todo" | "urgent" | "done";
+    } else {
+      // Dropped on another card — find which column it belongs to
+      for (const col of columns) {
+        if (col.items.some((i) => i.id === overId)) {
+          targetCol = col.key;
+          break;
+        }
+      }
+    }
+
+    if (targetCol) {
+      // Check if item is already in this column
+      const sourceCol = columns.find((c) => c.items.some((i) => i.id === itemId));
+      if (sourceCol?.key !== targetCol) {
+        onMoveItem(itemId, targetCol);
+      }
+    }
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[200px]">
-      {columns.map((col) => (
-        <div key={col.key} className="space-y-2">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full" style={{ backgroundColor: col.color }} />
-              <span className="text-xs font-semibold text-foreground">{col.label}</span>
-              <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md">{col.items.length}</span>
-            </div>
-            {col.key === "todo" && (
-              <button onClick={onAdd} className="text-primary hover:bg-primary/10 rounded-lg p-1 transition-colors">
-                <Plus className="h-3.5 w-3.5" />
-              </button>
-            )}
-          </div>
-          <div className="space-y-2 min-h-[100px] rounded-2xl p-2 bg-secondary/30 border border-border/30">
-            <AnimatePresence>
+    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragStart={(e) => setActiveId(String(e.active.id))} onDragEnd={handleDragEnd}>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 min-h-[200px]">
+        {columns.map((col) => (
+          <DroppableColumn key={col.key} id={col.key} color={col.color} label={col.label} count={col.items.length} showAdd={col.key === "todo"} onAdd={onAdd} isOver={false}>
+            <SortableContext items={col.items.map((i) => i.id)} strategy={verticalListSortingStrategy}>
               {col.items.map((item) => (
-                <TaskCard key={item.id} item={item} roleColor={roleColor} onClick={() => onSelect(item)} onToggleDone={() => onToggleDone(item.id)} />
+                <SortableTaskCard key={item.id} item={item} roleColor={roleColor} onClick={() => onSelect(item)} onToggleDone={() => onToggleDone(item.id)} />
               ))}
-            </AnimatePresence>
-            {col.items.length === 0 && (
+            </SortableContext>
+            {col.items.length === 0 && !activeId && (
               <div className="flex items-center justify-center h-20 text-xs text-muted-foreground/50">Sem itens</div>
             )}
-          </div>
+          </DroppableColumn>
+        ))}
+      </div>
+      <DragOverlay>
+        {activeItem && <TaskCard item={activeItem} roleColor={roleColor} onClick={() => {}} onToggleDone={() => {}} />}
+      </DragOverlay>
+    </DndContext>
+  );
+}
+
+/* ── Droppable Column ── */
+function DroppableColumn({ id, color, label, count, showAdd, onAdd, children }: {
+  id: string; color: string; label: string; count: number; showAdd: boolean; onAdd: () => void; isOver: boolean; children: React.ReactNode;
+}) {
+  const { setNodeRef, isOver } = useDroppable({ id });
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
+          <span className="text-xs font-semibold text-foreground">{label}</span>
+          <span className="text-[10px] font-medium text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md">{count}</span>
         </div>
-      ))}
+        {showAdd && (
+          <button onClick={onAdd} className="text-primary hover:bg-primary/10 rounded-lg p-1 transition-colors">
+            <Plus className="h-3.5 w-3.5" />
+          </button>
+        )}
+      </div>
+      <div
+        ref={setNodeRef}
+        className={`space-y-2 min-h-[100px] rounded-2xl p-2 border transition-colors ${
+          isOver ? "bg-primary/10 border-primary/40" : "bg-secondary/30 border-border/30"
+        }`}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+/* ── Sortable Task Card ── */
+function SortableTaskCard({ item, roleColor, onClick, onToggleDone }: {
+  item: ResponsibilityItem; roleColor: string; onClick: () => void; onToggleDone: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.id });
+
+  const style = {
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    transition,
+    opacity: isDragging ? 0.4 : 1,
+    cursor: "grab",
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <TaskCard item={item} roleColor={roleColor} onClick={onClick} onToggleDone={onToggleDone} />
     </div>
   );
 }
