@@ -471,21 +471,25 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     </SideSection>
 
                     {/* Footer actions */}
-                    <div className="p-3 border-t border-border/30 space-y-2">
-                      <div className="flex gap-1.5">
+                    <div className="px-4 py-4 mt-2 space-y-2.5">
+                      <div className="flex gap-2">
                         <button onClick={() => onUpdate({ critical: !item.critical })}
-                          className={`text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors flex-1 ${item.critical ? "bg-destructive/10 text-destructive" : "bg-secondary text-muted-foreground"}`}>
+                          className={`text-[11px] font-semibold px-3 py-2 transition-colors flex-1 ${item.critical ? "bg-destructive/10 text-destructive" : "bg-secondary/60 text-muted-foreground"}`}
+                          style={{ borderRadius: "var(--ios-radius-sm)" }}>
                           {item.critical ? "✦ Crítico" : "Normal"}
                         </button>
                         <button onClick={() => onUpdate({ done: !item.done })}
-                          className={`text-[10px] font-semibold px-2.5 py-1.5 rounded-lg transition-colors flex-1 ${item.done ? "text-white" : "bg-secondary text-muted-foreground"}`}
-                          style={item.done ? { backgroundColor: roleColor } : {}}>
+                          className={`text-[11px] font-semibold px-3 py-2 transition-colors flex-1 ${item.done ? "text-white" : "bg-secondary/60 text-muted-foreground"}`}
+                          style={{ borderRadius: "var(--ios-radius-sm)", ...(item.done ? { backgroundColor: roleColor } : {}) }}>
                           {item.done ? "✓ Concluído" : "Concluir"}
                         </button>
                       </div>
-                      <button onClick={onDelete} className="w-full text-[10px] font-medium px-2.5 py-1.5 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors flex items-center justify-center gap-1">
-                        <Trash2 className="h-3 w-3" /> Excluir tarefa
+                      <button onClick={onDelete} 
+                        className="w-full text-[11px] font-medium px-3 py-2 bg-destructive/10 text-destructive hover:bg-destructive/15 transition-colors flex items-center justify-center gap-1.5"
+                        style={{ borderRadius: "var(--ios-radius-sm)" }}>
+                        <Trash2 className="h-3.5 w-3.5" /> Excluir tarefa
                       </button>
+                    </div>
                   </div>
                 </div>
               </div>
