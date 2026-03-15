@@ -349,6 +349,14 @@ function CompanyCardItem({
       className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl p-0 text-left overflow-hidden group cursor-pointer"
       onClick={onOpen}
     >
+      {/* Hidden file inputs — always mounted for admin */}
+      {isAdmin && (
+        <>
+          <input ref={bannerUpload.inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { e.stopPropagation(); bannerUpload.handleChange(e); }} />
+          <input ref={logoUpload.inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { e.stopPropagation(); logoUpload.handleChange(e); }} />
+        </>
+      )}
+
       {/* Gradient / Banner header */}
       <div className="h-28 relative overflow-hidden">
         {company.bannerUrl ? (
@@ -358,18 +366,15 @@ function CompanyCardItem({
         )}
         <div className="absolute inset-0 bg-black/5" />
 
-        {/* Admin: banner upload overlay */}
+        {/* Admin: banner upload button — always visible */}
         {isAdmin && (
-          <>
-            <input ref={bannerUpload.inputRef} type="file" accept="image/*" className="hidden" onChange={bannerUpload.handleChange} />
-            <button
-              onClick={(e) => { e.stopPropagation(); bannerUpload.trigger(); }}
-              className="absolute top-2.5 right-2.5 w-7 h-7 rounded-lg bg-black/30 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white hover:bg-black/50 opacity-0 group-hover:opacity-100 transition-all"
-              title="Alterar banner"
-            >
-              <ImagePlus className="h-3.5 w-3.5" />
-            </button>
-          </>
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); bannerUpload.trigger(); }}
+            className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all"
+            title="Alterar banner"
+          >
+            <ImagePlus className="h-4 w-4" />
+          </button>
         )}
 
         <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between">
@@ -385,16 +390,13 @@ function CompanyCardItem({
               </div>
             )}
             {isAdmin && (
-              <>
-                <input ref={logoUpload.inputRef} type="file" accept="image/*" className="hidden" onChange={logoUpload.handleChange} />
-                <button
-                  onClick={(e) => { e.stopPropagation(); logoUpload.trigger(); }}
-                  className="absolute -bottom-1 -right-1 w-5 h-5 rounded-md bg-black/40 backdrop-blur-sm flex items-center justify-center text-white/70 hover:text-white opacity-0 group-hover:opacity-100 transition-all"
-                  title="Alterar logo"
-                >
-                  <Pencil className="h-2.5 w-2.5" />
-                </button>
-              </>
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); logoUpload.trigger(); }}
+                className="absolute -bottom-1 -right-1 z-10 w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
+                title="Alterar logo"
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
             )}
           </div>
           <div className="flex items-center gap-1 text-white/80 text-xs">
