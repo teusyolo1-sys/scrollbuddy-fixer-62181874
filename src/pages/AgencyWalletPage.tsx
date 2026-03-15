@@ -413,8 +413,9 @@ export default function AgencyWalletPage() {
           </motion.div>
 
           {/* Month Summary */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28, type: "spring", damping: 22 }}
-            className={`${gc} p-5`}>
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.02, y: -3 }}
+            transition={{ delay: 0.28, type: "spring", damping: 22 }}
+            className={`${gc} p-5 cursor-default`}>
             <div className="flex items-center gap-2 mb-4">
               <Receipt className="h-4 w-4 text-primary" />
               <h3 className="text-sm font-bold text-foreground">Resumo do Mês</h3>
