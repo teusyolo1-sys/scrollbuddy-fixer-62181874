@@ -112,10 +112,11 @@ export default function TeamDashboard() {
 
         <div className="grid md:grid-cols-2 gap-3">
           {filteredMetrics.map((metric) => {
+            const animKey = `${metric.id}-${periodFilter}`;
             const pct = metric.target > 0 ? Math.min(100, Math.round((metric.value / metric.target) * 100)) : 0;
             return (
               <motion.div
-                key={metric.id}
+                key={animKey}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={bouncy}
