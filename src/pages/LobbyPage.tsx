@@ -1,9 +1,10 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, User, Shield } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CompanyCard {
   id: string;
@@ -70,7 +71,30 @@ export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const [companies, setCompanies] = useState<CompanyCard[]>(loadCompanies);
+  const [allowedCompanyIds, setAllowedCompanyIds] = useState<string[] | null>(null);
   const navigate = useNavigate();
+
+  // Fetch company permissions for non-admin users
+  useEffect(() => {
+    if (!user || isAdmin) {
+      setAllowedCompanyIds(null); // admin sees all
+      return;
+    }
+    const fetchPerms = async () => {
+      const { data } = await supabase
+        .from('company_permissions')
+        .select('company_id, granted')
+        .eq('user_id', user.id)
+        .eq('granted', true) as { data: { company_id: string; granted: boolean }[] | null };
+      setAllowedCompanyIds((data || []).map(d => d.company_id));
+    };
+    fetchPerms();
+  }, [user, isAdmin]);
+
+  const visibleCompanies = useMemo(() => {
+    if (isAdmin || allowedCompanyIds === null) return companies;
+    return companies.filter(c => allowedCompanyIds.includes(c.id));
+  }, [companies, allowedCompanyIds, isAdmin]);
 
   // Redirect to auth if not logged in
   if (!authLoading && !user) {
@@ -178,7 +202,7 @@ export default function LobbyPage() {
       {/* Company cards grid */}
       <div className="max-w-5xl mx-auto px-6 -mt-4 pb-20">
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {companies.map((company, i) => {
+          {visibleCompanies.map((company, i) => {
             const gradient = gradients[i % gradients.length];
             return (
               <motion.button
@@ -221,11 +245,12 @@ export default function LobbyPage() {
             );
           })}
 
-          {/* Add company card */}
+          {/* Add company card — only for admins */}
+          {isAdmin && (
           <motion.button
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: companies.length * 0.08, type: "spring", damping: 22 }}
+            transition={{ delay: visibleCompanies.length * 0.08, type: "spring", damping: 22 }}
             onClick={addCompany}
             className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group"
             style={{ boxShadow: "none" }}
@@ -237,6 +262,15 @@ export default function LobbyPage() {
               Nova empresa
             </span>
           </motion.button>
+          )}
+
+          {visibleCompanies.length === 0 && !isAdmin && (
+            <div className="col-span-full text-center py-16">
+              <Building2 className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="text-muted-foreground text-sm">Você ainda não tem acesso a nenhuma empresa.</p>
+              <p className="text-xs text-muted-foreground mt-1">Peça ao administrador para liberar seu acesso.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
