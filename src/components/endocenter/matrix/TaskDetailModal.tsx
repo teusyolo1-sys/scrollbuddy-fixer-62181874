@@ -501,9 +501,20 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                                   <Link2 className="h-3 w-3 shrink-0" /><span className="truncate">{att.name}</span>
                                 </a>
                               )}
-                              <button onClick={() => handleRemoveAttachment(att.id)} className="absolute top-1 right-1 w-4 h-4 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                <X className="h-2 w-2" />
-                              </button>
+                              <div className="absolute top-1 right-1 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                {att.type === "image" && editingDescription && (
+                                  <button
+                                    onClick={() => editorRef.current?.insertImageUrl(att.url)}
+                                    className="w-5 h-5 rounded-full bg-primary/80 text-white flex items-center justify-center hover:bg-primary transition-colors"
+                                    title="Inserir no texto"
+                                  >
+                                    <ImagePlus className="h-2.5 w-2.5" />
+                                  </button>
+                                )}
+                                <button onClick={() => handleRemoveAttachment(att.id)} className="w-5 h-5 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-destructive transition-colors">
+                                  <X className="h-2.5 w-2.5" />
+                                </button>
+                              </div>
                             </div>
                           ))}
                         </div>
