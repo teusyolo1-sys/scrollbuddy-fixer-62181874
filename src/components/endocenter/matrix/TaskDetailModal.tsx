@@ -8,6 +8,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } from "@/store/endocenterStore";
 import RichTextEditor, { type RichTextEditorHandle } from "./RichTextEditor";
+import TaskChat from "./TaskChat";
 
 const priorityOptions = [
   { value: "low" as const, label: "Baixa", color: "hsl(var(--muted-foreground))" },
