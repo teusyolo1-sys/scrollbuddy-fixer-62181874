@@ -117,13 +117,19 @@ function useCardMenu() {
 }
 
 /* ── Category Header (reusable) ── */
-function CatHeader({ config, count, total, onAdd, isExpanded, onToggle }: {
+function CatHeader({ config, count, total, onAdd, isExpanded, onToggle, customLabel, isRenaming, onRenameSubmit }: {
   config: { label: string; color: string; icon: "up" | "down" };
   count: number; total: number;
   onAdd: () => void;
   isExpanded?: boolean;
   onToggle?: () => void;
+  customLabel?: string;
+  isRenaming?: boolean;
+  onRenameSubmit?: (name: string) => void;
 }) {
+  const [renameValue, setRenameValue] = useState(customLabel || config.label);
+  const displayLabel = customLabel || config.label;
+
   return (
     <button onClick={onToggle} className="w-full flex items-center justify-between p-4 hover:bg-accent/20 transition-colors">
       <div className="flex items-center gap-3">
@@ -133,7 +139,19 @@ function CatHeader({ config, count, total, onAdd, isExpanded, onToggle }: {
             : <ArrowDownRight className="h-4 w-4" style={{ color: config.color }} />}
         </div>
         <div className="text-left">
-          <p className="text-sm font-bold text-foreground">{config.label}</p>
+          {isRenaming ? (
+            <input
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onBlur={() => onRenameSubmit?.(renameValue)}
+              onKeyDown={(e) => { if (e.key === "Enter") onRenameSubmit?.(renameValue); }}
+              onClick={(e) => e.stopPropagation()}
+              className="text-sm font-bold text-foreground bg-transparent border-b border-primary outline-none w-full"
+            />
+          ) : (
+            <p className="text-sm font-bold text-foreground">{displayLabel}</p>
+          )}
           <p className="text-[11px] text-muted-foreground">{count} {count === 1 ? "item" : "itens"} · {formatCurrency(total)}</p>
         </div>
       </div>
