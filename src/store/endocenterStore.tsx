@@ -81,11 +81,41 @@ export interface PipelineProject {
   tasks: PipelineTask[];
 }
 
+export interface TaskLabel {
+  id: string;
+  name: string;
+  color: string;
+}
+
+export interface TaskChecklist {
+  id: string;
+  text: string;
+  done: boolean;
+}
+
+export interface TaskAttachment {
+  id: string;
+  name: string;
+  url: string;
+  type: "image" | "link" | "file";
+}
+
 export interface ResponsibilityItem {
   id: string;
   task: string;
   done: boolean;
   critical: boolean;
+  description: string;
+  labels: TaskLabel[];
+  dueDate: string;
+  priority: "low" | "medium" | "high" | "urgent";
+  assignees: string[];
+  checklist: TaskChecklist[];
+  attachments: TaskAttachment[];
+  timerSeconds: number;
+  timerRunning: boolean;
+  createdAt: string;
+  cover: string;
 }
 
 export interface ResponsibilityRole {
