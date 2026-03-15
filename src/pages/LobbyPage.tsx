@@ -593,5 +593,7 @@ function CompanyCardItem({
         </div>
       </div>
     </motion.div>
+    {isAdmin && <TrashBinModal open={trashOpen} onClose={() => setTrashOpen(false)} />}
+    </>
   );
 }
