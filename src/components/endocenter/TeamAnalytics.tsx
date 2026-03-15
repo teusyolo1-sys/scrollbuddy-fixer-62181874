@@ -1,6 +1,7 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, Loader2, ChevronDown, Check, TrendingUp, TrendingDown, BarChart3, User } from "lucide-react";
+import { Users, Plus, Loader2, ChevronDown, Check, TrendingUp, TrendingDown, User } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
