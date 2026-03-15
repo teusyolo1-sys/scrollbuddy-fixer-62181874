@@ -66,7 +66,7 @@ export default function TrashBinModal({ open, onClose }: Props) {
 
   const handleDeleteAll = async () => {
     setLoading(true);
-    const { error } = await supabase.from("trash_bin").delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    const { error } = await supabase.from("trash_bin" as any).delete().neq("id", "00000000-0000-0000-0000-000000000000");
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
