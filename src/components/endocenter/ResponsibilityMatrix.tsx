@@ -147,7 +147,7 @@ export default function ResponsibilityMatrix() {
         {/* Board area */}
         <div className="p-4">
           <AnimatePresence mode="wait">
-            <motion.div key={`${activeRoleId}-${activeTab}-${viewMode}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            <motion.div key={`${activeRoleId}-${activeTab}-${viewMode}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
               {viewMode === "kanban" ? (
                 <KanbanView
                   items={currentItems}
