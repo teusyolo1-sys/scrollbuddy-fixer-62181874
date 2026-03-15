@@ -231,16 +231,20 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 ))}
                 <div className="w-px h-4 bg-border/50 mx-1 shrink-0" />
                 {editingTitle ? (
-                  <input
-                    ref={titleRef}
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                    onBlur={() => { onUpdate({ task: title }); setEditingTitle(false); }}
-                    onKeyDown={(e) => e.key === "Enter" && (onUpdate({ task: title }), setEditingTitle(false))}
-                    className="text-base font-bold text-foreground bg-transparent border-b-2 border-primary outline-none flex-1 min-w-0"
-                  />
+                  <div className="flex-1 min-w-0 relative flex items-center bg-card rounded-xl border border-primary/30 shadow-[0_0_0_3px_hsl(var(--primary)/0.08)] transition-all duration-200"
+                    style={{ borderRadius: "var(--ios-radius-sm)" }}>
+                    <div className="w-1 h-6 rounded-full bg-primary shrink-0 ml-3" />
+                    <input
+                      ref={titleRef}
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      onBlur={() => { onUpdate({ task: title }); setEditingTitle(false); }}
+                      onKeyDown={(e) => e.key === "Enter" && (onUpdate({ task: title }), setEditingTitle(false))}
+                      className="text-base font-bold text-foreground bg-transparent outline-none flex-1 min-w-0 px-2.5 py-2"
+                    />
+                  </div>
                 ) : (
-                  <h2 onClick={() => setEditingTitle(true)} className="text-base font-bold text-foreground cursor-text hover:text-primary transition-colors truncate flex-1 min-w-0">
+                  <h2 onClick={() => setEditingTitle(true)} className="text-base font-bold text-foreground cursor-text hover:text-primary transition-colors truncate flex-1 min-w-0 py-2">
                     {item.task}
                   </h2>
                 )}
