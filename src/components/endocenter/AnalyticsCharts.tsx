@@ -1,10 +1,18 @@
 import { useMemo, useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, TrendingUp, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from "recharts";
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+} from "@/components/ui/context-menu";
 import { useClientMetrics, METRIC_CONFIG, METRIC_TYPES, type MetricType } from "@/hooks/useClientMetrics";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -18,7 +26,13 @@ const ICONS: Record<MetricType, typeof TrendingUp> = {
   alcance: BarChart3,
 };
 
-const CHART_TYPES: Array<"area" | "bar" | "line"> = ["area", "bar", "line"];
+type ChartStyle = "area" | "bar" | "line";
+
+const CHART_STYLE_LABELS: Record<ChartStyle, string> = {
+  area: "📈 Área",
+  bar: "📊 Barras",
+  line: "📉 Linha",
+};
 
 /* ── iOS 26 Custom Dropdown ── */
 function IosDropdown({ value, onChange, options }: {
@@ -82,83 +96,212 @@ function IosDropdown({ value, onChange, options }: {
   );
 }
 
-/* ── Individual Metric Chart Card ── */
-function MetricChartCard({ type, data, delay }: {
+/* ── Render chart by style ── */
+function RenderChart({ style, data, color, type }: {
+  style: ChartStyle;
+  data: { name: string; value: number }[];
+  color: string;
+  type: string;
+}) {
+  const cfg = METRIC_CONFIG[type as MetricType];
+  const gradientId = `grad-${type}-${style}`;
+
+  if (style === "area") {
+    return (
+      <AreaChart data={data}>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+            <stop offset="95%" stopColor={color} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+        <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
+        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type]} />
+        <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} />
+      </AreaChart>
+    );
+  }
+  if (style === "bar") {
+    return (
+      <BarChart data={data} barSize={16}>
+        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+        <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
+        <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type]} />
+        <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
+      </BarChart>
+    );
+  }
+  return (
+    <LineChart data={data}>
+      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
+      <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
+      <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
+      <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type]} />
+      <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2.5} dot={{ r: 3, fill: color }} activeDot={{ r: 5 }} />
+    </LineChart>
+  );
+}
+
+/* ── Individual Metric Chart Card with Context Menu ── */
+function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo }: {
   type: MetricType;
   data: { name: string; value: number }[];
   delay: number;
+  chartStyle: ChartStyle;
+  onStyleChange: (style: ChartStyle) => void;
+  relatedInfo?: string;
 }) {
   const cfg = METRIC_CONFIG[type];
   const Icon = ICONS[type];
-  const chartIdx = METRIC_TYPES.indexOf(type) % 3;
-  const chartType = CHART_TYPES[chartIdx];
 
   const latest = data[data.length - 1]?.value ?? 0;
   const prev = data.length > 1 ? data[data.length - 2].value : latest;
   const change = prev > 0 ? ((latest - prev) / prev * 100) : 0;
 
   return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay, type: "spring", damping: 22 }}
+          className="ios-card p-5 min-h-[280px] cursor-context-menu"
+          style={{ overflow: "visible" }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${cfg.color}15` }}>
+                <Icon className="h-4 w-4" style={{ color: cfg.color }} />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-foreground">{cfg.label}</h4>
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-extrabold" style={{ color: cfg.color }}>{cfg.format(latest)}</span>
+                  {change !== 0 && (
+                    <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${change > 0 ? "text-green-500" : "text-red-500"}`}>
+                      {change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                      {Math.abs(change).toFixed(1)}%
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Related info */}
+          {relatedInfo && (
+            <div className="mb-2 px-2 py-1 rounded-lg bg-secondary/40 text-[10px] font-medium text-muted-foreground">
+              {relatedInfo}
+            </div>
+          )}
+
+          {/* Chart */}
+          <ResponsiveContainer width="100%" height={160}>
+            <RenderChart style={chartStyle} data={data} color={cfg.color} type={type} />
+          </ResponsiveContainer>
+
+          {/* Style indicator */}
+          <div className="mt-2 text-[10px] text-muted-foreground/50 text-right">
+            Clique direito para alterar estilo
+          </div>
+        </motion.div>
+      </ContextMenuTrigger>
+      <ContextMenuContent className="w-48">
+        <ContextMenuLabel>Estilo do gráfico</ContextMenuLabel>
+        <ContextMenuSeparator />
+        {(Object.keys(CHART_STYLE_LABELS) as ChartStyle[]).map((s) => (
+          <ContextMenuItem
+            key={s}
+            onClick={() => onStyleChange(s)}
+            className={chartStyle === s ? "bg-primary/10 text-primary font-semibold" : ""}
+          >
+            <span className="flex items-center gap-2">
+              {CHART_STYLE_LABELS[s]}
+              {chartStyle === s && <Check className="h-3.5 w-3.5 ml-auto" />}
+            </span>
+          </ContextMenuItem>
+        ))}
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
+
+/* ── Funnel visualization ── */
+function ConversionFunnel({ data }: {
+  data: Record<MetricType, { name: string; value: number }[]>;
+}) {
+  const funnelSteps: { type: MetricType; label: string }[] = [
+    { type: "alcance", label: "Alcance" },
+    { type: "seguidores", label: "Seguidores" },
+    { type: "leads", label: "Leads" },
+    { type: "vendas", label: "Vendas" },
+    { type: "faturamento", label: "Faturamento" },
+  ];
+
+  const stepsWithData = funnelSteps.filter((s) => data[s.type]?.length > 0);
+  if (stepsWithData.length < 2) return null;
+
+  const latestValues = stepsWithData.map((s) => {
+    const vals = data[s.type];
+    return {
+      ...s,
+      value: vals[vals.length - 1]?.value ?? 0,
+      color: METRIC_CONFIG[s.type].color,
+      format: METRIC_CONFIG[s.type].format,
+    };
+  });
+
+  const maxVal = Math.max(...latestValues.map((v) => v.value), 1);
+
+  return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay, type: "spring", damping: 22 }}
-      className="ios-card p-5 min-h-[280px]"
-      style={{ overflow: "visible" }}
+      transition={{ delay: 0.1, type: "spring", damping: 22 }}
+      className="ios-card p-5"
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${cfg.color}15` }}>
-            <Icon className="h-4 w-4" style={{ color: cfg.color }} />
-          </div>
-          <div>
-            <h4 className="text-sm font-bold text-foreground">{cfg.label}</h4>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-extrabold" style={{ color: cfg.color }}>{cfg.format(latest)}</span>
-              {change !== 0 && (
-                <span className={`text-[11px] font-semibold ${change > 0 ? "text-green-500" : "text-red-500"}`}>
-                  {change > 0 ? "↑" : "↓"} {Math.abs(change).toFixed(1)}%
-                </span>
+      <div className="flex items-center gap-2 mb-4">
+        <Target className="h-5 w-5 text-primary" />
+        <h3 className="text-base font-bold text-foreground">Funil de Conversão</h3>
+      </div>
+      <div className="space-y-3">
+        {latestValues.map((step, i) => {
+          const widthPct = Math.max((step.value / maxVal) * 100, 8);
+          const nextStep = latestValues[i + 1];
+          const convRate = nextStep && step.value > 0
+            ? ((nextStep.value / step.value) * 100).toFixed(1)
+            : null;
+
+          return (
+            <div key={step.type}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-semibold text-foreground">{step.label}</span>
+                <span className="text-xs font-bold" style={{ color: step.color }}>{step.format(step.value)}</span>
+              </div>
+              <div className="relative h-8 rounded-xl bg-secondary/30 overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${widthPct}%` }}
+                  transition={{ delay: i * 0.1, duration: 0.6, ease: "easeOut" }}
+                  className="absolute inset-y-0 left-0 rounded-xl"
+                  style={{ background: `linear-gradient(90deg, ${step.color}40, ${step.color})` }}
+                />
+              </div>
+              {convRate && (
+                <div className="flex items-center justify-center mt-1 mb-1">
+                  <span className="text-[10px] font-semibold text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-full">
+                    ↓ {convRate}% conversão
+                  </span>
+                </div>
               )}
             </div>
-          </div>
-        </div>
+          );
+        })}
       </div>
-
-      {/* Chart */}
-      <ResponsiveContainer width="100%" height={160}>
-        {chartType === "area" ? (
-          <AreaChart data={data}>
-            <defs>
-              <linearGradient id={`grad-card-${type}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={cfg.color} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={cfg.color} stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
-            <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg.format(v), cfg.label]} />
-            <Area type="monotone" dataKey="value" stroke={cfg.color} fill={`url(#grad-card-${type})`} strokeWidth={2} />
-          </AreaChart>
-        ) : chartType === "bar" ? (
-          <BarChart data={data} barSize={16}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
-            <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg.format(v), cfg.label]} />
-            <Bar dataKey="value" fill={cfg.color} radius={[4, 4, 0, 0]} />
-          </BarChart>
-        ) : (
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.3} />
-            <XAxis dataKey="name" tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "hsl(var(--muted-foreground))" }} axisLine={false} tickLine={false} width={40} />
-            <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 }} formatter={(v: number) => [cfg.format(v), cfg.label]} />
-            <Line type="monotone" dataKey="value" stroke={cfg.color} strokeWidth={2.5} dot={{ r: 3, fill: cfg.color }} activeDot={{ r: 5 }} />
-          </LineChart>
-        )}
-      </ResponsiveContainer>
     </motion.div>
   );
 }
@@ -171,6 +314,11 @@ export default function AnalyticsCharts() {
   const [formType, setFormType] = useState<MetricType>("seguidores");
   const [formValue, setFormValue] = useState("");
   const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
+  const [chartStyles, setChartStyles] = useState<Record<string, ChartStyle>>({});
+
+  const setStyleFor = (type: string, style: ChartStyle) => {
+    setChartStyles((prev) => ({ ...prev, [type]: style }));
+  };
 
   // ── Per-metric timeline data ──
   const perMetricData = useMemo(() => {
@@ -189,10 +337,44 @@ export default function AnalyticsCharts() {
           return { name: `${d.getDate()}/${d.getMonth() + 1}`, value };
         });
     });
+
+    // Auto-calculate conversion if leads + vendas exist
+    if (result.leads && result.vendas && !result.conversao) {
+      const leadsByDate: Record<string, number> = {};
+      const vendasByDate: Record<string, number> = {};
+      result.leads.forEach((d) => { leadsByDate[d.name] = d.value; });
+      result.vendas.forEach((d) => { vendasByDate[d.name] = d.value; });
+      const allDates = [...new Set([...Object.keys(leadsByDate), ...Object.keys(vendasByDate)])].sort();
+      const convData = allDates.map((name) => {
+        const l = leadsByDate[name] || 0;
+        const v = vendasByDate[name] || 0;
+        return { name, value: l > 0 ? parseFloat(((v / l) * 100).toFixed(1)) : 0 };
+      }).filter((d) => d.value > 0);
+      if (convData.length > 0) result.conversao = convData;
+    }
+
     return result;
   }, [metrics]);
 
   const activeTypes = METRIC_TYPES.filter((t) => perMetricData[t]?.length > 0);
+
+  // Related info for metrics
+  const getRelatedInfo = (type: MetricType): string | undefined => {
+    if (type === "conversao" && perMetricData.leads && perMetricData.vendas) {
+      return "⚡ Calculado automaticamente: Vendas ÷ Leads × 100";
+    }
+    if (type === "leads" && perMetricData.alcance) {
+      const alcLast = perMetricData.alcance[perMetricData.alcance.length - 1]?.value ?? 0;
+      const leadsLast = perMetricData.leads[perMetricData.leads.length - 1]?.value ?? 0;
+      if (alcLast > 0) return `🎯 ${((leadsLast / alcLast) * 100).toFixed(1)}% do alcance vira lead`;
+    }
+    if (type === "faturamento" && perMetricData.vendas) {
+      const vendasLast = perMetricData.vendas[perMetricData.vendas.length - 1]?.value ?? 0;
+      const fatLast = perMetricData.faturamento?.[perMetricData.faturamento.length - 1]?.value ?? 0;
+      if (vendasLast > 0) return `💰 Ticket médio: R$ ${(fatLast / vendasLast).toFixed(0)}`;
+    }
+    return undefined;
+  };
 
   const handleAdd = async () => {
     const val = parseFloat(formValue);
@@ -211,6 +393,15 @@ export default function AnalyticsCharts() {
     color: METRIC_CONFIG[t].color,
   }));
 
+  const defaultStyles: Record<string, ChartStyle> = {
+    seguidores: "area",
+    vendas: "bar",
+    conversao: "line",
+    faturamento: "area",
+    leads: "bar",
+    alcance: "area",
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -228,7 +419,7 @@ export default function AnalyticsCharts() {
         )}
       </div>
 
-      {/* Add metric form — iOS 26 dropdown */}
+      {/* Add metric form */}
       <AnimatePresence>
         {showForm && (
           <motion.div
@@ -264,7 +455,12 @@ export default function AnalyticsCharts() {
         )}
       </AnimatePresence>
 
-      {/* Individual charts per metric — one card each */}
+      {/* Conversion Funnel */}
+      {activeTypes.length >= 2 && (
+        <ConversionFunnel data={perMetricData} />
+      )}
+
+      {/* Individual charts per metric with right-click style change */}
       {activeTypes.length > 0 ? (
         <div className="grid sm:grid-cols-2 gap-5">
           {activeTypes.map((type, i) => (
@@ -273,6 +469,9 @@ export default function AnalyticsCharts() {
               type={type}
               data={perMetricData[type]}
               delay={i * 0.06}
+              chartStyle={chartStyles[type] || defaultStyles[type] || "area"}
+              onStyleChange={(s) => setStyleFor(type, s)}
+              relatedInfo={getRelatedInfo(type)}
             />
           ))}
         </div>
