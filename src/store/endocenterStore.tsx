@@ -149,6 +149,7 @@ export interface ResponsibilityItem {
   timerSeconds: number;
   timerRunning: boolean;
   createdAt: string;
+  completedAt: string;
   cover: string;
 }
 
