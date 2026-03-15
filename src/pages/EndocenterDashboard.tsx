@@ -38,6 +38,8 @@ function DashboardContent() {
             <div className="flex items-center gap-3">
               <motion.button
                 whileTap={{ scale: 0.9 }}
+                whileHover={{ scale: 1.12, x: -3 }}
+                transition={{ type: "spring", stiffness: 400, damping: 14 }}
                 onClick={() => navigate("/")}
                 className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
               >
@@ -81,7 +83,8 @@ function DashboardContent() {
 
               <motion.button
                 whileTap={{ scale: 0.88, rotate: 90 }}
-                transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                whileHover={{ scale: 1.12, rotate: 45 }}
+                transition={{ type: "spring", stiffness: 400, damping: 14 }}
                 onClick={() => setSettingsOpen(true)}
                 className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
                 title="Configurações"
@@ -103,14 +106,20 @@ function DashboardContent() {
                   whileTap={{ scale: 0.95 }}
                   whileHover={!active ? { scale: 1.04, backgroundColor: "rgba(255,255,255,0.07)" } : { scale: 1.02 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  className="relative flex items-center gap-1.5 px-4 py-2 whitespace-nowrap text-xs sm:text-sm font-medium"
+                  className="group relative flex items-center gap-1.5 px-4 py-2 whitespace-nowrap text-xs sm:text-sm font-medium"
                   style={{
                     borderRadius: "var(--ios-radius)",
                     backgroundColor: active ? "rgba(255,255,255,0.15)" : "transparent",
                     color: active ? "#fff" : "rgba(255,255,255,0.4)",
                   }}
                 >
-                  <Icon className="h-3.5 w-3.5" />
+                  <motion.span
+                    className="inline-flex"
+                    whileHover={{ rotate: tab.id === "workflow" ? 180 : tab.id === "deadlines" ? [0, -12, 12, -8, 0] : [-12, 0], scale: 1.2 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 14 }}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </motion.span>
                   {tab.label}
                   {active && (
                     <motion.div
