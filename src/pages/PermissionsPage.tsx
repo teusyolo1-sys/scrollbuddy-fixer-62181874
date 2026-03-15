@@ -4,7 +4,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useTabPermissions, TAB_KEYS, TAB_LABELS } from '@/hooks/useTabPermissions';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Users, Check, X, Loader2, ArrowLeft, Building2, ChevronRight, User, Pencil, Eye } from 'lucide-react';
+import { Shield, Users, Check, X, Loader2, ArrowLeft, Building2, ChevronRight, User, Pencil, Eye, Info } from 'lucide-react';
+import { TabKey } from '@/hooks/useTabPermissions';
+
+const TAB_DESCRIPTIONS: Record<TabKey, string> = {
+  dashboard: 'Visão geral com métricas, gráficos de desempenho e resumo de atividades do projeto.',
+  schedule: 'Cronograma master com datas, marcos e prazos de cada etapa do projeto.',
+  pipeline: 'Pipeline de projetos com acompanhamento visual do progresso de cada entrega.',
+  matrix: 'Matriz de responsabilidades com Kanban, tarefas atribuídas por cargo e área.',
+  workflow: 'Fluxograma visual dos processos operacionais e suas dependências.',
+  deadlines: 'Gestão de prazos críticos, crises e alertas de vencimentos próximos.',
+  budget: 'Controle financeiro com entradas, categorias e participantes do orçamento.',
+  team: 'Painel do time com KPIs individuais, SLA, atividades e histórico de performance.',
+};
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
