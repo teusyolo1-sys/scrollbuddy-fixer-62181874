@@ -204,6 +204,7 @@ export default function AgencyWalletPage() {
   } = useAgencyInvoices();
 
   const { currentGoal } = useAgencyGoals();
+  const { resolvedTheme, setTheme } = useTheme();
 
   const [expensesOpen, setExpensesOpen] = useState(false);
   const [revenuesOpen, setRevenuesOpen] = useState(false);
