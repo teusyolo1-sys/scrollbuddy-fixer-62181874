@@ -948,7 +948,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
             config={categoryConfig.despesa}
             total={totals.despesa}
             onAdd={() => openPanelAndAdd("despesa-detail", "despesa")}
-            isExpanded={openPanel === "despesa-detail"}
+            isExpanded={openPanels.has("despesa-detail")}
             onToggle={() => togglePanel("despesa-detail")}
             delay={0.35}
           />
