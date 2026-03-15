@@ -30,6 +30,7 @@ export default function CompanySettingsTab() {
     { key: "matrix", label: "Responsabilidades" },
     { key: "workflow", label: "Fluxo" },
     { key: "deadlines", label: "Prazos & Crises" },
+    { key: "budget", label: "Orçamento" },
   ];
 
   return (
