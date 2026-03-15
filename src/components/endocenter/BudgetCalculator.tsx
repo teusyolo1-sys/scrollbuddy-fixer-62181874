@@ -809,11 +809,29 @@ function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: bool
 /* ══════════════════════════════════════════
    ██  MAIN COMPONENT
    ══════════════════════════════════════════ */
+const CACHE_KEY = 'budget-open-panels';
+
+function loadCachedPanels(): Set<string> {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (raw) return new Set(JSON.parse(raw));
+  } catch {}
+  return new Set();
+}
+
+function saveCachedPanels(panels: Set<string>) {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify([...panels]));
+  } catch {}
+}
+
 export default function BudgetCalculator({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
   const { entries, profiles, loading, addEntry, updateEntry, removeEntry, toggleParticipant } = useBudgetEntries(companyId);
-  const [openPanel, setOpenPanel] = useState<string | null>(null);
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [openPanels, setOpenPanels] = useState<Set<string>>(() => loadCachedPanels());
+  const [calendarOpen, setCalendarOpen] = useState(() => {
+    try { return localStorage.getItem('budget-calendar-open') === 'true'; } catch { return false; }
+  });
 
   const totals = useMemo(() => {
     return categories.reduce((acc, cat) => {
@@ -823,12 +841,30 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
   }, [entries]);
 
   const togglePanel = (panelKey: string) => {
-    setOpenPanel((prev) => (prev === panelKey ? null : panelKey));
+    setOpenPanels(prev => {
+      const next = new Set(prev);
+      if (next.has(panelKey)) next.delete(panelKey); else next.add(panelKey);
+      saveCachedPanels(next);
+      return next;
+    });
   };
 
   const openPanelAndAdd = (panelKey: string, cat: BudgetCategory) => {
     addEntry(cat);
-    setOpenPanel(panelKey);
+    setOpenPanels(prev => {
+      const next = new Set(prev);
+      next.add(panelKey);
+      saveCachedPanels(next);
+      return next;
+    });
+  };
+
+  const handleCalendarToggle = () => {
+    setCalendarOpen(prev => {
+      const next = !prev;
+      try { localStorage.setItem('budget-calendar-open', String(next)); } catch {}
+      return next;
+    });
   };
 
   const catProps = (cat: BudgetCategory) => ({
@@ -836,7 +872,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
     config: categoryConfig[cat],
     entries: entries.filter(e => e.category === cat),
     total: totals[cat],
-    isExpanded: openPanel === cat,
+    isExpanded: openPanels.has(cat),
     onToggle: () => togglePanel(cat),
     onAdd: () => openPanelAndAdd(cat, cat),
     onUpdate: updateEntry,
@@ -855,7 +891,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
       <div className="flex justify-end">
         <motion.button
           whileTap={{ scale: 0.95 }}
-          onClick={() => setCalendarOpen(!calendarOpen)}
+          onClick={handleCalendarToggle}
           className={`${gc} px-4 py-2.5 flex items-center gap-2.5 hover:bg-accent/20 transition-colors`}
         >
           <CalendarDays className="h-4 w-4 text-primary" />
@@ -880,7 +916,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
           config={categoryConfig.gasto}
           total={totals.gasto}
           onAdd={() => openPanelAndAdd("gasto-chart", "gasto")}
-          isExpanded={openPanel === "gasto-chart"}
+          isExpanded={openPanels.has("gasto-chart")}
           onToggle={() => togglePanel("gasto-chart")}
           delay={0.1}
         />
@@ -899,7 +935,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
         <PipelineCard
           faturamentoEntries={entries.filter(e => e.category === "faturamento")}
           onAdd={() => openPanelAndAdd("pipeline", "faturamento")}
-          isExpanded={openPanel === "pipeline"}
+          isExpanded={openPanels.has("pipeline")}
           onToggle={() => togglePanel("pipeline")}
           delay={0.25}
         />
@@ -912,7 +948,7 @@ export default function BudgetCalculator({ companyId }: { companyId?: string }) 
             config={categoryConfig.despesa}
             total={totals.despesa}
             onAdd={() => openPanelAndAdd("despesa-detail", "despesa")}
-            isExpanded={openPanel === "despesa-detail"}
+            isExpanded={openPanels.has("despesa-detail")}
             onToggle={() => togglePanel("despesa-detail")}
             delay={0.35}
           />
