@@ -22,11 +22,30 @@ export interface TeamMember {
   status: string;
 }
 
+export interface TabLabels {
+  dashboard: string;
+  schedule: string;
+  pipeline: string;
+  matrix: string;
+  workflow: string;
+  deadlines: string;
+}
+
+export const defaultTabLabels: TabLabels = {
+  dashboard: "Dashboard",
+  schedule: "Cronograma",
+  pipeline: "Pipeline",
+  matrix: "Responsabilidades",
+  workflow: "Fluxo",
+  deadlines: "Prazos & Crises",
+};
+
 export interface CompanyInfo {
   name: string;
   subtitle: string;
   month: string;
   createdAt: string;
+  tabLabels?: TabLabels;
 }
 
 export interface MetricEntry {
