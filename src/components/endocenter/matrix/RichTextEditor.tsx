@@ -575,6 +575,16 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
                   >
                     <Trash2 className="h-3.5 w-3.5 text-destructive" />
                   </ImgToolBtn>
+
+                  <Sep />
+
+                  {/* Confirm / deselect */}
+                  <ImgToolBtn
+                    onClick={() => setSelectedImg(null)}
+                    title="Concluir edição"
+                  >
+                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                  </ImgToolBtn>
                 </div>
               </motion.div>
 
