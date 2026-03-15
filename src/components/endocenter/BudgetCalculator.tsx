@@ -179,7 +179,7 @@ function CategorySection({ cat, config, entries, totals, isExpanded, onToggle, o
           >
             <div className="px-4 pb-4">
               {entries.length === 0 ? (
-                <p className="text-xs text-white/30 text-center py-8">
+                <p className="text-xs text-muted-foreground text-center py-8">
                   Nenhum item ainda. Clique em + para adicionar.
                 </p>
               ) : (
