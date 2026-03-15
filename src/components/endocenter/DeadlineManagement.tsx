@@ -169,7 +169,7 @@ export default function DeadlineManagement() {
                       ))}
                     </select>
                     <button
-                      onClick={() => removeDeadline(deadline.id)}
+                      onClick={() => { addNotification({ title: "Prazo removido", description: deadline.task, icon: "delete" }); removeDeadline(deadline.id); }}
                       className="rounded-md p-1 text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-3 w-3" />
