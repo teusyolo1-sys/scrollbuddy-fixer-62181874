@@ -32,7 +32,7 @@ function DashboardContent() {
   return (
     <div className="min-h-screen bg-background">
       {/* Header — iOS 26 frosted glass dark bar */}
-      <header className="liquid-glass-navbar sticky top-0 w-full z-30 border-b border-white/5 overflow-hidden">
+      <header className="liquid-glass-navbar sticky top-0 w-full z-30 border-b border-white/5">
         <div className="max-w-7xl mx-auto px-5 sm:px-6">
           {/* Top row */}
           <div className="flex items-center justify-between py-4">
