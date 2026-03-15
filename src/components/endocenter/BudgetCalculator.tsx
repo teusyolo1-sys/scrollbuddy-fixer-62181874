@@ -157,6 +157,7 @@ function CategoryCard({ cat, config, entries, total, isExpanded, onToggle, onAdd
 function GastosChartCard({ entries, config, total, onAdd, delay }: {
   entries: any[]; config: typeof categoryConfig.gasto; total: number; onAdd: () => void; delay: number;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const chartData = useMemo(() => {
     if (entries.length === 0) return [{ name: "Vazio", value: 1, color: "hsl(var(--muted))" }];
     const byDesc: Record<string, number> = {};
@@ -168,23 +169,25 @@ function GastosChartCard({ entries, config, total, onAdd, delay }: {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
       className={`${gc} overflow-hidden`}>
-      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} />
-      <div className="px-4 pb-4 flex items-center justify-center gap-4">
-        <ResponsiveContainer width={90} height={90}>
-          <RPieChart>
-            <Pie data={chartData} innerRadius={28} outerRadius={42} dataKey="value" stroke="none">
-              {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
-            </Pie>
-          </RPieChart>
-        </ResponsiveContainer>
-        <ResponsiveContainer width={90} height={90}>
-          <RPieChart>
-            <Pie data={chartData} innerRadius={0} outerRadius={42} dataKey="value" stroke="none">
-              {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.7} />)}
-            </Pie>
-          </RPieChart>
-        </ResponsiveContainer>
-      </div>
+      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)} />
+      {expanded && (
+        <div className="px-4 pb-4 flex items-center justify-center gap-4">
+          <ResponsiveContainer width={90} height={90}>
+            <RPieChart>
+              <Pie data={chartData} innerRadius={28} outerRadius={42} dataKey="value" stroke="none">
+                {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.85} />)}
+              </Pie>
+            </RPieChart>
+          </ResponsiveContainer>
+          <ResponsiveContainer width={90} height={90}>
+            <RPieChart>
+              <Pie data={chartData} innerRadius={0} outerRadius={42} dataKey="value" stroke="none">
+                {chartData.map((d, i) => <Cell key={i} fill={d.color} fillOpacity={0.7} />)}
+              </Pie>
+            </RPieChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </motion.div>
   );
 }
@@ -466,6 +469,7 @@ function LegendBarCard({ entries, delay }: { entries: any[]; delay: number }) {
 function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
   entries: any[]; config: typeof categoryConfig.despesa; total: number; onAdd: () => void; delay: number;
 }) {
+  const [expanded, setExpanded] = useState(false);
   const detailRows = [
     { type: "Expense type", color: "#3B82F6", ret: 37, total: "R$ 11.3%" },
     { type: "Expense type", color: "#10B981", ret: 25, total: "R$ 11.5%" },
@@ -476,29 +480,29 @@ function DespesasDetailCard({ entries, config, total, onAdd, delay }: {
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, type: "spring", damping: 22 }}
       className={`${gc} overflow-hidden`}>
-      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} />
-      <div className="px-4 pb-4">
-        <div className="border border-border/50 rounded-xl overflow-hidden">
-          <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
-            <span>Type of</span><span className="w-14 text-right">Return</span><span className="w-16 text-right">Total</span>
-          </div>
-          {detailRows.map((row, i) => (
-            <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""}`}>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
-                <span className="text-[11px] text-foreground/80">{row.type}</span>
-              </div>
-              <span className="w-14 text-right text-[11px] text-foreground/70">{row.ret}</span>
-              <span className="w-16 text-right text-[11px] text-foreground/70">{row.total}</span>
+      <CatHeader config={config} count={entries.length} total={total} onAdd={onAdd} isExpanded={expanded} onToggle={() => setExpanded(!expanded)} />
+      {expanded && (
+        <div className="px-4 pb-4">
+          <div className="border border-border/50 rounded-xl overflow-hidden">
+            <div className="grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 bg-muted/40 text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+              <span>Type of</span><span className="w-14 text-right">Return</span><span className="w-16 text-right">Total</span>
             </div>
-          ))}
+            {detailRows.map((row, i) => (
+              <div key={i} className={`grid grid-cols-[1fr_auto_auto] gap-2 px-3 py-2 items-center ${i % 2 ? "bg-muted/20" : ""}`}>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ backgroundColor: row.color }} />
+                  <span className="text-[11px] text-foreground/80">{row.type}</span>
+                </div>
+                <span className="w-14 text-right text-[11px] text-foreground/70">{row.ret}</span>
+                <span className="w-16 text-right text-[11px] text-foreground/70">{row.total}</span>
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </motion.div>
   );
 }
-
-/* ── Budget Calendar ── */
 function BudgetCalendar({ entries, open, onClose }: { entries: any[]; open: boolean; onClose: () => void }) {
   const [viewMonth, setViewMonth] = useState(() => new Date());
 
