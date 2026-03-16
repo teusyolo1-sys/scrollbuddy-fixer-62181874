@@ -43,9 +43,11 @@ function DashboardContent() {
   const [activeTab, setActiveTab] = useState<TabKey>(visibleTabs[0]?.id || "dashboard");
 
   // Ensure activeTab is valid when permissions load
-  if (!permLoading && visibleTabs.length > 0 && !visibleTabs.find(t => t.id === activeTab)) {
-    setActiveTab(visibleTabs[0].id);
-  }
+  useEffect(() => {
+    if (!permLoading && visibleTabs.length > 0 && !visibleTabs.find(t => t.id === activeTab)) {
+      setActiveTab(visibleTabs[0].id);
+    }
+  }, [permLoading, visibleTabs, activeTab]);
 
   if (permLoading) {
     return (
