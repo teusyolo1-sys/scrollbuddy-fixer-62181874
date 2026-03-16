@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useSyncExternalStore } from "react";
 
 type Theme = "light" | "dark" | "system";
 
@@ -11,23 +11,33 @@ function applyTheme(theme: Theme) {
   document.documentElement.classList.toggle("dark", resolved === "dark");
 }
 
+// Shared listeners for cross-instance sync
+const listeners = new Set<() => void>();
+function subscribe(cb: () => void) {
+  listeners.add(cb);
+  return () => listeners.delete(cb);
+}
+function notifyAll() {
+  listeners.forEach((cb) => cb());
+}
+function getSnapshot(): Theme {
+  return (localStorage.getItem("app-theme") as Theme) ?? "system";
+}
+
 export function useTheme() {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    const stored = localStorage.getItem("app-theme") as Theme | null;
-    return stored ?? "system";
-  });
+  const theme = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const setTheme = useCallback((t: Theme) => {
-    setThemeState(t);
     localStorage.setItem("app-theme", t);
     applyTheme(t);
+    notifyAll();
   }, []);
 
   // Apply on mount + listen for system changes
   useEffect(() => {
     applyTheme(theme);
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const handler = () => { if (theme === "system") applyTheme("system"); };
+    const handler = () => { if (theme === "system") { applyTheme("system"); notifyAll(); } };
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, [theme]);
