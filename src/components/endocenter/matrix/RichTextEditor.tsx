@@ -256,77 +256,48 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let html = "";
-        let importedAsImage = false;
 
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
           const content = await page.getTextContent();
-          const items = content.items as Array<{ str?: string; transform?: number[]; hasEOL?: boolean }>;
+          const items = content.items as Array<{ str?: string; transform?: number[]; hasEOL?: boolean; width?: number; height?: number }>;
 
-          const lines: string[] = [];
-          let currentLine: string[] = [];
-          let lastY: number | null = null;
-
+          // Group items by Y position (line detection)
+          const lineMap = new Map<number, string[]>();
           for (const item of items) {
-            const rawText = item.str?.trim();
-            const y = item.transform?.[5] ?? null;
-
-            if (!rawText) {
-              if (item.hasEOL && currentLine.length > 0) {
-                lines.push(currentLine.join(" "));
-                currentLine = [];
-                lastY = null;
-              }
-              continue;
-            }
-
-            const shouldBreakLine = lastY !== null && y !== null && Math.abs(y - lastY) > 4;
-            if (shouldBreakLine && currentLine.length > 0) {
-              lines.push(currentLine.join(" "));
-              currentLine = [];
-            }
-
-            currentLine.push(escapeHtml(rawText));
-            lastY = y;
-
-            if (item.hasEOL) {
-              lines.push(currentLine.join(" "));
-              currentLine = [];
-              lastY = null;
-            }
+            const text = item.str ?? "";
+            if (!text) continue;
+            // Round Y to nearest integer to group items on same line
+            const y = Math.round(item.transform?.[5] ?? 0);
+            if (!lineMap.has(y)) lineMap.set(y, []);
+            lineMap.get(y)!.push(text);
           }
 
-          if (currentLine.length > 0) {
-            lines.push(currentLine.join(" "));
+          // Sort by Y descending (PDF coords: top = higher Y)
+          const sortedYs = Array.from(lineMap.keys()).sort((a, b) => b - a);
+          const pageLines: string[] = [];
+
+          for (const y of sortedYs) {
+            const lineText = lineMap.get(y)!.join(" ").trim();
+            if (lineText) pageLines.push(lineText);
           }
 
-          const cleanedLines = lines.filter((line) => line.trim().length > 0);
-
-          if (cleanedLines.length > 0) {
-            html += `<section data-pdf-page="${i}">${cleanedLines.map((line) => `<p>${line}</p>`).join("")}</section>`;
-            if (i < pdf.numPages) html += "<hr />";
-            continue;
+          if (pageLines.length > 0) {
+            html += pageLines.map((line) => `<p>${escapeHtml(line)}</p>`).join("");
           }
 
-          importedAsImage = true;
-          const viewport = page.getViewport({ scale: 2 });
-          const canvas = document.createElement("canvas");
-          canvas.width = viewport.width;
-          canvas.height = viewport.height;
-          const ctx = canvas.getContext("2d");
-          if (!ctx) continue;
-
-          await page.render({ canvasContext: ctx, viewport }).promise;
-          const dataUrl = canvas.toDataURL("image/png");
-          html += `<figure><img src="${dataUrl}" alt="Página ${i} do PDF" /></figure>`;
+          if (i < pdf.numPages) html += "<hr />";
         }
 
-        if (editorRef.current) {
-          editorRef.current.innerHTML += html;
-          emitChange();
+        if (!html.trim() || html.replace(/<hr\s*\/?>/g, "").replace(/<p>\s*<\/p>/g, "").trim().length === 0) {
+          toast.error("Não foi possível extrair texto deste PDF. Pode ser um PDF escaneado (imagem).");
+        } else {
+          if (editorRef.current) {
+            editorRef.current.innerHTML += html;
+            emitChange();
+          }
+          toast.success("PDF importado como conteúdo editável!");
         }
-
-        toast.success(importedAsImage ? "PDF importado; páginas escaneadas ficaram como imagem." : "PDF importado como conteúdo editável!");
       } else if (ext === "txt" || ext === "md") {
         const text = await file.text();
         const html = text.split("\n").map((l) => `<p>${l || "<br>"}</p>`).join("");
