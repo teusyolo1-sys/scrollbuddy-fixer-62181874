@@ -146,7 +146,7 @@ export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const { profit, totalRevenue, loading: walletLoading } = useAgencyWallet();
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [walletHovered, setWalletHovered] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
   const [companies, setCompanies] = useState<CompanyCard[]>([]);
