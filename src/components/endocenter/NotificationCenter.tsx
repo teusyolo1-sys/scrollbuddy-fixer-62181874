@@ -65,14 +65,14 @@ export default function NotificationCenter({ onNavigateToTask }: NotificationCen
         whileHover={{ scale: 1.15 }}
         transition={{ type: "spring", stiffness: 500, damping: 14 }}
         onClick={handleOpen}
-        className="relative w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+        className="relative w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
         title="Notificações"
       >
         <motion.div
           whileHover={{ rotate: [0, 15, -15, 10, -10, 0] }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          <Bell className="h-4 w-4 text-white/80" />
+          <Bell className="h-4 w-4 text-foreground" />
         </motion.div>
         <AnimatePresence>
           {count > 0 && (
