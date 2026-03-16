@@ -627,10 +627,10 @@ function ConversionFunnel({ data, colorOverrides, onApplyPalette }: {
   );
 }
 
-export default function AnalyticsCharts() {
+export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
-  const { metrics, loading, addMetric } = useClientMetrics();
+  const { metrics, loading, addMetric } = useClientMetrics(companyId);
   const [showForm, setShowForm] = useState(false);
   const [formType, setFormType] = useState<MetricType>("seguidores");
   const [formValue, setFormValue] = useState("");
