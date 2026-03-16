@@ -572,6 +572,18 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                           <Image className="h-3 w-3" /> Capa
                           <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
                         </label>
+                        <label className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+                          <FileText className="h-3 w-3" /> PDF
+                          <input type="file" accept=".pdf" className="hidden" onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              onUpdate({ attachments: [...item.attachments, { id: `id_${Math.random().toString(36).slice(2, 10)}`, name: file.name, url: reader.result as string, type: "link" }] });
+                            };
+                            reader.readAsDataURL(file);
+                          }} />
+                        </label>
                         <button onClick={() => setShowLinkForm(!showLinkForm)} className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground transition-colors">
                           <Link2 className="h-3 w-3" /> Link
                         </button>
