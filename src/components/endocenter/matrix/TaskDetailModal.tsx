@@ -11,6 +11,7 @@ import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } fro
 import BlockEditor, { type BlockEditorHandle } from "./BlockEditor";
 import PdfViewer from "./PdfViewer";
 import TaskChat from "./TaskChat";
+import AnimatedChatIcon from "./AnimatedChatIcon";
 import { useTaskComplaints } from "@/hooks/useTaskComplaints";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
