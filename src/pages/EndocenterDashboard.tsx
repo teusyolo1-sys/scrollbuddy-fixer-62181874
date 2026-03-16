@@ -36,7 +36,7 @@ function DashboardContent() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { company } = useEndocenter();
   const tabLabels = company.tabLabels ?? defaultTabLabels;
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const visibleTabs = tabDefs.filter(t => allowedTabs.includes(t.id));
