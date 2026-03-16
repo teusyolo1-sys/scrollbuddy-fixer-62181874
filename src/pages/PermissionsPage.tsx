@@ -355,9 +355,9 @@ export default function PermissionsPage() {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [companyPerms, setCompanyPerms] = useState<CompanyPerm[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
   const navigate = useNavigate();
-
-  const companies = loadCompanyList();
 
   useEffect(() => {
     const fetchUsers = async () => {
