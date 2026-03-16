@@ -143,7 +143,6 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
     extensions: [
       StarterKit.configure({
         heading: { levels: [1, 2, 3] },
-        history: { depth: 100 },
       }),
       Placeholder.configure({ placeholder }),
       ImageExt.configure({ inline: false, allowBase64: true }),
