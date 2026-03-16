@@ -269,6 +269,20 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
           </div>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onFetchApi && (isAdmin || canEdit) && (
+            <button
+              onClick={async () => {
+                setFetching(true);
+                await onFetchApi();
+                setFetching(false);
+              }}
+              disabled={fetching}
+              className="p-2 rounded-xl hover:bg-primary/10 transition-colors"
+              title="Buscar dados via API"
+            >
+              {fetching ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> : <RefreshCw className="h-3.5 w-3.5 text-primary" />}
+            </button>
+          )}
           {account.profile_url && (
             <a
               href={account.profile_url}
