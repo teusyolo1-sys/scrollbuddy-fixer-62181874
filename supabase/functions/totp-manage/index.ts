@@ -127,5 +127,10 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ configured: !!totp?.is_verified }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
   }
 
+  if (action === 'disable') {
+    await supabase.from('admin_totp').delete().eq('user_id', user.id)
+    return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+  }
+
   return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 })
