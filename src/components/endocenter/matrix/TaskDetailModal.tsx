@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, Suspense, lazy } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from "react";
 import { createPortal } from "react-dom";
 import {
   X, Type, Pencil, Settings2, ChevronDown
@@ -37,6 +37,18 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const titleRef = useRef<HTMLInputElement>(null);
   const editorRef = useRef<BlockEditorHandle>(null);
   const lastSeenCountRef = useRef(chatMessages.length);
+
+  // Auto-critical based on due date
+  const isAutoCritical = useMemo(() => {
+    if (item.done || !item.dueDate) return false;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const due = new Date(item.dueDate);
+    due.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays <= 2;
+  }, [item.dueDate, item.done]);
+  const isCritical = item.critical || isAutoCritical;
 
   // When chat opens, mark as read
   useEffect(() => {
@@ -103,8 +115,10 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: roleColor }}>
                   {roleName}
                 </span>
-                {item.critical && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive shrink-0">Crítico</span>
+                {isCritical && (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${isAutoCritical && !item.critical ? "bg-amber-500/10 text-amber-600" : "bg-destructive/10 text-destructive"}`}>
+                    {isAutoCritical && !item.critical ? "⏰ Urgente" : "✦ Crítico"}
+                  </span>
                 )}
                 {item.labels.map((l) => (
                   <span key={l.id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: l.color }}>
