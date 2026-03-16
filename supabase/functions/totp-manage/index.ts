@@ -107,7 +107,9 @@ Deno.serve(async (req) => {
     const { data: totp } = await supabase.from('admin_totp').select('*').eq('user_id', user.id).single()
     if (!totp) return new Response(JSON.stringify({ error: 'TOTP not configured' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
+    console.log('verify_setup: code received =', body.code, 'secret prefix =', totp.totp_secret.substring(0, 8))
     const valid = await verifyTOTP(totp.totp_secret, body.code)
+    console.log('verify_setup: result =', valid)
     if (!valid) return new Response(JSON.stringify({ valid: false, error: 'Código inválido' }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
     await supabase.from('admin_totp').update({ is_verified: true }).eq('user_id', user.id)
