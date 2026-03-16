@@ -11,6 +11,7 @@ import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } fro
 import BlockEditor, { type BlockEditorHandle } from "./BlockEditor";
 import PdfViewer from "./PdfViewer";
 import TaskChat from "./TaskChat";
+import AnimatedChatIcon from "./AnimatedChatIcon";
 import { useTaskComplaints } from "@/hooks/useTaskComplaints";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
@@ -740,7 +741,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             }`}
             style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}
           >
-            <MessageCircle className="h-6 w-6" />
+            <AnimatedChatIcon size={26} active={chatOpen} />
             {hasUnreadMention && !chatOpen && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold flex items-center justify-center">
                 !
