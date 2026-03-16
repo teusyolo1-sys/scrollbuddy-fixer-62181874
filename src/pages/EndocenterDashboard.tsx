@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from "react";
-import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Monitor, Moon, RefreshCw, Rocket, Settings, Shield, Sun, Users } from "lucide-react";
+import { useState, useEffect, useCallback, lazy } from "react";
+import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, FolderOpen, Monitor, Moon, RefreshCw, Rocket, Settings, Shield, Sun, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { EndocenterProvider, useEndocenter, defaultTabLabels } from "@/store/endocenterStore";
@@ -16,6 +16,7 @@ import BudgetCalculator from "@/components/endocenter/BudgetCalculator";
 import TeamAnalytics from "@/components/endocenter/TeamAnalytics";
 import SettingsDialog from "@/components/endocenter/SettingsDialog";
 import NotificationCenter from "@/components/endocenter/NotificationCenter";
+import DriveFileManager from "@/components/endocenter/DriveFileManager";
 
 
 const tabDefs = [
@@ -27,6 +28,7 @@ const tabDefs = [
   { id: "deadlines" as const, icon: AlertTriangle },
   { id: "budget" as const, icon: DollarSign },
   { id: "team" as const, icon: Users },
+  { id: "files" as const, icon: FolderOpen },
 ];
 
 function DashboardContent() {
@@ -230,6 +232,7 @@ function DashboardContent() {
           {activeTab === "deadlines" && <DeadlineManagement />}
           {activeTab === "budget" && <BudgetCalculator companyId={companyId} />}
           {activeTab === "team" && <TeamAnalytics companyId={companyId} />}
+          {activeTab === "files" && companyId && <DriveFileManager companyId={companyId} companyName={company.name} />}
         </motion.div>
       </main>
 

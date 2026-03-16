@@ -17,6 +17,7 @@ const TAB_DESCRIPTIONS: Record<TabKey, string> = {
   deadlines: 'Gestão de prazos críticos, crises e alertas de vencimentos próximos.',
   budget: 'Controle financeiro com entradas, categorias e participantes do orçamento.',
   team: 'Painel do time com KPIs individuais, SLA, atividades e histórico de performance.',
+  files: 'Gerenciamento de arquivos do Google Drive com upload, visualização e organização por pastas.',
 };
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';

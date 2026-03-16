@@ -42,6 +42,7 @@ export interface TabLabels {
   deadlines: string;
   budget: string;
   team: string;
+  files: string;
 }
 
 export const defaultTabLabels: TabLabels = {
@@ -53,6 +54,7 @@ export const defaultTabLabels: TabLabels = {
   deadlines: "Prazos & Crises",
   budget: "Orçamento",
   team: "Time",
+  files: "Arquivos",
 };
 
 export interface CompanyInfo {
