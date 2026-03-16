@@ -608,10 +608,6 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                       )}
                     </SideSection>
 
-                    {/* Chat */}
-                    <SideSection icon={MessageCircle} label="Chat" defaultOpen>
-                      <TaskChat taskId={item.id} taskName={item.task} />
-                    </SideSection>
 
                     {/* Sinalizar Problema — discreto */}
                     <SideSection icon={Flag} label="Sinalizar" defaultOpen={false}>
