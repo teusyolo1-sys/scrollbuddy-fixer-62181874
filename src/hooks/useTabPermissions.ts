@@ -31,13 +31,29 @@ export const useTabPermissions = () => {
 
   const fetchPermissions = useCallback(async () => {
     if (!user) { setPermissions([]); setLoading(false); return; }
-    
+
+    const cacheKey = `cache_tab_perms_${user.id}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (Date.now() - parsed.ts < 5 * 60 * 1000) {
+          setPermissions(parsed.data);
+          setLoading(false);
+          return;
+        }
+      } catch {}
+    }
+
     const { data } = await supabase
       .from('tab_permissions')
       .select('user_id, tab_key, granted');
-    
-    setPermissions((data || []) as TabPermission[]);
+
+    const perms = (data || []) as TabPermission[];
+    setPermissions(perms);
     setLoading(false);
+
+    sessionStorage.setItem(cacheKey, JSON.stringify({ data: perms, ts: Date.now() }));
   }, [user]);
 
   useEffect(() => { fetchPermissions(); }, [fetchPermissions]);
@@ -61,6 +77,8 @@ export const useTabPermissions = () => {
       await supabase.from('tab_permissions').delete()
         .eq('user_id', userId).eq('tab_key', tabKey);
     }
+    // Invalidar cache
+    sessionStorage.removeItem(`cache_tab_perms_${user?.id}`);
     await fetchPermissions();
   };
 
@@ -73,6 +91,8 @@ export const useTabPermissions = () => {
     } else {
       await supabase.from('tab_permissions').delete().eq('user_id', userId);
     }
+    // Invalidar cache
+    sessionStorage.removeItem(`cache_tab_perms_${user?.id}`);
     await fetchPermissions();
   };
 

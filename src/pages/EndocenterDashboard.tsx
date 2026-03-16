@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Moon, RefreshCw, Rocket, Settings, Shield, Sun, Users } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Monitor, Moon, RefreshCw, Rocket, Settings, Shield, Sun, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
 import { EndocenterProvider, useEndocenter, defaultTabLabels } from "@/store/endocenterStore";
@@ -36,18 +36,37 @@ function DashboardContent() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const { company } = useEndocenter();
   const tabLabels = company.tabLabels ?? defaultTabLabels;
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   const visibleTabs = tabDefs.filter(t => allowedTabs.includes(t.id));
-  const [activeTab, setActiveTab] = useState<TabKey>(visibleTabs[0]?.id || "dashboard");
+  // Persistir aba ativa por empresa no sessionStorage
+  const tabStorageKey = `activeTab_${companyId || 'default'}`;
+
+  const [activeTab, setActiveTabState] = useState<TabKey>(() => {
+    const saved = sessionStorage.getItem(tabStorageKey);
+    if (saved && visibleTabs.find(t => t.id === saved)) {
+      return saved as TabKey;
+    }
+    return visibleTabs[0]?.id || "dashboard";
+  });
+
+  const setActiveTab = useCallback((tab: TabKey) => {
+    setActiveTabState(tab);
+    sessionStorage.setItem(tabStorageKey, tab);
+  }, [tabStorageKey]);
 
   // Ensure activeTab is valid when permissions load
   useEffect(() => {
     if (!permLoading && visibleTabs.length > 0 && !visibleTabs.find(t => t.id === activeTab)) {
-      setActiveTab(visibleTabs[0].id);
+      const saved = sessionStorage.getItem(tabStorageKey);
+      if (saved && visibleTabs.find(t => t.id === saved)) {
+        setActiveTab(saved as TabKey);
+      } else {
+        setActiveTab(visibleTabs[0].id);
+      }
     }
-  }, [permLoading, visibleTabs, activeTab]);
+  }, [permLoading, visibleTabs, activeTab, setActiveTab, tabStorageKey]);
 
   if (permLoading) {
     return (
@@ -121,18 +140,24 @@ function DashboardContent() {
               <motion.button
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                onClick={() => {
+                  if (theme === "system") setTheme("light");
+                  else if (theme === "light") setTheme("dark");
+                  else setTheme("system");
+                }}
                 className="w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
-                title={resolvedTheme === "dark" ? "Modo claro" : "Modo escuro"}
+                title={theme === "system" ? "Tema: Automático" : theme === "dark" ? "Tema: Escuro" : "Tema: Claro"}
               >
                 <motion.div
-                  key={resolvedTheme}
+                  key={theme}
                   initial={{ rotate: -90, opacity: 0 }}
                   animate={{ rotate: 0, opacity: 1 }}
                   transition={{ type: "spring", damping: 15, stiffness: 300 }}
                 >
-                  {resolvedTheme === "dark" ? (
-                    <Sun className="h-4 w-4 text-yellow-400" />
+                  {theme === "system" ? (
+                    <Monitor className="h-4 w-4 text-foreground" />
+                  ) : resolvedTheme === "dark" ? (
+                    <Sun className="h-4 w-4 text-amber-400" />
                   ) : (
                     <Moon className="h-4 w-4 text-foreground" />
                   )}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil, Wallet, Sun, Moon, Trash2 } from "lucide-react";
+import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil, Wallet, Sun, Moon, Monitor, Trash2 } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -146,7 +146,7 @@ export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const { profit, totalRevenue, loading: walletLoading } = useAgencyWallet();
-  const { resolvedTheme, setTheme } = useTheme();
+  const { theme, resolvedTheme, setTheme } = useTheme();
   const [walletHovered, setWalletHovered] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
   const [companies, setCompanies] = useState<CompanyCard[]>([]);
@@ -329,11 +329,21 @@ export default function LobbyPage() {
                     </>
                   )}
                   <button
-                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    onClick={() => {
+                      if (theme === "system") setTheme("light");
+                      else if (theme === "light") setTheme("dark");
+                      else setTheme("system");
+                    }}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
-                    title="Alternar tema"
+                    title={theme === "system" ? "Tema: Automático" : theme === "dark" ? "Tema: Escuro" : "Tema: Claro"}
                   >
-                    {resolvedTheme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
+                    {theme === "system" ? (
+                      <Monitor className="h-4 w-4 text-muted-foreground" />
+                    ) : resolvedTheme === "dark" ? (
+                      <Sun className="h-4 w-4 text-amber-400" />
+                    ) : (
+                      <Moon className="h-4 w-4" />
+                    )}
                   </button>
                   <button
                     onClick={async () => { await signOut(); }}
