@@ -169,9 +169,9 @@ export default function TaskCard({ item, roleColor, onClick, onToggleDone }: Tas
           )}
 
           {/* Critical badge */}
-          {item.critical && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-destructive/10 text-destructive">
-              Crítico
+          {isCritical && (
+            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md ${isAutoCritical && !item.critical ? "bg-amber-500/10 text-amber-600" : "bg-destructive/10 text-destructive"}`}>
+              {isOverdue ? "⚠ Atrasada" : isAutoCritical && !item.critical ? "⏰ Urgente" : "✦ Crítico"}
             </span>
           )}
         </div>
