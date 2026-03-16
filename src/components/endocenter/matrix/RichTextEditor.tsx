@@ -5,8 +5,10 @@ import {
   Minus, Link2, Image, Undo2, Redo2, ChevronDown,
   Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2,
   RectangleHorizontal, Square, Maximize, PanelLeft, PanelRight, Columns2,
-  CircleDot, BoxSelect, Trash2, Check
+  CircleDot, BoxSelect, Trash2, Check, FileUp
 } from "lucide-react";
+import mammoth from "mammoth";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export interface RichTextEditorHandle {
