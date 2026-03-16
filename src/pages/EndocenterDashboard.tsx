@@ -59,9 +59,14 @@ function DashboardContent() {
   // Ensure activeTab is valid when permissions load
   useEffect(() => {
     if (!permLoading && visibleTabs.length > 0 && !visibleTabs.find(t => t.id === activeTab)) {
-      setActiveTab(visibleTabs[0].id);
+      const saved = sessionStorage.getItem(tabStorageKey);
+      if (saved && visibleTabs.find(t => t.id === saved)) {
+        setActiveTab(saved as TabKey);
+      } else {
+        setActiveTab(visibleTabs[0].id);
+      }
     }
-  }, [permLoading, visibleTabs, activeTab]);
+  }, [permLoading, visibleTabs, activeTab, setActiveTab, tabStorageKey]);
 
   if (permLoading) {
     return (
