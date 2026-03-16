@@ -100,6 +100,23 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const editorRef = useRef<BlockEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const [viewingPdf, setViewingPdf] = useState<string | null>(null);
+  const lastSeenCountRef = useRef(chatMessages.length);
+
+  // Track unread mentions for current user
+  const hasUnreadMention = useMemo(() => {
+    if (!user || chatOpen) return false;
+    const newMessages = chatMessages.slice(lastSeenCountRef.current);
+    return newMessages.some(
+      (msg) => msg.user_id !== user.id && msg.mentions?.includes(user.id)
+    );
+  }, [chatMessages, user, chatOpen]);
+
+  // When chat opens, mark as read
+  useEffect(() => {
+    if (chatOpen) {
+      lastSeenCountRef.current = chatMessages.length;
+    }
+  }, [chatOpen, chatMessages.length]);
 
   useEffect(() => {
     if (editingTitle && titleRef.current) titleRef.current.focus();
