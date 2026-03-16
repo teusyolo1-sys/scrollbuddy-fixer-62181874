@@ -24,6 +24,18 @@ export default function TaskCard({ item, roleColor, onClick, onToggleDone }: Tas
   const isOverdue = hasDueDate && new Date(item.dueDate) < new Date() && !item.done;
   const prio = priorityConfig[item.priority];
 
+  // Auto-critical: overdue or ≤2 days remaining
+  const isAutoCritical = (() => {
+    if (item.done || !hasDueDate) return false;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const due = new Date(item.dueDate);
+    due.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays <= 2;
+  })();
+  const isCritical = item.critical || isAutoCritical;
+
   const formatTimer = (seconds: number) => {
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
