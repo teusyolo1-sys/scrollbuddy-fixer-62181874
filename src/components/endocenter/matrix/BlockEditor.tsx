@@ -508,7 +508,7 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
         <input
           ref={fileInputRef}
           type="file"
-          accept=".docx,.txt,.md"
+          accept=".docx,.txt,.md,.pdf"
           className="hidden"
           onChange={(e) => { const file = e.target.files?.[0]; if (file) importDocument(file); e.target.value = ""; }}
         />
