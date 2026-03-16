@@ -89,7 +89,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [timerSeconds, setTimerSeconds] = useState(item.timerSeconds);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
-  const [chatBalloonOpen, setChatBalloonOpen] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
   const [showComplaintForm, setShowComplaintForm] = useState(false);
   const [complaintCategory, setComplaintCategory] = useState(COMPLAINT_CATEGORIES[0]);
   const [complaintDesc, setComplaintDesc] = useState("");
