@@ -148,7 +148,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
@@ -167,7 +167,7 @@ function ChartByStyle({ style, data, color, type }: {
                 <stop offset="95%" stopColor={color} stopOpacity={0.05} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
@@ -182,7 +182,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={dynamicHeight}>
           <BarChart data={data} layout="vertical" barSize={dynamicBarSize} maxBarSize={44} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} cursor={{ fill: "transparent" }} />
@@ -196,7 +196,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={data} barSize={16} maxBarSize={24}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
@@ -236,7 +236,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <ScatterChart>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis type="number" dataKey="x" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="number" dataKey="y" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} />
@@ -255,7 +255,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <ScatterChart>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis type="number" dataKey="x" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="number" dataKey="y" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} />
@@ -298,7 +298,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={data} barSize={16} maxBarSize={24}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
@@ -348,7 +348,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <ComposedChart data={paretoData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis yAxisId="left" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <YAxis yAxisId="right" orientation="right" tick={tickStyle} axisLine={false} tickLine={false} width={35} domain={[0, 100]} />
