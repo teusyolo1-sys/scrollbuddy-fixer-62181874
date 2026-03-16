@@ -14,7 +14,11 @@ serve(async (req) => {
   try {
     const RAPIDAPI_KEY = Deno.env.get("RAPIDAPI_KEY");
     if (!RAPIDAPI_KEY) {
-      throw new Error("RAPIDAPI_KEY is not configured");
+      console.error("RAPIDAPI_KEY is not set");
+      return new Response(
+        JSON.stringify({ error: "RAPIDAPI_KEY not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const { username } = await req.json();
@@ -25,48 +29,43 @@ serve(async (req) => {
       );
     }
 
-    // Clean username (remove @ if present)
     const cleanUsername = username.replace(/^@/, "").trim();
 
-    // Fetch profile info from Instagram120 API (POST /api/instagram/profile)
-    const profileResponse = await fetch(
-      "https://instagram120.p.rapidapi.com/api/instagram/profile",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-RapidAPI-Host": "instagram120.p.rapidapi.com",
-          "X-RapidAPI-Key": RAPIDAPI_KEY,
-        },
-        body: JSON.stringify({ username: cleanUsername }),
-      }
-    );
+    // Simple Instagram API - GET /account-info
+    const url = `https://simple-instagram-api.p.rapidapi.com/account-info?username=${encodeURIComponent(cleanUsername)}`;
+
+    console.log("Fetching:", url);
+
+    const profileResponse = await fetch(url, {
+      method: "GET",
+      headers: {
+        "X-RapidAPI-Host": "simple-instagram-api.p.rapidapi.com",
+        "X-RapidAPI-Key": RAPIDAPI_KEY,
+      },
+    });
 
     if (!profileResponse.ok) {
       const errText = await profileResponse.text();
-      console.error("Instagram120 API error:", profileResponse.status, errText);
+      console.error("Simple Instagram API error:", profileResponse.status, errText);
       return new Response(
-        JSON.stringify({ error: `API error: ${profileResponse.status}` }),
+        JSON.stringify({ error: `API error: ${profileResponse.status}`, details: errText }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const profileData = await profileResponse.json();
-    console.log("Instagram120 raw response keys:", Object.keys(profileData));
+    const data = await profileResponse.json();
+    console.log("API response keys:", Object.keys(data));
 
-    // Extract user data - the API may return data in different structures
-    const user = profileData?.user || profileData?.data?.user || profileData;
-
+    // Extract data - adapt to actual response structure
     const result = {
-      username: user?.username || cleanUsername,
-      full_name: user?.full_name || "",
-      profile_pic_url: user?.profile_pic_url || user?.profile_pic_url_hd || "",
-      followers: user?.follower_count || user?.edge_followed_by?.count || 0,
-      following: user?.following_count || user?.edge_follow?.count || 0,
-      posts_count: user?.media_count || user?.edge_owner_to_timeline_media?.count || 0,
-      biography: user?.biography || "",
-      is_verified: user?.is_verified || false,
-      external_url: user?.external_url || "",
+      username: data?.username || cleanUsername,
+      full_name: data?.full_name || data?.fullName || "",
+      profile_pic_url: data?.profile_pic_url || data?.profilePicUrl || "",
+      followers: data?.follower_count || data?.followers || data?.edge_followed_by?.count || 0,
+      following: data?.following_count || data?.following || data?.edge_follow?.count || 0,
+      posts_count: data?.media_count || data?.posts || data?.edge_owner_to_timeline_media?.count || 0,
+      biography: data?.biography || data?.bio || "",
+      is_verified: data?.is_verified || false,
     };
 
     return new Response(JSON.stringify(result), {
