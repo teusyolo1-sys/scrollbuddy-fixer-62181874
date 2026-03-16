@@ -5,6 +5,7 @@ import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, P
 import { supabase } from "@/integrations/supabase/client";
 import { sendToTrash } from "@/lib/trash";
 import AnalyticsCharts from "./AnalyticsCharts";
+import SocialMediaSection from "./SocialMediaSection";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -288,6 +289,9 @@ export default function TeamDashboard({ companyId }: { companyId?: string }) {
 
       {/* Metrics — Fluid morph segmented control */}
       {isAdmin && <AnalyticsCharts companyId={companyId} />}
+
+      {/* Social Media Accounts */}
+      <SocialMediaSection companyId={companyId} />
 
       {/* Metrics registered */}
       <div className="ios-card p-5 space-y-4">
