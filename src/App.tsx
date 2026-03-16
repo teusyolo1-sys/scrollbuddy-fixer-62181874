@@ -1,15 +1,11 @@
 import { Toaster as Sonner } from "@/components/ui/sonner";
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { supabaseConfigured } from "@/integrations/supabase/client";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import EditorPage from "./pages/EditorPage";
 import AgencyWalletPage from "./pages/AgencyWalletPage";
 import AuthPage from "./pages/AuthPage";
 import AdminPage from "./pages/AdminPage";
-import CheckoutPage from "./pages/CheckoutPage";
-import CheckoutResultPage from "./pages/CheckoutResultPage";
-import PixPaymentPage from "./pages/PixPaymentPage";
 import EndocenterDashboard from "./pages/EndocenterDashboard";
 import LobbyPage from "./pages/LobbyPage";
 import PermissionsPage from "./pages/PermissionsPage";
@@ -26,7 +22,6 @@ const SetupNotice = () => (
         <p><span className="text-primary">VITE_SUPABASE_URL</span>=https://seu-projeto.supabase.co</p>
         <p><span className="text-primary">VITE_SUPABASE_PUBLISHABLE_KEY</span>=eyJ...</p>
       </div>
-      <p className="text-xs text-muted-foreground">Adicione nas configurações do projeto no Lovable (Settings → Environment Variables) ou ative o Lovable Cloud.</p>
     </div>
   </div>
 );
@@ -40,17 +35,8 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useUserRole();
-  const location = useLocation();
-
-  if (authLoading || roleLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Carregando...</div>;
-  }
-
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center bg-background text-muted-foreground">Carregando...</div>;
   if (!user) return <Navigate to="/auth" replace />;
-
-  // Admin redirect removed — admin uses same lobby but has extra features
-
   return <>{children}</>;
 };
 
@@ -76,17 +62,14 @@ const App = () => {
         <Sonner />
         <Routes>
           <Route path="/auth" element={<AuthRoute><AuthPage /></AuthRoute>} />
-          <Route path="/editor" element={<ProtectedRoute><EditorPage /></ProtectedRoute>} />
-          <Route path="/" element={<LobbyPage />} />
+          <Route path="/" element={<ProtectedRoute><LobbyPage /></ProtectedRoute>} />
           <Route path="/endocenter/:companyId" element={<ProtectedRoute><EndocenterDashboard /></ProtectedRoute>} />
           <Route path="/endocenter" element={<ProtectedRoute><EndocenterDashboard /></ProtectedRoute>} />
           <Route path="/permissions" element={<ProtectedRoute><AdminRoute><PermissionsPage /></AdminRoute></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute><AdminRoute><AdminPage /></AdminRoute></ProtectedRoute>} />
           <Route path="/agency-wallet" element={<ProtectedRoute><AdminRoute><AgencyWalletPage /></AdminRoute></ProtectedRoute>} />
-          <Route path="/checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-          <Route path="/checkout/pix" element={<ProtectedRoute><PixPaymentPage /></ProtectedRoute>} />
-          <Route path="/checkout/:status" element={<ProtectedRoute><CheckoutResultPage /></ProtectedRoute>} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
