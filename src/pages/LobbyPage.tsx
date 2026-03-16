@@ -242,6 +242,9 @@ export default function LobbyPage() {
       .single() as { data: any };
     
     if (data) {
+      // Garantir que não há dados residuais no localStorage para esta empresa
+      localStorage.removeItem(`endocenter_${data.id}`);
+      
       setCompanies(prev => [...prev, {
         id: data.id,
         name: data.name,

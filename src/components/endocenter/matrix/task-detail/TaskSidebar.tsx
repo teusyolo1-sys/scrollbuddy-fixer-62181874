@@ -26,6 +26,7 @@ interface TaskSidebarProps {
   roleColor: string;
   roleName: string;
   teamMembers: string[];
+  companyId?: string;
   editingDescription: boolean;
   editorRef: React.RefObject<any>;
   onUpdate: (updates: Partial<ResponsibilityItem>) => void;
@@ -34,9 +35,9 @@ interface TaskSidebarProps {
 }
 
 export default function TaskSidebar({
-  item, roleColor, roleName, teamMembers, editingDescription, editorRef, onUpdate, onDelete, onViewPdf,
+  item, roleColor, roleName, teamMembers, companyId, editingDescription, editorRef, onUpdate, onDelete, onViewPdf,
 }: TaskSidebarProps) {
-  const { addComplaint } = useTaskComplaints();
+  const { addComplaint } = useTaskComplaints(companyId);
   const [newCheckItem, setNewCheckItem] = useState("");
   const [newLabelName, setNewLabelName] = useState("");
   const [newLabelColor, setNewLabelColor] = useState(labelColors[0]);

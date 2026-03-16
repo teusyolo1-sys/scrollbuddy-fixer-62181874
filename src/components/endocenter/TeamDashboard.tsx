@@ -1,7 +1,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Plus, Target, Trash2, TrendingUp, Upload, User, X } from "lucide-react";
-import { useParams } from "react-router-dom";
+
 import { supabase } from "@/integrations/supabase/client";
 import { sendToTrash } from "@/lib/trash";
 import AnalyticsCharts from "./AnalyticsCharts";
@@ -204,8 +204,7 @@ function StatusDropdown({ value, onChange, options }: { value: string; onChange:
   );
 }
 
-export default function TeamDashboard() {
-  const { companyId } = useParams<{ companyId: string }>();
+export default function TeamDashboard({ companyId }: { companyId?: string }) {
   const { team, company, metricEntries, addMember, removeMember } = useEndocenter();
   const { isAdmin } = useUserRole();
   const { teamRole } = useTeamRole();

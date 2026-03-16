@@ -325,6 +325,7 @@ export type Database = {
       }
       chat_messages: {
         Row: {
+          company_id: string | null
           content: string
           created_at: string
           id: string
@@ -333,6 +334,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          company_id?: string | null
           content: string
           created_at?: string
           id?: string
@@ -341,6 +343,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          company_id?: string | null
           content?: string
           created_at?: string
           id?: string
@@ -585,6 +588,7 @@ export type Database = {
         Row: {
           assigned_to: string
           category: string
+          company_id: string | null
           created_at: string
           description: string
           id: string
@@ -596,6 +600,7 @@ export type Database = {
         Insert: {
           assigned_to: string
           category?: string
+          company_id?: string | null
           created_at?: string
           description?: string
           id?: string
@@ -607,6 +612,7 @@ export type Database = {
         Update: {
           assigned_to?: string
           category?: string
+          company_id?: string | null
           created_at?: string
           description?: string
           id?: string
@@ -620,6 +626,7 @@ export type Database = {
       team_activities: {
         Row: {
           activity_type: string
+          company_id: string | null
           created_at: string
           date: string
           id: string
@@ -631,6 +638,7 @@ export type Database = {
         }
         Insert: {
           activity_type: string
+          company_id?: string | null
           created_at?: string
           date?: string
           id?: string
@@ -642,6 +650,7 @@ export type Database = {
         }
         Update: {
           activity_type?: string
+          company_id?: string | null
           created_at?: string
           date?: string
           id?: string

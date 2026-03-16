@@ -7,6 +7,7 @@ import type { ChatMessage } from "@/hooks/useChatMessages";
 interface ChatFABProps {
   taskId: string;
   taskName: string;
+  companyId?: string;
   chatOpen: boolean;
   setChatOpen: (open: boolean) => void;
   chatMessages: ChatMessage[];
@@ -15,7 +16,7 @@ interface ChatFABProps {
 }
 
 export default function ChatFAB({
-  taskId, taskName, chatOpen, setChatOpen, chatMessages, userId, lastSeenCount,
+  taskId, taskName, companyId, chatOpen, setChatOpen, chatMessages, userId, lastSeenCount,
 }: ChatFABProps) {
   const hasUnreadMention = useMemo(() => {
     if (!userId || chatOpen) return false;
@@ -58,7 +59,7 @@ export default function ChatFAB({
               </button>
             </div>
             <div className="flex-1 min-h-0 overflow-hidden p-3">
-              <TaskChat taskId={taskId} taskName={taskName} />
+              <TaskChat taskId={taskId} taskName={taskName} companyId={companyId} />
             </div>
           </motion.div>
         )}

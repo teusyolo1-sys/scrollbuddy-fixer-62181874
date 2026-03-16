@@ -24,7 +24,7 @@ const statusColumns = [
   { key: "done", label: "Concluído", filter: (i: ResponsibilityItem) => i.done },
 ];
 
-export default function ResponsibilityMatrix() {
+export default function ResponsibilityMatrix({ companyId }: { companyId?: string }) {
   const {
     responsibilityRoles, team,
     updateResponsibilityRole, addResponsibilityRoleItem,
@@ -274,6 +274,7 @@ export default function ResponsibilityMatrix() {
           roleColor={role.color}
           roleName={role.role}
           teamMembers={teamMembers}
+          companyId={companyId}
           onUpdate={(updates) => handleUpdateItem(selectedItem.item.id, updates)}
           onDelete={() => handleDeleteItem(selectedItem.item.id)}
           onClose={() => setSelectedItem(null)}

@@ -222,14 +222,14 @@ function DashboardContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: "spring", damping: 28, stiffness: 380, mass: 0.5 }}
         >
-          {activeTab === "dashboard" && <TeamDashboard />}
+          {activeTab === "dashboard" && <TeamDashboard companyId={companyId} />}
           {activeTab === "schedule" && <MasterSchedule />}
           {activeTab === "pipeline" && <ProjectPipeline />}
-          {activeTab === "matrix" && <ResponsibilityMatrix />}
+          {activeTab === "matrix" && <ResponsibilityMatrix companyId={companyId} />}
           {activeTab === "workflow" && <WorkflowDiagram />}
           {activeTab === "deadlines" && <DeadlineManagement />}
           {activeTab === "budget" && <BudgetCalculator companyId={companyId} />}
-          {activeTab === "team" && <TeamAnalytics />}
+          {activeTab === "team" && <TeamAnalytics companyId={companyId} />}
         </motion.div>
       </main>
 
