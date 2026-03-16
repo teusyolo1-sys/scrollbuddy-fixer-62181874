@@ -41,6 +41,71 @@ const COMPLAINT_CATEGORIES = ["Qualidade", "Atraso", "Refação", "Comunicação
 
 const createId = () => `id_${Math.random().toString(36).slice(2, 10)}`;
 
+function ComplaintCategoryPicker({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
+  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
+
+  const handleOpen = () => {
+    if (btnRef.current) {
+      const r = btnRef.current.getBoundingClientRect();
+      setPos({ top: r.bottom + 4, left: r.left, width: r.width });
+    }
+    setOpen(!open);
+  };
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={handleOpen}
+        className="ios-input w-full px-2.5 py-2 text-[11px] flex items-center justify-between text-foreground"
+      >
+        <span>{value}</span>
+        <ChevronDown className={`h-3 w-3 text-muted-foreground transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && createPortal(
+        <>
+          <div className="fixed inset-0 z-[200]" onClick={() => setOpen(false)} />
+          <motion.div
+            initial={{ opacity: 0, y: -4, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.97 }}
+            transition={{ duration: 0.15, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="fixed z-[201] rounded-xl overflow-hidden"
+            style={{
+              top: pos.top,
+              left: pos.left,
+              width: pos.width,
+              background: "hsl(var(--card))",
+              border: "1px solid hsl(var(--border) / 0.5)",
+              boxShadow: "0 8px 32px rgba(0,0,0,0.25)",
+              backdropFilter: "blur(20px)",
+            }}
+          >
+            {COMPLAINT_CATEGORIES.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                onClick={() => { onChange(cat); setOpen(false); }}
+                className={`w-full text-left px-3 py-2 text-[11px] transition-colors ${
+                  cat === value
+                    ? "bg-primary text-primary-foreground font-semibold"
+                    : "text-foreground hover:bg-secondary/60"
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </motion.div>
+        </>,
+        document.body
+      )}
+    </>
+  );
+}
+
 function SideSection({
   icon: Icon,
   label,
