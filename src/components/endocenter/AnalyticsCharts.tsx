@@ -1,4 +1,4 @@
-import { useMemo, useState, useRef, useEffect } from "react";
+import { useMemo, useState, useRef, useEffect, memo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette } from "lucide-react";
 import {
@@ -131,8 +131,9 @@ function ChartByStyle({ style, data, color, type }: {
   const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))" };
   const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
 
-  // Prepare cumulative data for pareto
+  // Only compute pareto data when needed
   const paretoData = useMemo(() => {
+    if (style !== "pareto") return data;
     const sorted = [...data].sort((a, b) => b.value - a.value);
     const total = sorted.reduce((s, d) => s + d.value, 0);
     let cum = 0;
@@ -140,7 +141,7 @@ function ChartByStyle({ style, data, color, type }: {
       cum += d.value;
       return { ...d, cum: total > 0 ? parseFloat(((cum / total) * 100).toFixed(1)) : 0 };
     });
-  }, [data]);
+  }, [data, style]);
 
   switch (style) {
     case "line":
@@ -418,7 +419,7 @@ function ChartByStyle({ style, data, color, type }: {
 }
 
 /* ── Individual Metric Chart Card ── */
-function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange }: {
+const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange }: {
   type: MetricType;
   data: { name: string; value: number }[];
   delay: number;
@@ -518,7 +519,7 @@ function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, related
       </ContextMenuContent>
     </ContextMenu>
   );
-}
+});
 
 /* ── Funnel visualization ── */
 function ConversionFunnel({ data, colorOverrides, onApplyPalette }: {
@@ -630,13 +631,13 @@ export default function AnalyticsCharts() {
   const [chartStyles, setChartStyles] = useState<Record<string, ChartStyle>>({});
   const [colorOverrides, setColorOverrides] = useState<Record<string, string>>({});
 
-  const setStyleFor = (type: string, style: ChartStyle) => {
+  const setStyleFor = useCallback((type: string, style: ChartStyle) => {
     setChartStyles((prev) => ({ ...prev, [type]: style }));
-  };
+  }, []);
 
-  const setColorFor = (type: string, color: string) => {
+  const setColorFor = useCallback((type: string, color: string) => {
     setColorOverrides((prev) => ({ ...prev, [type]: color }));
-  };
+  }, []);
 
   const applyFunnelPalette = (palette: ColorPalette) => {
     const newOverrides: Record<string, string> = { ...colorOverrides };
