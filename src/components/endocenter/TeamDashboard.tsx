@@ -386,6 +386,7 @@ export default function TeamDashboard() {
         {selectedMember && (
           <ProfileModal
             member={selectedMember}
+            companyId={companyId}
             onClose={() => setSelectedMember(null)}
             isAdmin={isAdmin}
             canEdit={isAdmin || selectedMember.role === teamRole}
