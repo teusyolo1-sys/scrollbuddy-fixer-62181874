@@ -164,12 +164,12 @@ function DashboardContent() {
                   onClick={() => setActiveTab(tab.id)}
                   whileTap={{ scale: 0.98 }}
                   transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                  className="group relative flex items-center gap-1.5 px-4 py-2 whitespace-nowrap text-xs sm:text-sm font-medium hover:bg-white/10"
-                  style={{
-                    borderRadius: "var(--ios-radius)",
-                    backgroundColor: active ? "rgba(255,255,255,0.15)" : "transparent",
-                    color: active ? "#fff" : "rgba(255,255,255,0.4)",
-                  }}
+                  className={`group relative flex items-center gap-1.5 px-4 py-2 whitespace-nowrap text-xs sm:text-sm font-medium transition-colors ${
+                    active
+                      ? 'bg-primary/15 text-primary'
+                      : 'text-muted-foreground hover:bg-secondary/60 hover:text-foreground'
+                  }`}
+                  style={{ borderRadius: "var(--ios-radius)" }}
                 >
                   <span className="inline-flex">
                     <Icon className="h-3.5 w-3.5" />
