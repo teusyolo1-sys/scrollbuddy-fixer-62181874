@@ -60,7 +60,7 @@ export function useTaskComplaints() {
       description,
     } as any);
     if (error) {
-      console.error("[addComplaint] Supabase error:", error);
+      console.error("Complaint error:", error.message);
       throw new Error(error.message);
     }
     await fetchComplaints();
