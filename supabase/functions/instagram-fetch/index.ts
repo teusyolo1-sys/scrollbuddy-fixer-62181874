@@ -47,8 +47,22 @@ serve(async (req) => {
     if (!profileResponse.ok) {
       const errText = await profileResponse.text();
       console.error("Simple Instagram API error:", profileResponse.status, errText);
+      
+      if (profileResponse.status === 429) {
+        return new Response(
+          JSON.stringify({ error: "Limite de requisições atingido. Aguarde alguns minutos e tente novamente." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      if (profileResponse.status === 403) {
+        return new Response(
+          JSON.stringify({ error: "Você não está inscrito nesta API. Acesse o RapidAPI e clique em Subscribe." }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+      
       return new Response(
-        JSON.stringify({ error: `API error: ${profileResponse.status}`, details: errText }),
+        JSON.stringify({ error: `Erro na API: ${profileResponse.status}`, details: errText }),
         { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
