@@ -167,7 +167,7 @@ function ChartByStyle({ style, data, color, type }: {
                 <stop offset="95%" stopColor={color} stopOpacity={0.05} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
