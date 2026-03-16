@@ -20,6 +20,7 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    
 
     const { username } = await req.json();
     if (!username) {
