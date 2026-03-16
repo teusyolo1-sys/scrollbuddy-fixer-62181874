@@ -176,18 +176,20 @@ function ChartByStyle({ style, data, color, type }: {
         </ResponsiveContainer>
       );
 
-    case "bar":
+    case "bar": {
+      const dynamicBarSize = data.length <= 2 ? 32 : data.length <= 4 ? 22 : 14;
       return (
         <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={data} layout="vertical" barSize={14} maxBarSize={20}>
+          <BarChart data={data} layout="vertical" barSize={dynamicBarSize} maxBarSize={40}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
             <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
-            <Bar dataKey="value" fill={color} radius={[0, 4, 4, 0]} />
+            <Bar dataKey="value" fill={color} radius={[0, 6, 6, 0]} />
           </BarChart>
         </ResponsiveContainer>
       );
+    }
 
     case "column":
       return (
