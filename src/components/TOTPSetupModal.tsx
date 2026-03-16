@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, X, Loader2, Copy, Check } from "lucide-react";
+import { ShieldCheck, X, Loader2, Copy, Check, ShieldOff, RefreshCw } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useTOTP } from "@/hooks/useTOTP";
@@ -12,15 +12,36 @@ interface Props {
   onClose: () => void;
 }
 
+type Step = "loading" | "already_configured" | "scan" | "done";
+
 export default function TOTPSetupModal({ open, onClose }: Props) {
-  const { setup, verifySetup } = useTOTP();
-  const [step, setStep] = useState<"loading" | "scan" | "done">("loading");
+  const { isConfigured, setup, verifySetup, disable } = useTOTP();
+  const [step, setStep] = useState<Step>("loading");
   const [otpData, setOtpData] = useState<{ secret: string; qr_data: string } | null>(null);
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const handleOpen = async () => {
+  const hasStarted = useRef(false);
+
+  useEffect(() => {
+    if (open && !hasStarted.current) {
+      hasStarted.current = true;
+      if (isConfigured) {
+        setStep("already_configured");
+      } else {
+        startSetup();
+      }
+    }
+    if (!open) {
+      hasStarted.current = false;
+      setOtpData(null);
+      setStep("loading");
+      setCode("");
+    }
+  }, [open, isConfigured]);
+
+  const startSetup = async () => {
     setStep("loading");
     setCode("");
     try {
@@ -48,6 +69,22 @@ export default function TOTPSetupModal({ open, onClose }: Props) {
     }
   };
 
+  const handleDisable = async () => {
+    setVerifying(true);
+    try {
+      await disable();
+      toast({ title: "2FA desativado" });
+      onClose();
+    } catch {
+      toast({ title: "Erro ao desativar 2FA", variant: "destructive" });
+    }
+    setVerifying(false);
+  };
+
+  const handleReconfigure = async () => {
+    await startSetup();
+  };
+
   const copySecret = () => {
     if (otpData?.secret) {
       navigator.clipboard.writeText(otpData.secret);
@@ -55,20 +92,6 @@ export default function TOTPSetupModal({ open, onClose }: Props) {
       setTimeout(() => setCopied(false), 2000);
     }
   };
-
-  // Trigger setup when modal opens
-  const hasStarted = useRef(false);
-  useEffect(() => {
-    if (open && !hasStarted.current) {
-      hasStarted.current = true;
-      handleOpen();
-    }
-    if (!open) {
-      hasStarted.current = false;
-      setOtpData(null);
-      setStep("loading");
-    }
-  }, [open]);
 
   if (!open) return null;
 
@@ -98,7 +121,9 @@ export default function TOTPSetupModal({ open, onClose }: Props) {
                   <ShieldCheck className="h-5 w-5 text-amber-500" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-bold text-foreground">Configurar 2FA</h2>
+                  <h2 className="text-lg font-bold text-foreground">
+                    {step === "already_configured" ? "2FA Ativo" : "Configurar 2FA"}
+                  </h2>
                   <p className="text-xs text-muted-foreground">Google Authenticator ou Authy</p>
                 </div>
               </div>
@@ -115,6 +140,38 @@ export default function TOTPSetupModal({ open, onClose }: Props) {
                 </div>
               )}
 
+              {step === "already_configured" && (
+                <div className="py-4 text-center w-full space-y-5">
+                  <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto">
+                    <ShieldCheck className="h-8 w-8 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="text-lg font-bold text-foreground">2FA já está ativo</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Sua conta está protegida com autenticação de dois fatores.
+                    </p>
+                  </div>
+                  <div className="space-y-2">
+                    <button
+                      onClick={handleReconfigure}
+                      disabled={verifying}
+                      className="w-full py-3 rounded-2xl bg-secondary text-foreground font-semibold text-sm hover:bg-secondary/80 transition-colors flex items-center justify-center gap-2"
+                    >
+                      <RefreshCw className="h-4 w-4" />
+                      Reconfigurar 2FA
+                    </button>
+                    <button
+                      onClick={handleDisable}
+                      disabled={verifying}
+                      className="w-full py-3 rounded-2xl bg-destructive/10 text-destructive font-semibold text-sm hover:bg-destructive/20 transition-colors flex items-center justify-center gap-2"
+                    >
+                      {verifying ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldOff className="h-4 w-4" />}
+                      Desativar 2FA
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {step === "scan" && otpData && (
                 <>
                   <p className="text-sm text-muted-foreground text-center">
@@ -124,7 +181,6 @@ export default function TOTPSetupModal({ open, onClose }: Props) {
                     <QRCodeSVG value={otpData.qr_data} size={200} />
                   </div>
 
-                  {/* Manual secret */}
                   <div className="w-full">
                     <p className="text-xs text-muted-foreground mb-1.5">Ou digite o código manualmente:</p>
                     <div className="flex items-center gap-2 p-2.5 rounded-xl bg-secondary/50 border border-border">
@@ -137,7 +193,6 @@ export default function TOTPSetupModal({ open, onClose }: Props) {
                     </div>
                   </div>
 
-                  {/* OTP input */}
                   <div className="w-full">
                     <p className="text-xs text-muted-foreground mb-2">Digite o código de 6 dígitos:</p>
                     <div className="flex justify-center">

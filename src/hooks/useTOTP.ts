@@ -34,5 +34,11 @@ export function useTOTP() {
     return data?.valid || false;
   }, []);
 
-  return { isConfigured, loading, setup, verifySetup, verify };
+  const disable = useCallback(async () => {
+    const { error } = await supabase.functions.invoke('totp-manage', { body: { action: 'disable' } });
+    if (error) throw error;
+    setIsConfigured(false);
+  }, []);
+
+  return { isConfigured, loading, setup, verifySetup, verify, disable };
 }
