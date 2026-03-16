@@ -131,8 +131,9 @@ function ChartByStyle({ style, data, color, type }: {
   const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))" };
   const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
 
-  // Prepare cumulative data for pareto
+  // Only compute pareto data when needed
   const paretoData = useMemo(() => {
+    if (style !== "pareto") return data;
     const sorted = [...data].sort((a, b) => b.value - a.value);
     const total = sorted.reduce((s, d) => s + d.value, 0);
     let cum = 0;
@@ -140,7 +141,7 @@ function ChartByStyle({ style, data, color, type }: {
       cum += d.value;
       return { ...d, cum: total > 0 ? parseFloat(((cum / total) * 100).toFixed(1)) : 0 };
     });
-  }, [data]);
+  }, [data, style]);
 
   switch (style) {
     case "line":
