@@ -127,8 +127,8 @@ function ChartByStyle({ style, data, color, type }: {
 }) {
   const cfg = METRIC_CONFIG[type as MetricType];
   const gradientId = `grad-${type}-${style}-${color.replace("#", "")}`;
-  const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11 };
-  const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))" };
+  const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
+  const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))", opacity: 0.7 };
   const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
 
   // Only compute pareto data when needed
