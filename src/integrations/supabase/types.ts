@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_totp: {
+        Row: {
+          created_at: string
+          id: string
+          is_verified: boolean
+          totp_secret: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          totp_secret: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_verified?: boolean
+          totp_secret?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       agency_expenses: {
         Row: {
           amount: number
@@ -388,12 +412,15 @@ export type Database = {
       }
       companies: {
         Row: {
+          archived_at: string | null
           banner_url: string | null
           color: string
           company_data: Json
           created_at: string
           created_by: string
+          display_order: number
           id: string
+          is_archived: boolean
           logo_url: string | null
           month: string
           name: string
@@ -401,12 +428,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          archived_at?: string | null
           banner_url?: string | null
           color?: string
           company_data?: Json
           created_at?: string
           created_by: string
+          display_order?: number
           id?: string
+          is_archived?: boolean
           logo_url?: string | null
           month?: string
           name?: string
@@ -414,12 +444,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          archived_at?: string | null
           banner_url?: string | null
           color?: string
           company_data?: Json
           created_at?: string
           created_by?: string
+          display_order?: number
           id?: string
+          is_archived?: boolean
           logo_url?: string | null
           month?: string
           name?: string

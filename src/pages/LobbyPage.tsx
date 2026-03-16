@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil, Wallet, Sun, Moon, Monitor, Trash2 } from "lucide-react";
+import { Plus, Building2, Users, ArrowRight, LogIn, LogOut, Shield, ImagePlus, Pencil, Wallet, Sun, Moon, Monitor, Trash2, Archive, RotateCcw, ChevronDown, ShieldCheck } from "lucide-react";
 import { useTheme } from "@/hooks/useTheme";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
@@ -7,7 +7,14 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useAgencyWallet } from "@/hooks/useAgencyWallet";
+import { useTOTP } from "@/hooks/useTOTP";
 import TrashBinModal from "@/components/TrashBinModal";
+import TOTPSetupModal from "@/components/TOTPSetupModal";
+import DeleteCompanyModal from "@/components/DeleteCompanyModal";
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
+import { SortableContext, rectSortingStrategy, useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { toast } from "@/hooks/use-toast";
 
 interface CompanyCard {
   id: string;
@@ -18,42 +25,8 @@ interface CompanyCard {
   color: string;
   bannerUrl?: string;
   logoUrl?: string;
-}
-
-const STORAGE_KEY = "endocenter_settings";
-const COMPANIES_KEY = "endocenter_companies";
-
-function loadCompanies(): CompanyCard[] {
-  try {
-    const raw = localStorage.getItem(COMPANIES_KEY);
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const data = JSON.parse(raw);
-      return [{
-        id: "default",
-        name: data.company?.name || "Endocenter",
-        subtitle: data.company?.subtitle || "Gestão operacional",
-        month: data.company?.month || "Março 2025",
-        memberCount: data.team?.length || 4,
-        color: "#007AFF",
-      }];
-    }
-  } catch {}
-  return [{
-    id: "default",
-    name: "Endocenter",
-    subtitle: "Gestão operacional de marketing",
-    month: "Março 2025",
-    memberCount: 4,
-    color: "#007AFF",
-  }];
-}
-
-function saveCompanies(companies: CompanyCard[]) {
-  localStorage.setItem(COMPANIES_KEY, JSON.stringify(companies));
+  isArchived?: boolean;
+  displayOrder?: number;
 }
 
 const gradients = [
@@ -146,12 +119,22 @@ export default function LobbyPage() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { isAdmin } = useUserRole();
   const { profit, totalRevenue, loading: walletLoading } = useAgencyWallet();
+  const { isConfigured: totpConfigured } = useTOTP();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [walletHovered, setWalletHovered] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
+  const [totpSetupOpen, setTotpSetupOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState<{ open: boolean; company: CompanyCard | null }>({ open: false, company: null });
+  const [archiveConfirm, setArchiveConfirm] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
   const [companies, setCompanies] = useState<CompanyCard[]>([]);
   const [loadingCompanies, setLoadingCompanies] = useState(true);
   const navigate = useNavigate();
+
+  // DnD sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
 
   // Load companies from backend
   useEffect(() => {
@@ -160,6 +143,7 @@ export default function LobbyPage() {
       const { data } = await supabase
         .from('companies')
         .select('*')
+        .order('display_order', { ascending: true })
         .order('created_at', { ascending: true }) as { data: any[] | null };
       
       if (data && data.length > 0) {
@@ -172,36 +156,14 @@ export default function LobbyPage() {
           color: c.color,
           bannerUrl: c.banner_url,
           logoUrl: c.logo_url,
+          isArchived: c.is_archived || false,
+          displayOrder: c.display_order || 0,
         })));
-      } else {
-        // Migrate from localStorage on first load (admin only)
-        if (isAdmin) {
-          const legacy = loadCompanies();
-          for (const c of legacy) {
-            const { data: inserted } = await supabase
-              .from('companies')
-              .insert({
-                name: c.name,
-                subtitle: c.subtitle,
-                month: c.month,
-                color: c.color,
-                banner_url: c.bannerUrl,
-                logo_url: c.logoUrl,
-                created_by: user.id,
-              } as any)
-              .select()
-              .single() as { data: any };
-            if (inserted) {
-              c.id = inserted.id;
-            }
-          }
-          setCompanies(legacy.map(c => ({ ...c })));
-        }
       }
       setLoadingCompanies(false);
     };
     fetchCompanies();
-  }, [user, isAdmin]);
+  }, [user]);
 
   if (!authLoading && !user) { navigate("/auth", { replace: true }); return null; }
   if (authLoading || loadingCompanies) {
@@ -212,9 +174,11 @@ export default function LobbyPage() {
     );
   }
 
+  const activeCompanies = companies.filter(c => !c.isArchived);
+  const archivedCompanies = companies.filter(c => c.isArchived);
+
   const updateCompany = async (id: string, updates: Partial<CompanyCard>) => {
     setCompanies(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
-    // Persist to DB
     const dbUpdates: any = {};
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.subtitle !== undefined) dbUpdates.subtitle = updates.subtitle;
@@ -237,14 +201,13 @@ export default function LobbyPage() {
         month,
         color,
         created_by: user!.id,
+        display_order: activeCompanies.length,
       } as any)
       .select()
       .single() as { data: any };
     
     if (data) {
-      // Garantir que não há dados residuais no localStorage para esta empresa
       localStorage.removeItem(`endocenter_${data.id}`);
-      
       setCompanies(prev => [...prev, {
         id: data.id,
         name: data.name,
@@ -254,8 +217,52 @@ export default function LobbyPage() {
         color: data.color,
         bannerUrl: data.banner_url,
         logoUrl: data.logo_url,
+        isArchived: false,
+        displayOrder: data.display_order || 0,
       }]);
     }
+  };
+
+  const archiveCompany = async (id: string) => {
+    await supabase.from('companies').update({
+      is_archived: true,
+      archived_at: new Date().toISOString(),
+    } as any).eq('id', id);
+    setCompanies(prev => prev.map(c => c.id === id ? { ...c, isArchived: true } : c));
+    setArchiveConfirm(null);
+    toast({ title: "Empresa arquivada" });
+  };
+
+  const restoreCompany = async (id: string) => {
+    await supabase.from('companies').update({
+      is_archived: false,
+      archived_at: null,
+    } as any).eq('id', id);
+    setCompanies(prev => prev.map(c => c.id === id ? { ...c, isArchived: false } : c));
+    toast({ title: "Empresa restaurada" });
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = activeCompanies.findIndex(c => c.id === active.id);
+    const newIndex = activeCompanies.findIndex(c => c.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = [...activeCompanies];
+    const [moved] = reordered.splice(oldIndex, 1);
+    reordered.splice(newIndex, 0, moved);
+
+    // Update local state
+    const updatedAll = [...reordered.map((c, i) => ({ ...c, displayOrder: i })), ...archivedCompanies];
+    setCompanies(updatedAll);
+
+    // Persist to DB
+    const updates = reordered.map((c, i) =>
+      supabase.from('companies').update({ display_order: i } as any).eq('id', c.id)
+    );
+    await Promise.all(updates);
   };
 
   const openCompany = (company: CompanyCard) => navigate(`/endocenter/${company.id}`);
@@ -263,7 +270,6 @@ export default function LobbyPage() {
   return (
     <>
     <div className="min-h-screen relative">
-      {/* Animated background */}
       <AnimatedBackground />
 
       {/* Hero */}
@@ -285,7 +291,18 @@ export default function LobbyPage() {
                   </span>
                    {isAdmin && (
                     <>
-                      {/* Wallet icon with hover balance */}
+                      {/* 2FA setup button */}
+                      {!totpConfigured && (
+                        <motion.button
+                          whileTap={{ scale: 0.9 }}
+                          onClick={() => setTotpSetupOpen(true)}
+                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
+                          title="Configurar 2FA"
+                        >
+                          <ShieldCheck className="h-4 w-4" />
+                        </motion.button>
+                      )}
+                      {/* Wallet */}
                       <div className="relative" onMouseEnter={() => setWalletHovered(true)} onMouseLeave={() => setWalletHovered(false)}>
                         <motion.button
                           whileTap={{ scale: 0.9 }}
@@ -370,46 +387,205 @@ export default function LobbyPage() {
 
       {/* Company cards grid */}
       <div className="relative max-w-5xl mx-auto px-6 -mt-4 pb-20">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {companies.map((company, i) => (
-            <CompanyCardItem
-              key={company.id}
-              company={company}
-              index={i}
-              isAdmin={isAdmin}
-              onOpen={() => openCompany(company)}
-              onUpdate={(updates) => updateCompany(company.id, updates)}
-            />
-          ))}
+        {/* Active companies with drag & drop */}
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext items={activeCompanies.map(c => c.id)} strategy={rectSortingStrategy}>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {activeCompanies.map((company, i) => (
+                <SortableCompanyCard
+                  key={company.id}
+                  company={company}
+                  index={i}
+                  isAdmin={isAdmin}
+                  onOpen={() => openCompany(company)}
+                  onUpdate={(updates) => updateCompany(company.id, updates)}
+                  onArchive={() => setArchiveConfirm(company.id)}
+                  onDelete={() => setDeleteModal({ open: true, company })}
+                />
+              ))}
 
-          {isAdmin && (
-            <motion.button
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: companies.length * 0.08, type: "spring", damping: 22 }}
-              onClick={addCompany}
-              className="liquid-glass-card border border-border/40 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
-              style={{ boxShadow: "none" }}
-            >
-              <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-                <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
-              </div>
-              <span className="text-sm font-medium text-muted-foreground mt-3 group-hover:text-primary transition-colors">Nova empresa</span>
-            </motion.button>
-          )}
+              {isAdmin && (
+                <motion.button
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: activeCompanies.length * 0.08, type: "spring", damping: 22 }}
+                  onClick={addCompany}
+                  className="liquid-glass-card border border-border/40 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
+                  style={{ boxShadow: "none" }}
+                >
+                  <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+                    <Plus className="h-6 w-6 text-muted-foreground group-hover:text-primary transition-colors" />
+                  </div>
+                  <span className="text-sm font-medium text-muted-foreground mt-3 group-hover:text-primary transition-colors">Nova empresa</span>
+                </motion.button>
+              )}
 
-          {companies.length === 0 && !isAdmin && (
-            <div className="col-span-full text-center py-16">
-              <Building2 className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
-              <p className="text-muted-foreground text-sm">Você ainda não tem acesso a nenhuma empresa.</p>
-              <p className="text-xs text-muted-foreground mt-1">Peça ao administrador para liberar seu acesso.</p>
+              {activeCompanies.length === 0 && !isAdmin && (
+                <div className="col-span-full text-center py-16">
+                  <Building2 className="h-12 w-12 text-muted-foreground/40 mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">Você ainda não tem acesso a nenhuma empresa.</p>
+                  <p className="text-xs text-muted-foreground mt-1">Peça ao administrador para liberar seu acesso.</p>
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </SortableContext>
+        </DndContext>
+
+        {/* Archived companies section */}
+        {isAdmin && archivedCompanies.length > 0 && (
+          <div className="mt-10">
+            <button
+              onClick={() => setShowArchived(!showArchived)}
+              className="flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors mb-4"
+            >
+              <Archive className="h-4 w-4" />
+              Empresas arquivadas ({archivedCompanies.length})
+              <motion.div animate={{ rotate: showArchived ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                <ChevronDown className="h-4 w-4" />
+              </motion.div>
+            </button>
+
+            <AnimatePresence>
+              {showArchived && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {archivedCompanies.map((company, i) => (
+                      <div key={company.id} className="opacity-60 hover:opacity-80 transition-opacity relative">
+                        <CompanyCardItem
+                          company={company}
+                          index={i}
+                          isAdmin={false}
+                          onOpen={() => {}}
+                          onUpdate={() => {}}
+                        />
+                        {/* Overlay with restore/delete */}
+                        <div className="absolute inset-0 rounded-3xl flex items-center justify-center gap-3 bg-background/40 backdrop-blur-[2px] opacity-0 hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => restoreCompany(company.id)}
+                            className="px-4 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
+                          >
+                            <RotateCcw className="h-4 w-4" /> Restaurar
+                          </button>
+                          <button
+                            onClick={() => setDeleteModal({ open: true, company })}
+                            className="px-4 py-2 rounded-xl bg-destructive text-destructive-foreground text-sm font-semibold flex items-center gap-2 hover:opacity-90 transition-opacity"
+                          >
+                            <Trash2 className="h-4 w-4" /> Deletar
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        )}
       </div>
     </div>
+
+    {/* Archive confirmation overlay */}
+    <AnimatePresence>
+      {archiveConfirm && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+          onClick={() => setArchiveConfirm(null)}
+        >
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+          <motion.div
+            initial={{ scale: 0.92, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.92, opacity: 0 }}
+            onClick={(e) => e.stopPropagation()}
+            className="relative bg-card border border-border rounded-3xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4"
+          >
+            <div className="w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mx-auto">
+              <Archive className="h-6 w-6 text-amber-500" />
+            </div>
+            <div>
+              <p className="font-bold text-foreground">
+                Arquivar "{companies.find(c => c.id === archiveConfirm)?.name}"?
+              </p>
+              <p className="text-sm text-muted-foreground mt-1">A empresa ficará oculta mas não será deletada.</p>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => setArchiveConfirm(null)}
+                className="px-5 py-2 rounded-xl bg-secondary text-foreground text-sm font-medium hover:bg-secondary/80 transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => archiveCompany(archiveConfirm)}
+                className="px-5 py-2 rounded-xl bg-amber-500 text-white text-sm font-semibold hover:bg-amber-600 transition-colors"
+              >
+                Arquivar
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+
+    {/* Modals */}
     {isAdmin && <TrashBinModal open={trashOpen} onClose={() => setTrashOpen(false)} />}
+    <TOTPSetupModal open={totpSetupOpen} onClose={() => setTotpSetupOpen(false)} />
+    {deleteModal.company && (
+      <DeleteCompanyModal
+        open={deleteModal.open}
+        onClose={() => setDeleteModal({ open: false, company: null })}
+        companyName={deleteModal.company.name}
+        companyId={deleteModal.company.id}
+        onDeleted={() => {
+          setCompanies(prev => prev.filter(c => c.id !== deleteModal.company?.id));
+        }}
+        onSetup2FA={() => setTotpSetupOpen(true)}
+      />
+    )}
     </>
+  );
+}
+
+/* ── Sortable wrapper ── */
+function SortableCompanyCard({ company, index, isAdmin, onOpen, onUpdate, onArchive, onDelete }: {
+  company: CompanyCard;
+  index: number;
+  isAdmin: boolean;
+  onOpen: () => void;
+  onUpdate: (updates: Partial<CompanyCard>) => void;
+  onArchive: () => void;
+  onDelete: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: company.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+    zIndex: isDragging ? 50 : 'auto' as any,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+      <CompanyCardItem
+        company={company}
+        index={index}
+        isAdmin={isAdmin}
+        onOpen={onOpen}
+        onUpdate={onUpdate}
+        onArchive={onArchive}
+        onDelete={onDelete}
+      />
+    </div>
   );
 }
 
@@ -420,12 +596,16 @@ function CompanyCardItem({
   isAdmin,
   onOpen,
   onUpdate,
+  onArchive,
+  onDelete,
 }: {
   company: CompanyCard;
   index: number;
   isAdmin: boolean;
   onOpen: () => void;
   onUpdate: (updates: Partial<CompanyCard>) => void;
+  onArchive?: () => void;
+  onDelete?: () => void;
 }) {
   const gradient = gradients[index % gradients.length];
   const [editingName, setEditingName] = useState(false);
@@ -462,7 +642,6 @@ function CompanyCardItem({
       transition={{ delay: Math.min(index * 0.05, 0.15), type: "spring", damping: 22, stiffness: 300 }}
       className="liquid-glass-card border border-border/40 rounded-3xl p-0 text-left overflow-hidden group cursor-pointer hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
       onClick={(e) => {
-        // Don't navigate if editing
         if (editingName || editingSubtitle) return;
         onOpen();
       }}
@@ -483,6 +662,30 @@ function CompanyCardItem({
           <div className="w-full h-full" style={{ background: gradient }} />
         )}
         <div className="absolute inset-0 bg-black/5" />
+
+        {/* Admin action buttons - top left */}
+        {isAdmin && (onArchive || onDelete) && (
+          <div className="absolute top-2.5 left-2.5 z-10 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+            {onArchive && (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onArchive(); }}
+                className="w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-amber-500/80 transition-all"
+                title="Arquivar empresa"
+              >
+                <Archive className="h-4 w-4" />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+                className="w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-red-500/80 transition-all"
+                title="Deletar empresa"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        )}
 
         {isAdmin && (
           <button
