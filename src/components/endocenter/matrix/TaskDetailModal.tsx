@@ -60,8 +60,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [complaintDesc, setComplaintDesc] = useState("");
   const [submittingComplaint, setSubmittingComplaint] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
-  const editorRef = useRef<RichTextEditorHandle>(null);
+  const editorRef = useRef<BlockEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const [viewingPdf, setViewingPdf] = useState<string | null>(null);
 
   useEffect(() => {
     if (editingTitle && titleRef.current) titleRef.current.focus();
