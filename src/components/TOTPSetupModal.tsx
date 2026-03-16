@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, X, Loader2, Copy, Check } from "lucide-react";
@@ -57,9 +57,18 @@ export default function TOTPSetupModal({ open, onClose }: Props) {
   };
 
   // Trigger setup when modal opens
-  if (open && step === "loading" && !otpData) {
-    handleOpen();
-  }
+  const hasStarted = useRef(false);
+  useEffect(() => {
+    if (open && !hasStarted.current) {
+      hasStarted.current = true;
+      handleOpen();
+    }
+    if (!open) {
+      hasStarted.current = false;
+      setOtpData(null);
+      setStep("loading");
+    }
+  }, [open]);
 
   if (!open) return null;
 
