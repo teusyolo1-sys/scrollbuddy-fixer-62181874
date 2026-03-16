@@ -75,6 +75,7 @@ function SideSection({
 export default function TaskDetailModal({ item, roleColor, roleName, teamMembers, onUpdate, onDelete, onClose }: Props) {
   const { user } = useAuth();
   const { addComplaint } = useTaskComplaints();
+  const { messages: chatMessages } = useChatMessages(item.id);
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState(item.task);
   const [description, setDescription] = useState(item.description);
