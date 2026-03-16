@@ -290,6 +290,9 @@ export default function TeamDashboard({ companyId }: { companyId?: string }) {
       {/* Metrics — Fluid morph segmented control */}
       {isAdmin && <AnalyticsCharts companyId={companyId} />}
 
+      {/* Social Media Accounts */}
+      <SocialMediaSection companyId={companyId} />
+
       {/* Metrics registered */}
       <div className="ios-card p-5 space-y-4">
         <div className="flex items-center justify-between flex-wrap gap-2">
