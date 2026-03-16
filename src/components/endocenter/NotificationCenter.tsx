@@ -65,7 +65,7 @@ export default function NotificationCenter({ onNavigateToTask }: NotificationCen
         whileHover={{ scale: 1.15 }}
         transition={{ type: "spring", stiffness: 500, damping: 14 }}
         onClick={handleOpen}
-        className="relative w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+        className="relative w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
         title="Notificações"
       >
         <motion.div
