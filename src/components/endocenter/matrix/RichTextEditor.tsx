@@ -204,6 +204,15 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const escapeHtml = useCallback((text: string) => {
+    return text
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#39;");
+  }, []);
+
   const importDocument = useCallback(async (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
 
@@ -218,47 +227,89 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
         toast.success("Documento Word importado!");
       } else if (ext === "pdf") {
         const arrayBuffer = await file.arrayBuffer();
-        // Load pdf.js from CDN to avoid bundling issues
-        const PDFJS_VERSION = "4.4.168";
-        const cdnBase = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}`;
-        if (!(window as any).pdfjsLib) {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = `${cdnBase}/pdf.min.mjs`;
-            script.type = "module";
-            script.onload = () => resolve();
-            script.onerror = reject;
-            document.head.appendChild(script);
-          });
-        }
-        // Fallback: use global pdfjsLib or dynamic import from CDN
-        let pdfjsLib = (window as any).pdfjsLib;
-        if (!pdfjsLib) {
-          // Use dynamic import from CDN
-          const mod = await import(/* @vite-ignore */ `${cdnBase}/pdf.min.mjs`);
-          pdfjsLib = mod;
-          (window as any).pdfjsLib = pdfjsLib;
-        }
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `${cdnBase}/pdf.worker.min.mjs`;
+        const pdfjsLib = await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs";
+
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let html = "";
-        const scale = 2;
+        let importedAsImage = false;
+
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale });
+          const content = await page.getTextContent();
+          const items = content.items as Array<{ str?: string; transform?: number[]; hasEOL?: boolean }>;
+
+          const lines: string[] = [];
+          let currentLine: string[] = [];
+          let lastY: number | null = null;
+
+          for (const item of items) {
+            const rawText = item.str?.trim();
+            const y = item.transform?.[5] ?? null;
+
+            if (!rawText) {
+              if (item.hasEOL && currentLine.length > 0) {
+                lines.push(currentLine.join(" "));
+                currentLine = [];
+                lastY = null;
+              }
+              continue;
+            }
+
+            const shouldBreakLine = lastY !== null && y !== null && Math.abs(y - lastY) > 4;
+            if (shouldBreakLine && currentLine.length > 0) {
+              lines.push(currentLine.join(" "));
+              currentLine = [];
+            }
+
+            currentLine.push(this.escapeHtml ? this.escapeHtml(rawText) : rawText);
+            lastY = y;
+
+            if (item.hasEOL) {
+              lines.push(currentLine.join(" "));
+              currentLine = [];
+              lastY = null;
+            }
+          }
+
+          if (currentLine.length > 0) {
+            lines.push(currentLine.join(" "));
+          }
+
+          const cleanedLines = lines.filter((line) => line.trim().length > 0);
+
+          if (cleanedLines.length > 0) {
+            html += `<section data-pdf-page="${i}">${cleanedLines.map((line) => `<p>${line}</p>`).join("")}</section>`;
+            if (i < pdf.numPages) {
+              html += "<hr />";
+            }
+            continue;
+          }
+
+          importedAsImage = true;
+          const viewport = page.getViewport({ scale: 2 });
           const canvas = document.createElement("canvas");
           canvas.width = viewport.width;
           canvas.height = viewport.height;
-          const ctx = canvas.getContext("2d")!;
+          const ctx = canvas.getContext("2d");
+
+          if (!ctx) continue;
+
           await page.render({ canvasContext: ctx, viewport }).promise;
           const dataUrl = canvas.toDataURL("image/png");
-          html += `<div style="margin-bottom:12px;"><img src="${dataUrl}" style="max-width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);" /></div>`;
+          html += `<figure><img src="${dataUrl}" alt="Página ${i} do PDF" /></figure>`;
         }
+
         if (editorRef.current) {
           editorRef.current.innerHTML += html;
           emitChange();
         }
-        toast.success("PDF importado com design!");
+
+        toast.success(
+          importedAsImage
+            ? "PDF importado; páginas sem texto ficaram como imagem."
+            : "PDF importado como conteúdo editável!"
+        );
       } else if (ext === "txt" || ext === "md") {
         const text = await file.text();
         const html = text.split("\n").map((l) => `<p>${l || "<br>"}</p>`).join("");
@@ -274,7 +325,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
       console.error("Import error:", err);
       toast.error("Erro ao importar documento");
     }
-  }, [emitChange]);
+  }, [emitChange, escapeHtml]);
 
   const toggleBlock = useCallback((tag: string) => {
     restoreSelection();
