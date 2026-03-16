@@ -329,11 +329,21 @@ export default function LobbyPage() {
                     </>
                   )}
                   <button
-                    onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                    onClick={() => {
+                      if (theme === "system") setTheme("light");
+                      else if (theme === "light") setTheme("dark");
+                      else setTheme("system");
+                    }}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
-                    title="Alternar tema"
+                    title={theme === "system" ? "Tema: Automático" : theme === "dark" ? "Tema: Escuro" : "Tema: Claro"}
                   >
-                    {resolvedTheme === "dark" ? <Sun className="h-4 w-4 text-amber-400" /> : <Moon className="h-4 w-4" />}
+                    {theme === "system" ? (
+                      <Monitor className="h-4 w-4 text-muted-foreground" />
+                    ) : resolvedTheme === "dark" ? (
+                      <Sun className="h-4 w-4 text-amber-400" />
+                    ) : (
+                      <Moon className="h-4 w-4" />
+                    )}
                   </button>
                   <button
                     onClick={async () => { await signOut(); }}
