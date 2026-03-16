@@ -396,6 +396,18 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
 
         <ToolBtn onClick={insertLink} title="Link"><Link2 className="h-3.5 w-3.5" /></ToolBtn>
         <ToolBtn onClick={insertImage} title="Imagem"><Image className="h-3.5 w-3.5" /></ToolBtn>
+        <ToolBtn onClick={() => fileInputRef.current?.click()} title="Importar documento"><FileUp className="h-3.5 w-3.5" /></ToolBtn>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".docx,.pdf,.txt,.md"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) importDocument(file);
+            e.target.value = "";
+          }}
+        />
         <Divider />
         <ToolBtn onClick={() => exec("removeFormat")} title="Limpar formatação"><RemoveFormatting className="h-3.5 w-3.5" /></ToolBtn>
       </div>
