@@ -1,5 +1,6 @@
 import { useEffect, useCallback, useState, useRef, forwardRef, useImperativeHandle } from "react";
 import { useEditor, EditorContent, Extension } from "@tiptap/react";
+import * as pdfjsLib from "pdfjs-dist";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import ImageExt from "@tiptap/extension-image";
