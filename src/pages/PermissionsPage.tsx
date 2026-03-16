@@ -33,26 +33,6 @@ interface CompanyPerm {
   granted: boolean;
 }
 
-const COMPANIES_KEY = "endocenter_companies";
-const STORAGE_KEY = "endocenter_settings";
-
-function loadCompanyList(): { id: string; name: string }[] {
-  try {
-    const raw = localStorage.getItem(COMPANIES_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return parsed.map((c: any) => ({ id: c.id, name: c.name }));
-    }
-  } catch {}
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const data = JSON.parse(raw);
-      return [{ id: "default", name: data.company?.name || "Endocenter" }];
-    }
-  } catch {}
-  return [{ id: "default", name: "Endocenter" }];
-}
 
 function getInitials(name: string | null, email: string | null) {
   if (name) return name.slice(0, 2).toUpperCase();
@@ -375,9 +355,9 @@ export default function PermissionsPage() {
   const [loadingUsers, setLoadingUsers] = useState(true);
   const [companyPerms, setCompanyPerms] = useState<CompanyPerm[]>([]);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
+  const [companies, setCompanies] = useState<{ id: string; name: string }[]>([]);
+  const [loadingCompanies, setLoadingCompanies] = useState(true);
   const navigate = useNavigate();
-
-  const companies = loadCompanyList();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -386,6 +366,18 @@ export default function PermissionsPage() {
       setLoadingUsers(false);
     };
     if (user) fetchUsers();
+  }, [user]);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      const { data } = await supabase
+        .from('companies')
+        .select('id, name')
+        .order('created_at', { ascending: true });
+      setCompanies((data || []) as { id: string; name: string }[]);
+      setLoadingCompanies(false);
+    };
+    if (user) fetchCompanies();
   }, [user]);
 
   useEffect(() => {
@@ -425,7 +417,7 @@ export default function PermissionsPage() {
     toast.success(!allGranted ? 'Todas concedidas' : 'Todas revogadas');
   };
 
-  if (roleLoading || permLoading) {
+  if (roleLoading || permLoading || loadingCompanies) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
