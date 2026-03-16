@@ -231,8 +231,20 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
   onFetchApi?: () => void;
 }) {
   const [fetching, setFetching] = useState(false);
+  const [showChart, setShowChart] = useState(false);
+  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const cfg = PLATFORM_CONFIG[account.platform];
   const PlatformIcon = PLATFORM_ICONS[account.platform];
+
+  const handleMouseEnter = useCallback(() => {
+    hoverTimer.current = setTimeout(() => setShowChart(true), 2000);
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (hoverTimer.current) clearTimeout(hoverTimer.current);
+    hoverTimer.current = null;
+    setShowChart(false);
+  }, []);
 
   const formatNumber = (n: number) => {
     if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
@@ -247,11 +259,15 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
     { label: 'Posts', value: String(account.posts_count), icon: MessageCircle },
   ];
 
+  const hasHistory = metricsHistory.length > 1;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="ios-card p-0 overflow-hidden group"
+      className="ios-card p-0 overflow-hidden group relative"
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Header with platform color */}
       <div className="px-5 pt-4 pb-3 flex items-center justify-between">
@@ -321,26 +337,54 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
         })}
       </div>
 
-      {/* Mini chart */}
-      {metricsHistory.length > 1 && (
-        <div className="px-3 pb-3">
-          <ResponsiveContainer width="100%" height={60}>
-            <AreaChart data={metricsHistory}>
-              <defs>
-                <linearGradient id={`grad-${account.id}`} x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={cfg.color} stopOpacity={0.3} />
-                  <stop offset="100%" stopColor={cfg.color} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area type="monotone" dataKey="followers" stroke={cfg.color} strokeWidth={2} fill={`url(#grad-${account.id})`} />
-            </AreaChart>
-          </ResponsiveContainer>
-          <p className="text-[9px] text-muted-foreground text-center mt-0.5">Evolução de seguidores</p>
-        </div>
-      )}
+      {/* Hover chart overlay — appears after 2s hover */}
+      <AnimatePresence>
+        {showChart && hasHistory && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 140 }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ type: "spring", damping: 22, stiffness: 260 }}
+            className="px-4 overflow-hidden"
+          >
+            <div className="flex items-center gap-1.5 mb-1">
+              <TrendingUp className="h-3 w-3 text-muted-foreground" />
+              <p className="text-[10px] font-semibold text-muted-foreground">Evolução de seguidores</p>
+            </div>
+            <ResponsiveContainer width="100%" height={100}>
+              <AreaChart data={metricsHistory}>
+                <defs>
+                  <linearGradient id={`hgrad-${account.id}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={cfg.color} stopOpacity={0.3} />
+                    <stop offset="100%" stopColor={cfg.color} stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.1)" />
+                <XAxis dataKey="date" tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                <YAxis tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={35} />
+                <Tooltip
+                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 11 }}
+                  labelStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Area type="monotone" dataKey="followers" stroke={cfg.color} strokeWidth={2} fill={`url(#hgrad-${account.id})`} name="Seguidores" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </motion.div>
+        )}
+        {showChart && !hasHistory && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 50 }}
+            exit={{ opacity: 0, height: 0 }}
+            className="px-5 flex items-center justify-center"
+          >
+            <p className="text-[10px] text-muted-foreground italic">Dados insuficientes para exibir gráfico. Atualize mais de uma vez.</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Last updated */}
-      <div className="px-5 pb-3">
+      <div className="px-5 pb-3 pt-1">
         <p className="text-[10px] text-muted-foreground">
           Atualizado em {new Date(account.last_updated).toLocaleDateString('pt-BR')}
         </p>
