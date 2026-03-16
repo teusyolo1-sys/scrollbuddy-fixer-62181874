@@ -182,7 +182,7 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={dynamicHeight}>
           <BarChart data={data} layout="vertical" barSize={dynamicBarSize} maxBarSize={44} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} cursor={{ fill: "transparent" }} />
