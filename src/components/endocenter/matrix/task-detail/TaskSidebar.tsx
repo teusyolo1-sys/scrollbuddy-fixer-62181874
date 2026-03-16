@@ -52,16 +52,18 @@ export default function TaskSidebar({
   const [showComplaintForm, setShowComplaintForm] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
 
-  // Timer logic
-  const timerSaveRef = useRef<ReturnType<typeof setTimeout>>();
-  
-  // Simple timer effect via ref
-  if (timerRunning && !timerRef.current) {
-    timerRef.current = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
-  } else if (!timerRunning && timerRef.current) {
-    clearInterval(timerRef.current);
-    timerRef.current = undefined;
-  }
+  useEffect(() => {
+    if (timerRunning) {
+      timerRef.current = setInterval(() => setTimerSeconds((s) => s + 1), 1000);
+    } else if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = undefined;
+    }
+
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [timerRunning]);
 
   const formatTimer = (s: number) => {
     const h = Math.floor(s / 3600);
