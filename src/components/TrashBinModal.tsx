@@ -5,77 +5,7 @@ import { Trash2, X, RotateCcw, AlertTriangle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "@/hooks/use-toast";
-
-interface TrashItem {
-  id: string;
-  item_type: string;
-  item_id: string;
-  item_name: string;
-  item_data: Record<string, unknown>;
-  deleted_by: string;
-  deleted_at: string;
-}
-
-interface PersistedEndocenterData {
-  team?: Record<string, unknown>[];
-  [key: string]: unknown;
-}
-
-const STORAGE_KEY = "endocenter_settings";
-
-const TYPE_LABELS: Record<string, string> = {
-  member: "Membro",
-  company: "Empresa",
-  project: "Projeto",
-  task: "Tarefa",
-  budget: "Entrada de Orçamento",
-};
-
-const getStorageKey = (companyId?: string) => companyId ? `endocenter_${companyId}` : STORAGE_KEY;
-
-const loadPersistedData = (companyId?: string): PersistedEndocenterData | null => {
-  try {
-    const scoped = localStorage.getItem(getStorageKey(companyId));
-    if (scoped) return JSON.parse(scoped);
-
-    if (companyId) {
-      const legacy = localStorage.getItem(STORAGE_KEY);
-      if (legacy) return JSON.parse(legacy);
-    }
-  } catch {
-    return null;
-  }
-
-  return null;
-};
-
-const savePersistedData = (data: PersistedEndocenterData, companyId?: string) => {
-  localStorage.setItem(getStorageKey(companyId), JSON.stringify(data));
-};
-
-const buildRestoredMember = (item: TrashItem) => {
-  const rawColor = typeof item.item_data.color === "string" ? item.item_data.color : "#64748B";
-  const role = typeof item.item_data.role === "string" ? item.item_data.role : "Membro";
-  const specialty = typeof item.item_data.specialty === "string" ? item.item_data.specialty : role;
-
-  return {
-    ...item.item_data,
-    id: typeof item.item_data.id === "string" ? item.item_data.id : item.item_id,
-    name: typeof item.item_data.name === "string" ? item.item_data.name : item.item_name,
-    role,
-    specialty,
-    caseNotes: typeof item.item_data.caseNotes === "string" ? item.item_data.caseNotes : "",
-    photoUrl: typeof item.item_data.photoUrl === "string" ? item.item_data.photoUrl : "",
-    color: rawColor,
-    colorLight: typeof item.item_data.colorLight === "string" ? item.item_data.colorLight : `${rawColor}1A`,
-    colorBorder: typeof item.item_data.colorBorder === "string" ? item.item_data.colorBorder : `${rawColor}33`,
-    remuneration: typeof item.item_data.remuneration === "number" ? item.item_data.remuneration : 0,
-    hours: typeof item.item_data.hours === "number" ? item.item_data.hours : 0,
-    tasks: Array.isArray(item.item_data.tasks) ? item.item_data.tasks : [],
-    kpis: Array.isArray(item.item_data.kpis) ? item.item_data.kpis : [],
-    status: typeof item.item_data.status === "string" ? item.item_data.status : "Ativo",
-  };
-};
+import { restoreFromTrash, TYPE_LABELS, type TrashItem } from "@/lib/trash";
 
 interface Props {
   open: boolean;
@@ -93,10 +23,10 @@ export default function TrashBinModal({ open, onClose }: Props) {
     if (!user) return;
     setLoading(true);
     const { data } = await supabase
-      .from("trash_bin" as any)
+      .from("trash_bin")
       .select("*")
-      .order("deleted_at", { ascending: false }) as { data: TrashItem[] | null };
-    setItems((data as TrashItem[]) ?? []);
+      .order("deleted_at", { ascending: false });
+    setItems((data as unknown as TrashItem[]) ?? []);
     setLoading(false);
   };
 
@@ -106,7 +36,7 @@ export default function TrashBinModal({ open, onClose }: Props) {
 
   const handlePermanentDelete = async (id: string) => {
     setDeletingId(id);
-    const { error } = await supabase.from("trash_bin" as any).delete().eq("id", id);
+    const { error } = await supabase.from("trash_bin").delete().eq("id", id);
     if (error) {
       toast({ title: "Erro ao deletar", description: error.message, variant: "destructive" });
     } else {
@@ -119,60 +49,19 @@ export default function TrashBinModal({ open, onClose }: Props) {
 
   const handleRestore = async (item: TrashItem) => {
     setDeletingId(item.id);
-    try {
-      if (item.item_type === "member") {
-        const companyId = typeof item.item_data.companyId === "string" ? item.item_data.companyId : undefined;
-        const currentData = loadPersistedData(companyId) ?? {};
-        const restoredMember = buildRestoredMember(item);
-        const currentTeam = Array.isArray(currentData.team) ? currentData.team : [];
-        const nextTeam = currentTeam.some((member) => member?.id === restoredMember.id)
-          ? currentTeam.map((member) => (member?.id === restoredMember.id ? { ...member, ...restoredMember } : member))
-          : [...currentTeam, restoredMember];
-
-        savePersistedData({
-          ...currentData,
-          team: nextTeam,
-        }, companyId);
-      } else {
-        const table = getRestoreTable(item.item_type);
-        if (table && item.item_data && Object.keys(item.item_data).length > 0) {
-          const { error: restoreError } = await supabase.from(table as any).insert(item.item_data as any);
-          if (restoreError) {
-            toast({ title: "Erro ao restaurar", description: restoreError.message, variant: "destructive" });
-            setDeletingId(null);
-            return;
-          }
-        }
-      }
-
-      const { error: deleteError } = await supabase.from("trash_bin" as any).delete().eq("id", item.id);
-      if (deleteError) {
-        toast({ title: "Erro ao remover da lixeira", description: deleteError.message, variant: "destructive" });
-        setDeletingId(null);
-        return;
-      }
-
-      await fetchItems();
+    const result = await restoreFromTrash(item);
+    if (result.success) {
+      setItems((prev) => prev.filter((i) => i.id !== item.id));
       toast({ title: "Item restaurado com sucesso" });
-    } catch {
-      toast({ title: "Erro ao restaurar", variant: "destructive" });
+    } else {
+      toast({ title: "Erro ao restaurar", description: result.error, variant: "destructive" });
     }
     setDeletingId(null);
   };
 
-  const getRestoreTable = (type: string): string | null => {
-    const map: Record<string, string> = {
-      company: "companies",
-      project: "projects",
-      task: "budget_entries",
-      budget: "budget_entries",
-    };
-    return map[type] || null;
-  };
-
   const handleDeleteAll = async () => {
     setLoading(true);
-    const { error } = await supabase.from("trash_bin" as any).delete().neq("id", "00000000-0000-0000-0000-000000000000");
+    const { error } = await supabase.from("trash_bin").delete().neq("id", "00000000-0000-0000-0000-000000000000");
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });
     } else {
