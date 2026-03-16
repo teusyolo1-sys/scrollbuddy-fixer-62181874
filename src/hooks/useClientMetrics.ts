@@ -23,17 +23,25 @@ export const METRIC_CONFIG: Record<MetricType, { label: string; color: string; f
 
 export const METRIC_TYPES: MetricType[] = ['seguidores', 'vendas', 'conversao', 'faturamento', 'leads', 'alcance'];
 
-export function useClientMetrics() {
+export function useClientMetrics(companyId?: string) {
   const { user } = useAuth();
   const [metrics, setMetrics] = useState<ClientMetric[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchMetrics = useCallback(async () => {
     if (!user) { setMetrics([]); setLoading(false); return; }
-    const { data } = await supabase
+
+    let query = supabase
       .from('client_metrics' as any)
       .select('*')
-      .order('date', { ascending: true }) as { data: any[] | null };
+      .order('date', { ascending: true });
+
+    // Filtrar por empresa — cada empresa vê apenas suas métricas
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+
+    const { data } = await query as { data: any[] | null };
     setMetrics((data || []).map((d: any) => ({
       id: d.id,
       metric_type: d.metric_type,
@@ -42,7 +50,7 @@ export function useClientMetrics() {
       notes: d.notes || '',
     })));
     setLoading(false);
-  }, [user]);
+  }, [user, companyId]);
 
   useEffect(() => { fetchMetrics(); }, [fetchMetrics]);
 
@@ -50,6 +58,7 @@ export function useClientMetrics() {
     if (!user) return;
     await supabase.from('client_metrics' as any).insert({
       user_id: user.id,
+      company_id: companyId || 'default',
       metric_type,
       value,
       date,
