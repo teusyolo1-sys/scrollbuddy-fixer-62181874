@@ -287,12 +287,12 @@ function KPICard({ label, value, icon: Icon, color }: { label: string; value: st
 }
 
 /* ── Main Component ── */
-export default function TeamAnalytics() {
+export default function TeamAnalytics({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
   const { team, responsibilityRoles } = useEndocenter();
-  const { activities, loading: activitiesLoading, addActivity } = useTeamActivities();
-  const { complaints, loading: complaintsLoading, removeComplaint } = useTaskComplaints();
+  const { activities, loading: activitiesLoading, addActivity } = useTeamActivities(companyId);
+  const { complaints, loading: complaintsLoading, removeComplaint } = useTaskComplaints(companyId);
   const [period, setPeriod] = useState<TimePeriod>("month");
   const [showForm, setShowForm] = useState(false);
   const [formMember, setFormMember] = useState("");

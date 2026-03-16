@@ -113,9 +113,9 @@ function MentionDropdown({ query, profiles, onSelect, position }: MentionDropdow
   );
 }
 
-export default function ProjectChat() {
+export default function ProjectChat({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
-  const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages();
+  const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages(undefined, companyId);
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [mentionQuery, setMentionQuery] = useState<string | null>(null);

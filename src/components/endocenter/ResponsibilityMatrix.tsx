@@ -24,7 +24,7 @@ const statusColumns = [
   { key: "done", label: "Concluído", filter: (i: ResponsibilityItem) => i.done },
 ];
 
-export default function ResponsibilityMatrix() {
+export default function ResponsibilityMatrix({ companyId }: { companyId?: string }) {
   const {
     responsibilityRoles, team,
     updateResponsibilityRole, addResponsibilityRoleItem,
