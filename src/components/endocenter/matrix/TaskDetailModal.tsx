@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, Suspense, lazy } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, Suspense, lazy } from "react";
 import { createPortal } from "react-dom";
 import {
   X, Type, Pencil, Settings2, ChevronDown
