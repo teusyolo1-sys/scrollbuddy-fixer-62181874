@@ -33,11 +33,11 @@ export default function AnimatedChatIcon({ size = 22, className = "", active = f
       viewBox="0 0 24 24"
       fill="none"
       className={className}
-      animate={playing ? { scale: [1, 1.08, 1] } : { scale: 1 }}
+      animate={playing ? { scale: [1, 1.06, 1] } : {}}
       transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      {/* Rounded speech bubble with tail — matching reference */}
-      <motion.path
+      {/* Speech bubble */}
+      <path
         d="M12 2C6.477 2 2 5.92 2 10.667c0 2.627 1.3 4.98 3.333 6.573V22l4.453-2.48A11.07 11.07 0 0 0 12 19.333C17.523 19.333 22 15.413 22 10.667 22 5.92 17.523 2 12 2Z"
         stroke={strokeCol}
         strokeWidth={1.8}
@@ -45,7 +45,7 @@ export default function AnimatedChatIcon({ size = 22, className = "", active = f
         strokeLinejoin="round"
         fill="none"
       />
-      {/* Three dots */}
+      {/* Three dots — animate opacity only to avoid SVG transform bugs */}
       {[0, 1, 2].map((i) => (
         <motion.circle
           key={i}
@@ -55,19 +55,12 @@ export default function AnimatedChatIcon({ size = 22, className = "", active = f
           fill={dotCol}
           animate={
             playing
-              ? {
-                  scale: [1, 1.5, 1],
-                  opacity: [0.4, 1, 0.4],
-                }
-              : { scale: 1, opacity: 0.7 }
+              ? { opacity: [0.3, 1, 0.3] }
+              : { opacity: 0.6 }
           }
           transition={
             playing
-              ? {
-                  delay: i * 0.13,
-                  duration: 0.5,
-                  ease: [0.25, 0.46, 0.45, 0.94],
-                }
+              ? { delay: i * 0.15, duration: 0.5, ease: "easeInOut" }
               : { duration: 0.3 }
           }
         />
