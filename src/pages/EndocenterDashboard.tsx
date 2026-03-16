@@ -140,18 +140,24 @@ function DashboardContent() {
               <motion.button
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
+                onClick={() => {
+                  if (theme === "system") setTheme("light");
+                  else if (theme === "light") setTheme("dark");
+                  else setTheme("system");
+                }}
                 className="w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
-                title={resolvedTheme === "dark" ? "Modo claro" : "Modo escuro"}
+                title={theme === "system" ? "Tema: Automático" : theme === "dark" ? "Tema: Escuro" : "Tema: Claro"}
               >
                 <motion.div
-                  key={resolvedTheme}
+                  key={theme}
                   initial={{ rotate: -90, opacity: 0 }}
                   animate={{ rotate: 0, opacity: 1 }}
                   transition={{ type: "spring", damping: 15, stiffness: 300 }}
                 >
-                  {resolvedTheme === "dark" ? (
-                    <Sun className="h-4 w-4 text-yellow-400" />
+                  {theme === "system" ? (
+                    <Monitor className="h-4 w-4 text-foreground" />
+                  ) : resolvedTheme === "dark" ? (
+                    <Sun className="h-4 w-4 text-amber-400" />
                   ) : (
                     <Moon className="h-4 w-4 text-foreground" />
                   )}
