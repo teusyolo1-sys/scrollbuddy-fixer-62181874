@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Plus, Target, Trash2, TrendingUp, Upload, User, X } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { sendToTrash } from "@/lib/trash";
 import AnalyticsCharts from "./AnalyticsCharts";
