@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, useRef, useCallback, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, ExternalLink, Trash2, TrendingUp, Users, Eye, Heart, MessageCircle, Share2, Loader2, X, Pencil,
