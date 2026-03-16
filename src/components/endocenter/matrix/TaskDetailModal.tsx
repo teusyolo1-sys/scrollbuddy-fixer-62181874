@@ -340,6 +340,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 </span>
                 <h2 className="text-sm font-bold text-foreground truncate">{item.task}</h2>
               </div>
+              <div className="flex items-center gap-1.5 shrink-0">
                 <motion.button onClick={onClose}
                   whileHover={{ scale: 1.12, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
