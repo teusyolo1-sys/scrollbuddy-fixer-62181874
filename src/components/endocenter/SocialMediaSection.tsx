@@ -351,7 +351,7 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
 
 /* ── Main Section Component ── */
 export default function SocialMediaSection({ companyId }: { companyId?: string }) {
-  const { accounts, metrics, loading, addAccount, updateAccount, deleteAccount, addMetricEntry } = useSocialAccounts(companyId);
+  const { accounts, metrics, loading, addAccount, updateAccount, deleteAccount, addMetricEntry, fetchFromInstagramApi } = useSocialAccounts(companyId);
   const { isAdmin } = useUserRole();
   const { canViewSection, canEditSection } = useSectionPermissions();
   const [addOpen, setAddOpen] = useState(false);
