@@ -12,6 +12,7 @@ import BlockEditor, { type BlockEditorHandle } from "./BlockEditor";
 import PdfViewer from "./PdfViewer";
 import TaskChat from "./TaskChat";
 import AnimatedChatIcon from "./AnimatedChatIcon";
+import AnimatedAskIcon from "./AnimatedAskIcon";
 import { useTaskComplaints } from "@/hooks/useTaskComplaints";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
@@ -111,6 +112,16 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
       (msg) => msg.user_id !== user.id && msg.mentions?.includes(user.id)
     );
   }, [chatMessages, user, chatOpen]);
+
+  // Detect if 12h+ without response from the current user
+  const isAwaitingResponse = useMemo(() => {
+    if (!user || chatMessages.length === 0) return false;
+    const lastMsg = chatMessages[chatMessages.length - 1];
+    if (lastMsg.user_id === user.id) return false; // user already replied
+    const lastTime = new Date(lastMsg.created_at).getTime();
+    const twelveHours = 12 * 60 * 60 * 1000;
+    return Date.now() - lastTime > twelveHours;
+  }, [chatMessages, user]);
 
   // When chat opens, mark as read
   useEffect(() => {
@@ -741,7 +752,11 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             }`}
             style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}
           >
-            <AnimatedChatIcon size={26} active={chatOpen} />
+            {isAwaitingResponse && !chatOpen ? (
+              <AnimatedAskIcon size={26} active={chatOpen} />
+            ) : (
+              <AnimatedChatIcon size={26} active={chatOpen} />
+            )}
             {hasUnreadMention && !chatOpen && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold flex items-center justify-center">
                 !
