@@ -10,17 +10,22 @@ import TableHeader from "@tiptap/extension-table-header";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Underline from "@tiptap/extension-underline";
+import Subscript from "@tiptap/extension-subscript";
+import Superscript from "@tiptap/extension-superscript";
 import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
 import Link from "@tiptap/extension-link";
 import Color from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
+import FontFamily from "@tiptap/extension-font-family";
 import { Plugin, PluginKey } from "@tiptap/pm/state";
 import {
   Bold, Italic, Underline as UnderlineIcon, Strikethrough, Code,
   Heading1, Heading2, Heading3, List, ListOrdered, CheckSquare,
   Quote, Minus, Image, Table as TableIcon, Link2, AlignLeft,
-  AlignCenter, AlignRight, Highlighter, FileUp
+  AlignCenter, AlignRight, AlignJustify, Highlighter, FileUp,
+  Undo2, Redo2, ChevronDown, Subscript as SubscriptIcon,
+  Superscript as SuperscriptIcon, Type
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import mammoth from "mammoth";
@@ -36,6 +41,24 @@ interface BlockEditorProps {
   placeholder?: string;
   minHeight?: string;
 }
+
+/* ── Config data ── */
+const fontFamilies = [
+  { label: "Sans Serif", value: "system-ui, -apple-system, sans-serif" },
+  { label: "Serif", value: "Georgia, 'Times New Roman', serif" },
+  { label: "Monospace", value: "'SF Mono', 'Fira Code', monospace" },
+  { label: "Arial", value: "Arial, Helvetica, sans-serif" },
+  { label: "Verdana", value: "Verdana, Geneva, sans-serif" },
+];
+
+const fontSizes = ["8", "10", "12", "14", "18", "24", "36"];
+
+const textColors = [
+  "#FFFFFF", "#B7B7B7", "#999999", "#666666", "#434343", "#000000",
+  "#DC2626", "#EA580C", "#D97706", "#CA8A04", "#65A30D", "#16A34A",
+  "#0284C7", "#2563EB", "#4F46E5", "#7C3AED", "#9333EA", "#C026D3",
+  "#DB2777", "#E11D48",
+];
 
 /* ── Slash command items ── */
 const SLASH_ITEMS = [
@@ -69,12 +92,8 @@ const SlashCommands = Extension.create({
               const { $from } = view.state.selection;
               const textBefore = $from.parent.textContent.slice(0, $from.parentOffset);
               if (textBefore.trim() === "") {
-                // Dispatch custom event to open slash menu
                 setTimeout(() => {
-                  const domEvent = new CustomEvent("tiptap-slash", {
-                    detail: { editor },
-                  });
-                  document.dispatchEvent(domEvent);
+                  document.dispatchEvent(new CustomEvent("tiptap-slash", { detail: { editor } }));
                 }, 10);
               }
             }
@@ -86,6 +105,28 @@ const SlashCommands = Extension.create({
   },
 });
 
+/* ── Font size extension (via inline style) ── */
+const FontSize = Extension.create({
+  name: "fontSize",
+  addGlobalAttributes() {
+    return [{
+      types: ["textStyle"],
+      attributes: {
+        fontSize: {
+          default: null,
+          parseHTML: (el) => el.style.fontSize?.replace(/['"]+/g, "") || null,
+          renderHTML: (attrs) => {
+            if (!attrs.fontSize) return {};
+            return { style: `font-size: ${attrs.fontSize}` };
+          },
+        },
+      },
+    }];
+  },
+});
+
+type DropdownType = "font" | "size" | "color" | "highlight" | null;
+
 const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function BlockEditor(
   { value, onChange, placeholder = "Digite '/' para comandos...", minHeight = "400px" },
   ref
@@ -94,6 +135,7 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
   const [slashFilter, setSlashFilter] = useState("");
   const [slashIndex, setSlashIndex] = useState(0);
   const [slashPos, setSlashPos] = useState<{ top: number; left: number } | null>(null);
+  const [activeDropdown, setActiveDropdown] = useState<DropdownType>(null);
   const slashRef = useRef<HTMLDivElement>(null);
   const editorWrapperRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -101,9 +143,7 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-        heading: { levels: [1, 2, 3] },
-      }),
+      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
       Placeholder.configure({ placeholder }),
       ImageExt.configure({ inline: false, allowBase64: true }),
       Table.configure({ resizable: true }),
@@ -113,17 +153,19 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
       TaskList,
       TaskItem.configure({ nested: true }),
       Underline,
+      Subscript,
+      Superscript,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Highlight.configure({ multicolor: true }),
       Link.configure({ openOnClick: false }),
       TextStyle,
       Color,
+      FontFamily,
+      FontSize,
       SlashCommands,
     ],
     content: value || "",
-    onUpdate: ({ editor }) => {
-      onChange(editor.getHTML());
-    },
+    onUpdate: ({ editor }) => onChange(editor.getHTML()),
     editorProps: {
       attributes: {
         class: "outline-none h-full",
@@ -134,28 +176,17 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
           const filtered = SLASH_ITEMS.filter((i) =>
             i.title.toLowerCase().includes(slashFilter.toLowerCase())
           );
-          if (event.key === "ArrowDown") {
-            event.preventDefault();
-            setSlashIndex((i) => (i + 1) % filtered.length);
-            return true;
-          }
-          if (event.key === "ArrowUp") {
-            event.preventDefault();
-            setSlashIndex((i) => (i - 1 + filtered.length) % filtered.length);
-            return true;
-          }
+          if (event.key === "ArrowDown") { event.preventDefault(); setSlashIndex((i) => (i + 1) % filtered.length); return true; }
+          if (event.key === "ArrowUp") { event.preventDefault(); setSlashIndex((i) => (i - 1 + filtered.length) % filtered.length); return true; }
           if (event.key === "Enter") {
             event.preventDefault();
             if (filtered[slashIndex]) {
-              // Delete the "/" and any filter text
               const { state } = _view;
               const { $from } = state.selection;
               const textBefore = $from.parent.textContent.slice(0, $from.parentOffset);
               const slashIdx = textBefore.lastIndexOf("/");
               if (slashIdx >= 0) {
-                const from = $from.start() + slashIdx;
-                const to = $from.pos;
-                _view.dispatch(state.tr.delete(from, to));
+                _view.dispatch(state.tr.delete($from.start() + slashIdx, $from.pos));
               }
               filtered[slashIndex].command(editor);
               setSlashOpen(false);
@@ -163,81 +194,60 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
             }
             return true;
           }
-          if (event.key === "Escape") {
-            setSlashOpen(false);
-            setSlashFilter("");
-            return true;
-          }
-          // Track filter text
-          if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
-            setSlashFilter((f) => f + event.key);
-            setSlashIndex(0);
-          }
-          if (event.key === "Backspace") {
-            if (slashFilter.length > 0) {
-              setSlashFilter((f) => f.slice(0, -1));
-            } else {
-              setSlashOpen(false);
-            }
-          }
+          if (event.key === "Escape") { setSlashOpen(false); setSlashFilter(""); return true; }
+          if (event.key.length === 1 && !event.ctrlKey && !event.metaKey) { setSlashFilter((f) => f + event.key); setSlashIndex(0); }
+          if (event.key === "Backspace") { slashFilter.length > 0 ? setSlashFilter((f) => f.slice(0, -1)) : setSlashOpen(false); }
         }
         return false;
       },
     },
   });
 
-  // Set content only once on mount (avoid overwriting while typing)
   useEffect(() => {
     if (editor && value && !initialContentSet.current) {
-      const currentContent = editor.getHTML();
-      if (currentContent === "<p></p>" || !currentContent) {
-        editor.commands.setContent(value);
-      }
+      const cur = editor.getHTML();
+      if (cur === "<p></p>" || !cur) editor.commands.setContent(value);
       initialContentSet.current = true;
     }
   }, [editor, value]);
 
-  // Listen for slash command events
   useEffect(() => {
     const handler = (e: Event) => {
       const detail = (e as CustomEvent).detail;
       if (detail.editor === editor) {
-        setSlashOpen(true);
-        setSlashFilter("");
-        setSlashIndex(0);
-        // Get cursor position for the popup
+        setSlashOpen(true); setSlashFilter(""); setSlashIndex(0);
         const { view } = editor!;
         const coords = view.coordsAtPos(view.state.selection.from);
-        const wrapperRect = editorWrapperRef.current?.getBoundingClientRect();
-        if (wrapperRect) {
-          setSlashPos({
-            top: coords.bottom - wrapperRect.top + 4,
-            left: coords.left - wrapperRect.left,
-          });
-        }
+        const wr = editorWrapperRef.current?.getBoundingClientRect();
+        if (wr) setSlashPos({ top: coords.bottom - wr.top + 4, left: coords.left - wr.left });
       }
     };
     document.addEventListener("tiptap-slash", handler);
     return () => document.removeEventListener("tiptap-slash", handler);
   }, [editor]);
 
-  // Close slash menu on click outside
   useEffect(() => {
     if (!slashOpen) return;
     const handler = (e: MouseEvent) => {
-      if (slashRef.current && !slashRef.current.contains(e.target as Node)) {
-        setSlashOpen(false);
-        setSlashFilter("");
-      }
+      if (slashRef.current && !slashRef.current.contains(e.target as Node)) { setSlashOpen(false); setSlashFilter(""); }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [slashOpen]);
 
+  // Close dropdowns on click outside
+  useEffect(() => {
+    if (!activeDropdown) return;
+    const handler = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest("[data-dropdown-container]")) setActiveDropdown(null);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [activeDropdown]);
+
   useImperativeHandle(ref, () => ({
-    insertImageUrl: (url: string) => {
-      editor?.chain().focus().setImage({ src: url }).run();
-    },
+    insertImageUrl: (url: string) => { editor?.chain().focus().setImage({ src: url }).run(); },
   }), [editor]);
 
   const importDocument = useCallback(async (file: File) => {
@@ -245,8 +255,8 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
     const ext = file.name.split(".").pop()?.toLowerCase();
     try {
       if (ext === "docx") {
-        const arrayBuffer = await file.arrayBuffer();
-        const result = await mammoth.convertToHtml({ arrayBuffer });
+        const ab = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer: ab });
         editor.chain().focus().insertContent(result.value).run();
         toast.success("Documento Word importado!");
       } else if (ext === "txt" || ext === "md") {
@@ -257,9 +267,7 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
       } else {
         toast.error("Formato não suportado. Use .docx ou .txt");
       }
-    } catch {
-      toast.error("Erro ao importar documento");
-    }
+    } catch { toast.error("Erro ao importar documento"); }
   }, [editor]);
 
   if (!editor) return null;
@@ -282,12 +290,58 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
     </button>
   );
 
+  const DropdownBtn = ({ type, label, children }: { type: DropdownType; label: string; children: React.ReactNode }) => (
+    <div className="relative" data-dropdown-container>
+      <button
+        type="button"
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={() => setActiveDropdown(activeDropdown === type ? null : type)}
+        className="h-7 px-2 rounded-lg flex items-center gap-1 text-[10px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors shrink-0"
+        title={label}
+      >
+        {label} <ChevronDown className="h-2.5 w-2.5" />
+      </button>
+      {activeDropdown === type && (
+        <div className="absolute top-full left-0 mt-1 z-50 bg-card border border-border rounded-xl shadow-lg py-1 max-h-48 overflow-y-auto min-w-[140px]"
+          onMouseDown={(e) => e.preventDefault()}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+
   const Divider = () => <div className="w-px h-5 bg-border/60 mx-0.5 shrink-0" />;
 
   return (
     <div className="flex flex-col h-full border border-border/60 rounded-2xl overflow-hidden bg-card">
-      {/* Toolbar */}
+      {/* Toolbar Row 1 */}
       <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-border/40 bg-secondary/30 flex-wrap">
+        <ToolBtn onClick={() => editor.chain().focus().undo().run()} title="Desfazer"><Undo2 className="h-3.5 w-3.5" /></ToolBtn>
+        <ToolBtn onClick={() => editor.chain().focus().redo().run()} title="Refazer"><Redo2 className="h-3.5 w-3.5" /></ToolBtn>
+        <Divider />
+
+        <DropdownBtn type="font" label="Fonte">
+          {fontFamilies.map((f) => (
+            <button key={f.value} onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { editor.chain().focus().setFontFamily(f.value).run(); setActiveDropdown(null); }}
+              className="block w-full text-left px-3 py-1.5 text-xs hover:bg-secondary transition-colors"
+              style={{ fontFamily: f.value }}>
+              {f.label}
+            </button>
+          ))}
+        </DropdownBtn>
+
+        <DropdownBtn type="size" label="Tamanho">
+          {fontSizes.map((s) => (
+            <button key={s} onMouseDown={(e) => e.preventDefault()}
+              onClick={() => { editor.chain().focus().setMark("textStyle", { fontSize: `${s}px` }).run(); setActiveDropdown(null); }}
+              className="block w-full text-left px-3 py-1.5 text-xs hover:bg-secondary transition-colors">
+              {s}px
+            </button>
+          ))}
+        </DropdownBtn>
+
+        <Divider />
         <ToolBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")} title="Negrito">
           <Bold className="h-3.5 w-3.5" />
         </ToolBtn>
@@ -300,15 +354,16 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
         <ToolBtn onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive("strike")} title="Tachado">
           <Strikethrough className="h-3.5 w-3.5" />
         </ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleCode().run()} active={editor.isActive("code")} title="Código inline">
-          <Code className="h-3.5 w-3.5" />
+        <ToolBtn onClick={() => editor.chain().focus().toggleSubscript().run()} active={editor.isActive("subscript")} title="Subscrito">
+          <SubscriptIcon className="h-3.5 w-3.5" />
         </ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleHighlight().run()} active={editor.isActive("highlight")} title="Destaque">
-          <Highlighter className="h-3.5 w-3.5" />
+        <ToolBtn onClick={() => editor.chain().focus().toggleSuperscript().run()} active={editor.isActive("superscript")} title="Sobrescrito">
+          <SuperscriptIcon className="h-3.5 w-3.5" />
         </ToolBtn>
+      </div>
 
-        <Divider />
-
+      {/* Toolbar Row 2 */}
+      <div className="flex items-center gap-0.5 px-2 py-1.5 border-b border-border/40 bg-secondary/20 flex-wrap">
         <ToolBtn onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive("heading", { level: 1 })} title="Título 1">
           <Heading1 className="h-3.5 w-3.5" />
         </ToolBtn>
@@ -318,22 +373,15 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
         <ToolBtn onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive("heading", { level: 3 })} title="Título 3">
           <Heading3 className="h-3.5 w-3.5" />
         </ToolBtn>
-
-        <Divider />
-
-        <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Lista">
-          <List className="h-3.5 w-3.5" />
-        </ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Lista numerada">
-          <ListOrdered className="h-3.5 w-3.5" />
-        </ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleTaskList().run()} active={editor.isActive("taskList")} title="Checklist">
-          <CheckSquare className="h-3.5 w-3.5" />
+        <ToolBtn onClick={() => editor.chain().focus().setParagraph().run()} active={editor.isActive("paragraph")} title="Parágrafo">
+          <Type className="h-3.5 w-3.5" />
         </ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive("blockquote")} title="Citação">
           <Quote className="h-3.5 w-3.5" />
         </ToolBtn>
-
+        <ToolBtn onClick={() => editor.chain().focus().toggleCode().run()} active={editor.isActive("code")} title="Código inline">
+          <Code className="h-3.5 w-3.5" />
+        </ToolBtn>
         <Divider />
 
         <ToolBtn onClick={() => editor.chain().focus().setTextAlign("left").run()} active={editor.isActive({ textAlign: "left" })} title="Esquerda">
@@ -345,26 +393,56 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
         <ToolBtn onClick={() => editor.chain().focus().setTextAlign("right").run()} active={editor.isActive({ textAlign: "right" })} title="Direita">
           <AlignRight className="h-3.5 w-3.5" />
         </ToolBtn>
-
+        <ToolBtn onClick={() => editor.chain().focus().setTextAlign("justify").run()} active={editor.isActive({ textAlign: "justify" })} title="Justificar">
+          <AlignJustify className="h-3.5 w-3.5" />
+        </ToolBtn>
         <Divider />
 
+        <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Lista">
+          <List className="h-3.5 w-3.5" />
+        </ToolBtn>
+        <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Lista numerada">
+          <ListOrdered className="h-3.5 w-3.5" />
+        </ToolBtn>
+        <ToolBtn onClick={() => editor.chain().focus().toggleTaskList().run()} active={editor.isActive("taskList")} title="Checklist">
+          <CheckSquare className="h-3.5 w-3.5" />
+        </ToolBtn>
+        <Divider />
+
+        <DropdownBtn type="color" label="Cor">
+          <div className="grid grid-cols-5 gap-1 p-2">
+            {textColors.map((c) => (
+              <button key={c} onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { editor.chain().focus().setColor(c).run(); setActiveDropdown(null); }}
+                className="w-6 h-6 rounded border border-border hover:scale-110 transition-transform"
+                style={{ backgroundColor: c }} />
+            ))}
+          </div>
+        </DropdownBtn>
+
+        <DropdownBtn type="highlight" label="Destaque">
+          <div className="grid grid-cols-5 gap-1 p-2">
+            {textColors.map((c) => (
+              <button key={c} onMouseDown={(e) => e.preventDefault()}
+                onClick={() => { editor.chain().focus().toggleHighlight({ color: c }).run(); setActiveDropdown(null); }}
+                className="w-6 h-6 rounded border border-border hover:scale-110 transition-transform"
+                style={{ backgroundColor: c }} />
+            ))}
+          </div>
+        </DropdownBtn>
+
+        <Divider />
+        <ToolBtn onClick={() => { const url = prompt("URL do link:"); if (url) editor.chain().focus().setLink({ href: url }).run(); }} title="Link">
+          <Link2 className="h-3.5 w-3.5" />
+        </ToolBtn>
+        <ToolBtn onClick={() => { const url = prompt("URL da imagem:"); if (url) editor.chain().focus().setImage({ src: url }).run(); }} title="Imagem">
+          <Image className="h-3.5 w-3.5" />
+        </ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()} title="Tabela">
           <TableIcon className="h-3.5 w-3.5" />
         </ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().setHorizontalRule().run()} title="Divisor">
           <Minus className="h-3.5 w-3.5" />
-        </ToolBtn>
-        <ToolBtn onClick={() => {
-          const url = prompt("URL da imagem:");
-          if (url) editor.chain().focus().setImage({ src: url }).run();
-        }} title="Imagem">
-          <Image className="h-3.5 w-3.5" />
-        </ToolBtn>
-        <ToolBtn onClick={() => {
-          const url = prompt("URL do link:");
-          if (url) editor.chain().focus().setLink({ href: url }).run();
-        }} title="Link">
-          <Link2 className="h-3.5 w-3.5" />
         </ToolBtn>
         <ToolBtn onClick={() => fileInputRef.current?.click()} title="Importar documento">
           <FileUp className="h-3.5 w-3.5" />
@@ -374,11 +452,7 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
           type="file"
           accept=".docx,.txt,.md"
           className="hidden"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) importDocument(file);
-            e.target.value = "";
-          }}
+          onChange={(e) => { const file = e.target.files?.[0]; if (file) importDocument(file); e.target.value = ""; }}
         />
       </div>
 
@@ -412,15 +486,12 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
                       key={item.title}
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => {
-                        // Delete the "/" and filter text
                         const { state, view } = editor;
                         const { $from } = state.selection;
                         const textBefore = $from.parent.textContent.slice(0, $from.parentOffset);
                         const slashIdx = textBefore.lastIndexOf("/");
                         if (slashIdx >= 0) {
-                          const from = $from.start() + slashIdx;
-                          const to = $from.pos;
-                          view.dispatch(state.tr.delete(from, to));
+                          view.dispatch(state.tr.delete($from.start() + slashIdx, $from.pos));
                         }
                         item.command(editor);
                         setSlashOpen(false);
@@ -447,7 +518,6 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
           )}
         </AnimatePresence>
       </div>
-
     </div>
   );
 });
