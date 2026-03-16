@@ -218,8 +218,28 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
         toast.success("Documento Word importado!");
       } else if (ext === "pdf") {
         const arrayBuffer = await file.arrayBuffer();
-        const pdfjsLib = await import("pdfjs-dist");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        // Load pdf.js from CDN to avoid bundling issues
+        const PDFJS_VERSION = "4.4.168";
+        const cdnBase = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}`;
+        if (!(window as any).pdfjsLib) {
+          await new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+            script.src = `${cdnBase}/pdf.min.mjs`;
+            script.type = "module";
+            script.onload = () => resolve();
+            script.onerror = reject;
+            document.head.appendChild(script);
+          });
+        }
+        // Fallback: use global pdfjsLib or dynamic import from CDN
+        let pdfjsLib = (window as any).pdfjsLib;
+        if (!pdfjsLib) {
+          // Use dynamic import from CDN
+          const mod = await import(/* @vite-ignore */ `${cdnBase}/pdf.min.mjs`);
+          pdfjsLib = mod;
+          (window as any).pdfjsLib = pdfjsLib;
+        }
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `${cdnBase}/pdf.worker.min.mjs`;
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let html = "";
         const scale = 2;
