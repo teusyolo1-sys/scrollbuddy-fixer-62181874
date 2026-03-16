@@ -122,7 +122,7 @@ function DashboardContent() {
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: "spring", stiffness: 500, damping: 15 }}
                 onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                className="w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
                 title={resolvedTheme === "dark" ? "Modo claro" : "Modo escuro"}
               >
                 <motion.div
