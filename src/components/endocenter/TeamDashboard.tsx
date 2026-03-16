@@ -468,7 +468,7 @@ function MemberCard({ member, index, isExpanded, onToggle, showFinancials = true
 }
 
 /* ── Profile Modal ── */
-function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDelete }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean; canEdit?: boolean; onDelete?: (id: string) => void }) {
+function ProfileModal({ member, companyId, onClose, isAdmin = false, canEdit = true, onDelete }: { member: ReturnType<typeof useEndocenter>["team"][number]; companyId?: string; onClose: () => void; isAdmin?: boolean; canEdit?: boolean; onDelete?: (id: string) => void }) {
   const { updateMember } = useEndocenter();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ ...member });
