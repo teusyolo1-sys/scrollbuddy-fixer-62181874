@@ -739,7 +739,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
                     onClick={() => setSelectedImg(null)}
                     title="Concluir edição"
                   >
-                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                    <Check className="h-3.5 w-3.5 text-primary" />
                   </ImgToolBtn>
                 </div>
               </motion.div>
