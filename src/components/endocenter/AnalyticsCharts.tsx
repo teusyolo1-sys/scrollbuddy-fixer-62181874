@@ -177,10 +177,11 @@ function ChartByStyle({ style, data, color, type }: {
       );
 
     case "bar": {
-      const dynamicBarSize = data.length <= 2 ? 32 : data.length <= 4 ? 22 : 14;
+      const dynamicBarSize = data.length <= 2 ? 36 : data.length <= 4 ? 22 : 14;
+      const dynamicHeight = data.length <= 1 ? 80 : data.length <= 3 ? 120 : 160;
       return (
-        <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={data} layout="vertical" barSize={dynamicBarSize} maxBarSize={40}>
+        <ResponsiveContainer width="100%" height={dynamicHeight}>
+          <BarChart data={data} layout="vertical" barSize={dynamicBarSize} maxBarSize={44} margin={{ top: 8, right: 8, bottom: 8, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
             <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
