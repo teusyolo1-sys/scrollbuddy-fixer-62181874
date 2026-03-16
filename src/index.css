@@ -311,9 +311,6 @@
     background: hsl(var(--foreground) / 0.24);
     backdrop-filter: blur(var(--ios-blur-subtle)) saturate(115%);
     -webkit-backdrop-filter: blur(var(--ios-blur-subtle)) saturate(115%);
-    isolation: isolate;
-    transform: translateZ(0);
-    will-change: backdrop-filter;
   }
 
   .ios-modal-surface {
