@@ -57,9 +57,18 @@ export default function TOTPSetupModal({ open, onClose }: Props) {
   };
 
   // Trigger setup when modal opens
-  if (open && step === "loading" && !otpData) {
-    handleOpen();
-  }
+  const hasStarted = useRef(false);
+  useEffect(() => {
+    if (open && !hasStarted.current) {
+      hasStarted.current = true;
+      handleOpen();
+    }
+    if (!open) {
+      hasStarted.current = false;
+      setOtpData(null);
+      setStep("loading");
+    }
+  }, [open]);
 
   if (!open) return null;
 
