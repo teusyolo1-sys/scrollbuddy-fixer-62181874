@@ -20,6 +20,7 @@ serve(async (req) => {
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    console.log("RAPIDAPI_KEY prefix:", RAPIDAPI_KEY.substring(0, 8), "length:", RAPIDAPI_KEY.length);
 
     const { username } = await req.json();
     if (!username) {
