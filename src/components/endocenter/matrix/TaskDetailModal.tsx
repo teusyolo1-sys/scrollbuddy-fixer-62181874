@@ -705,6 +705,31 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           )}
         </AnimatePresence>
         </div>{/* wrapper div */}
+
+        {/* PDF Viewer overlay */}
+        <AnimatePresence>
+          {viewingPdf && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[110] flex items-center justify-center p-6"
+              onClick={() => setViewingPdf(null)}
+            >
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="relative z-10 w-full max-w-3xl h-[80vh] rounded-2xl overflow-hidden"
+                style={{ boxShadow: "var(--ios-shadow-float)" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <PdfViewer url={viewingPdf} onClose={() => setViewingPdf(null)} />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>,
     document.body
