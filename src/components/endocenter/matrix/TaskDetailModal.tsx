@@ -13,6 +13,7 @@ import PdfViewer from "./PdfViewer";
 import TaskChat from "./TaskChat";
 import AnimatedChatIcon from "./AnimatedChatIcon";
 import AnimatedAskIcon from "./AnimatedAskIcon";
+import AnimatedSeenIcon from "./AnimatedSeenIcon";
 import { useTaskComplaints } from "@/hooks/useTaskComplaints";
 import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
@@ -113,8 +114,18 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
     );
   }, [chatMessages, user, chatOpen]);
 
-  // Detect if 12h+ without response from the current user
-  const isAwaitingResponse = useMemo(() => {
+  // Messages have been seen (no new unread messages from others)
+  const isChatSeen = useMemo(() => {
+    if (!user || chatMessages.length === 0) return false;
+    // All messages seen if lastSeenCount covers all, and last message isn't an unread from someone else
+    if (lastSeenCountRef.current >= chatMessages.length) return true;
+    // Also "seen" if last message is from current user
+    const lastMsg = chatMessages[chatMessages.length - 1];
+    return lastMsg.user_id === user.id;
+  }, [chatMessages, user]);
+
+   // Detect if 12h+ without response from the current user
+   const isAwaitingResponse = useMemo(() => {
     if (!user || chatMessages.length === 0) return false;
     const lastMsg = chatMessages[chatMessages.length - 1];
     if (lastMsg.user_id === user.id) return false; // user already replied
@@ -754,6 +765,8 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           >
             {isAwaitingResponse && !chatOpen ? (
               <AnimatedAskIcon size={26} active={chatOpen} />
+            ) : isChatSeen && !chatOpen ? (
+              <AnimatedSeenIcon size={26} active={chatOpen} />
             ) : (
               <AnimatedChatIcon size={26} active={chatOpen} />
             )}
