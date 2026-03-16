@@ -170,6 +170,13 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [viewingPdf, setViewingPdf] = useState<string | null>(null);
   const lastSeenCountRef = useRef(chatMessages.length);
 
+  // Track if there are unread messages from other users
+  const hasUnreadMessages = useMemo(() => {
+    if (!user || chatOpen) return false;
+    const newMessages = chatMessages.slice(lastSeenCountRef.current);
+    return newMessages.some((msg) => msg.user_id !== user.id);
+  }, [chatMessages, user, chatOpen]);
+
   // Track unread mentions for current user
   const hasUnreadMention = useMemo(() => {
     if (!user || chatOpen) return false;
@@ -179,18 +186,15 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
     );
   }, [chatMessages, user, chatOpen]);
 
-  // Messages have been seen (no new unread messages from others)
+  // Messages are seen only when there are no unread incoming messages
   const isChatSeen = useMemo(() => {
-    if (!user || chatMessages.length === 0) return false;
-    // All messages seen if lastSeenCount covers all, and last message isn't an unread from someone else
-    if (lastSeenCountRef.current >= chatMessages.length) return true;
-    // Also "seen" if last message is from current user
+    if (!user || chatMessages.length === 0 || chatOpen) return false;
     const lastMsg = chatMessages[chatMessages.length - 1];
-    return lastMsg.user_id === user.id;
-  }, [chatMessages, user]);
+    return !hasUnreadMessages && lastMsg.user_id !== user.id;
+  }, [chatMessages, user, chatOpen, hasUnreadMessages]);
 
-   // Detect if 12h+ without response from the current user
-   const isAwaitingResponse = useMemo(() => {
+  // Detect if 12h+ without response from the current user
+  const isAwaitingResponse = useMemo(() => {
     if (!user || chatMessages.length === 0) return false;
     const lastMsg = chatMessages[chatMessages.length - 1];
     if (lastMsg.user_id === user.id) return false; // user already replied
