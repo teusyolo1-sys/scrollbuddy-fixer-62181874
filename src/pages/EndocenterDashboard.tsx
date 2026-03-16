@@ -111,10 +111,10 @@ function DashboardContent() {
                   whileTap={{ scale: 0.88 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
                   onClick={() => navigate("/permissions")}
-                  className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                  className="w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
                   title="Gerenciar permissões"
                 >
-                  <Shield className="h-4 w-4 text-white/80" />
+                  <Shield className="h-4 w-4 text-foreground" />
                 </motion.button>
               )}
 
