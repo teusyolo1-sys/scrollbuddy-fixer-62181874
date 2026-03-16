@@ -754,7 +754,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="ios-card p-4"
+            className="ios-card p-4 overflow-visible"
           >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <IosDropdown value={formType} onChange={(v) => setFormType(v as MetricType)} options={dropdownOptions} />
