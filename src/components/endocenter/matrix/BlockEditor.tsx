@@ -141,7 +141,9 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3] } }),
+      StarterKit.configure({
+        heading: { levels: [1, 2, 3] },
+      }),
       Placeholder.configure({ placeholder }),
       ImageExt.configure({ inline: false, allowBase64: true }),
       Table.configure({ resizable: true }),
@@ -160,6 +162,39 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
       FontFamily,
       FontSize,
       SlashCommands,
+      // Custom backspace handler for stubborn nodes
+      Extension.create({
+        name: "customBackspace",
+        addKeyboardShortcuts() {
+          return {
+            Backspace: ({ editor }) => {
+              const { state } = editor;
+              const { selection } = state;
+              const { empty, $anchor } = selection;
+              // If selection is empty and cursor is at start of a node after a non-text node
+              if (empty && $anchor.parentOffset === 0) {
+                const posBefore = $anchor.before();
+                if (posBefore > 0) {
+                  const nodeBefore = state.doc.resolve(posBefore).nodeBefore;
+                  if (nodeBefore && (
+                    nodeBefore.type.name === "horizontalRule" ||
+                    nodeBefore.type.name === "table" ||
+                    nodeBefore.type.name === "image" ||
+                    nodeBefore.type.name === "codeBlock"
+                  )) {
+                    editor.chain().deleteRange({
+                      from: posBefore - nodeBefore.nodeSize,
+                      to: posBefore,
+                    }).run();
+                    return true;
+                  }
+                }
+              }
+              return false;
+            },
+          };
+        },
+      }),
     ],
     content: value || "",
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
