@@ -469,4 +469,106 @@
   .ios-status-warning { background: hsl(var(--ios-orange) / 0.1); color: hsl(var(--ios-orange)); }
   .ios-status-danger { background: hsl(var(--ios-red) / 0.1); color: hsl(var(--ios-red)); }
   .ios-status-info { background: hsl(var(--ios-blue) / 0.1); color: hsl(var(--ios-blue)); }
+
+  /* ── TipTap Block Editor Styles ── */
+  .block-editor-content .tiptap {
+    outline: none;
+    min-height: 100%;
+    padding: 0;
+  }
+
+  .block-editor-content .tiptap p.is-editor-empty:first-child::before {
+    content: attr(data-placeholder);
+    float: left;
+    color: hsl(var(--muted-foreground) / 0.5);
+    pointer-events: none;
+    height: 0;
+  }
+
+  .block-editor-content .tiptap h1 { font-size: 1.75rem; font-weight: 700; margin-bottom: 0.75rem; color: hsl(var(--foreground)); }
+  .block-editor-content .tiptap h2 { font-size: 1.35rem; font-weight: 600; margin-bottom: 0.5rem; color: hsl(var(--foreground)); }
+  .block-editor-content .tiptap h3 { font-size: 1.1rem; font-weight: 500; margin-bottom: 0.5rem; color: hsl(var(--foreground)); }
+  .block-editor-content .tiptap p { margin-bottom: 0.4rem; }
+  .block-editor-content .tiptap ul { list-style: disc; padding-left: 1.25rem; }
+  .block-editor-content .tiptap ol { list-style: decimal; padding-left: 1.25rem; }
+
+  .block-editor-content .tiptap blockquote {
+    border-left: 4px solid hsl(var(--primary) / 0.3);
+    padding-left: 1rem;
+    margin: 0.75rem 0;
+    font-style: italic;
+    color: hsl(var(--muted-foreground));
+  }
+
+  .block-editor-content .tiptap pre {
+    background: hsl(var(--secondary));
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.75rem;
+    overflow-x: auto;
+  }
+
+  .block-editor-content .tiptap code {
+    background: hsl(var(--secondary));
+    border-radius: 0.25rem;
+    padding: 0.1rem 0.3rem;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    font-size: 0.85em;
+  }
+
+  .block-editor-content .tiptap hr {
+    border: none;
+    border-top: 1px solid hsl(var(--border) / 0.5);
+    margin: 1rem 0;
+  }
+
+  .block-editor-content .tiptap a { color: hsl(var(--primary)); text-decoration: underline; }
+  .block-editor-content .tiptap img { max-width: 100%; border-radius: 0.75rem; margin: 0.5rem 0; }
+  .block-editor-content .tiptap mark { background-color: hsl(var(--ios-orange) / 0.25); border-radius: 2px; }
+
+  /* Task list */
+  .block-editor-content .tiptap ul[data-type="taskList"] {
+    list-style: none;
+    padding-left: 0;
+  }
+  .block-editor-content .tiptap ul[data-type="taskList"] li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
+  }
+  .block-editor-content .tiptap ul[data-type="taskList"] li label {
+    margin-top: 0.15rem;
+  }
+  .block-editor-content .tiptap ul[data-type="taskList"] li[data-checked="true"] > div > p {
+    text-decoration: line-through;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* Table */
+  .block-editor-content .tiptap table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0.75rem 0;
+  }
+  .block-editor-content .tiptap th,
+  .block-editor-content .tiptap td {
+    border: 1px solid hsl(var(--border));
+    padding: 0.4rem 0.6rem;
+    font-size: 0.8rem;
+    vertical-align: top;
+    min-width: 60px;
+  }
+  .block-editor-content .tiptap th {
+    background: hsl(var(--secondary));
+    font-weight: 600;
+    text-align: left;
+  }
+  .block-editor-content .tiptap td {
+    background: hsl(var(--card));
+  }
+  .block-editor-content .tiptap .selectedCell {
+    background: hsl(var(--primary) / 0.1);
+  }
 }

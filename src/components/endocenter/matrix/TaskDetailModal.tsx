@@ -3,12 +3,13 @@ import { createPortal } from "react-dom";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Flag, Image, Link2, MessageCircle, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
-  ChevronDown, ChevronRight, Settings2, Pencil, ImagePlus
+  ChevronDown, ChevronRight, Settings2, Pencil, ImagePlus, FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } from "@/store/endocenterStore";
-import RichTextEditor, { type RichTextEditorHandle } from "./RichTextEditor";
+import BlockEditor, { type BlockEditorHandle } from "./BlockEditor";
+import PdfViewer from "./PdfViewer";
 import TaskChat from "./TaskChat";
 import { useTaskComplaints } from "@/hooks/useTaskComplaints";
 import { useAuth } from "@/hooks/useAuth";
@@ -59,8 +60,9 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [complaintDesc, setComplaintDesc] = useState("");
   const [submittingComplaint, setSubmittingComplaint] = useState(false);
   const titleRef = useRef<HTMLInputElement>(null);
-  const editorRef = useRef<RichTextEditorHandle>(null);
+  const editorRef = useRef<BlockEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const [viewingPdf, setViewingPdf] = useState<string | null>(null);
 
   useEffect(() => {
     if (editingTitle && titleRef.current) titleRef.current.focus();
@@ -333,12 +335,12 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
               {editingDescription ? (
                 <div className="flex flex-col h-full">
-                  <RichTextEditor
+                  <BlockEditor
                     ref={editorRef}
                     value={description}
                     onChange={handleDescriptionChange}
                     minHeight="100%"
-                    placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
+                    placeholder="Digite '/' para comandos · Comece a escrever..."
                   />
                 </div>
               ) : (
@@ -522,10 +524,21 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     <SideSection icon={Paperclip} label={`Anexos${item.attachments.length > 0 ? ` (${item.attachments.length})` : ""}`} defaultOpen={item.attachments.length > 0}>
                       {item.attachments.length > 0 && (
                         <div className="space-y-1.5">
-                          {item.attachments.map((att) => (
+                          {item.attachments.map((att) => {
+                            const isPdf = att.name?.toLowerCase().endsWith(".pdf") || att.url?.toLowerCase().endsWith(".pdf");
+                            return (
                             <div key={att.id} className="relative group rounded-lg border border-border/60 overflow-hidden">
                               {att.type === "image" ? (
                                 <img src={att.url} alt={att.name} className="w-full h-16 object-cover" />
+                              ) : isPdf ? (
+                                <button
+                                  onClick={() => setViewingPdf(att.url)}
+                                  className="flex items-center gap-2 p-2 text-[10px] text-primary hover:bg-primary/5 w-full transition-colors"
+                                >
+                                  <FileText className="h-3.5 w-3.5 shrink-0" />
+                                  <span className="truncate font-medium">{att.name}</span>
+                                  <span className="text-[9px] text-muted-foreground ml-auto shrink-0">Preview</span>
+                                </button>
                               ) : (
                                 <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 text-[10px] text-primary hover:underline">
                                   <Link2 className="h-3 w-3 shrink-0" /><span className="truncate">{att.name}</span>
@@ -546,7 +559,8 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                                 </button>
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                       <div className="flex flex-wrap gap-1">
@@ -557,6 +571,18 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                         <label className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
                           <Image className="h-3 w-3" /> Capa
                           <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                        </label>
+                        <label className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground cursor-pointer transition-colors">
+                          <FileText className="h-3 w-3" /> PDF
+                          <input type="file" accept=".pdf" className="hidden" onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const reader = new FileReader();
+                            reader.onload = () => {
+                              onUpdate({ attachments: [...item.attachments, { id: `id_${Math.random().toString(36).slice(2, 10)}`, name: file.name, url: reader.result as string, type: "link" }] });
+                            };
+                            reader.readAsDataURL(file);
+                          }} />
                         </label>
                         <button onClick={() => setShowLinkForm(!showLinkForm)} className="inline-flex items-center gap-1 text-[10px] font-medium px-2 py-1.5 rounded-lg bg-secondary text-muted-foreground hover:text-foreground transition-colors">
                           <Link2 className="h-3 w-3" /> Link
@@ -679,6 +705,31 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           )}
         </AnimatePresence>
         </div>{/* wrapper div */}
+
+        {/* PDF Viewer overlay */}
+        <AnimatePresence>
+          {viewingPdf && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[110] flex items-center justify-center p-6"
+              onClick={() => setViewingPdf(null)}
+            >
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="relative z-10 w-full max-w-3xl h-[80vh] rounded-2xl overflow-hidden"
+                style={{ boxShadow: "var(--ios-shadow-float)" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <PdfViewer url={viewingPdf} onClose={() => setViewingPdf(null)} />
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </AnimatePresence>,
     document.body
