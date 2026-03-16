@@ -429,27 +429,20 @@ const AuthPage = () => {
               )}
             </AnimatePresence>
 
-            {/* Forgot password — shown on login after error */}
-            <AnimatePresence>
-              {isLogin && loginError && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="text-center"
+            {/* Forgot password — always visible on login */}
+            {isLogin && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={forgotLoading}
+                  className="text-sm text-primary hover:underline transition-colors inline-flex items-center gap-1"
                 >
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    disabled={forgotLoading}
-                    className="text-sm text-primary hover:underline transition-colors inline-flex items-center gap-1"
-                  >
-                    {forgotLoading && <Loader2 size={12} className="animate-spin" />}
-                    Esqueceu sua senha?
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {forgotLoading && <Loader2 size={12} className="animate-spin" />}
+                  Esqueceu sua senha?
+                </button>
+              </div>
+            )}
 
             <motion.button
               whileHover={{ scale: 1.01 }}
