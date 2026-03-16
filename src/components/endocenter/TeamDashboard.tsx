@@ -1,6 +1,7 @@
 import { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, Plus, Target, Trash2, TrendingUp, Upload, User, X } from "lucide-react";
+import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { sendToTrash } from "@/lib/trash";
 import AnalyticsCharts from "./AnalyticsCharts";
@@ -204,6 +205,7 @@ function StatusDropdown({ value, onChange, options }: { value: string; onChange:
 }
 
 export default function TeamDashboard() {
+  const { companyId } = useParams<{ companyId: string }>();
   const { team, company, metricEntries, addMember, removeMember } = useEndocenter();
   const { isAdmin } = useUserRole();
   const { teamRole } = useTeamRole();
@@ -384,6 +386,7 @@ export default function TeamDashboard() {
         {selectedMember && (
           <ProfileModal
             member={selectedMember}
+            companyId={companyId}
             onClose={() => setSelectedMember(null)}
             isAdmin={isAdmin}
             canEdit={isAdmin || selectedMember.role === teamRole}
@@ -465,7 +468,7 @@ function MemberCard({ member, index, isExpanded, onToggle, showFinancials = true
 }
 
 /* ── Profile Modal ── */
-function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDelete }: { member: ReturnType<typeof useEndocenter>["team"][number]; onClose: () => void; isAdmin?: boolean; canEdit?: boolean; onDelete?: (id: string) => void }) {
+function ProfileModal({ member, companyId, onClose, isAdmin = false, canEdit = true, onDelete }: { member: ReturnType<typeof useEndocenter>["team"][number]; companyId?: string; onClose: () => void; isAdmin?: boolean; canEdit?: boolean; onDelete?: (id: string) => void }) {
   const { updateMember } = useEndocenter();
   const [editing, setEditing] = useState(false);
   const [form, setForm] = useState({ ...member });
@@ -712,7 +715,7 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
                               if (!user?.email) { setDeleteError("Erro ao verificar usuário."); setDeleting(false); return; }
                               const { error } = await supabase.auth.signInWithPassword({ email: user.email, password });
                               if (error) { setDeleteError("Senha incorreta."); setDeleting(false); return; }
-                              await sendToTrash("member", member.id, member.name, { role: member.role, specialty: member.specialty, color: member.color } as Record<string, unknown>, user.id);
+                              await sendToTrash("member", member.id, member.name, { ...member, companyId } as Record<string, unknown>, user.id);
                               onDelete(member.id);
                               onClose();
                             } catch {
