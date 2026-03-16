@@ -12,6 +12,7 @@ import BlockEditor, { type BlockEditorHandle } from "./BlockEditor";
 import PdfViewer from "./PdfViewer";
 import TaskChat from "./TaskChat";
 import { useTaskComplaints } from "@/hooks/useTaskComplaints";
+import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
 
 const priorityOptions = [
