@@ -62,6 +62,12 @@ export const TAB_SECTIONS: Record<TabKey, TabSection[]> = {
     { key: 'complaints_history', label: 'Histórico de sinalizações', description: 'Reclamações e feedbacks internos' },
     { key: 'team_remuneration', label: 'Remuneração do time', description: 'Valores salariais e custos do time' },
   ],
+  files: [
+    { key: 'view_files', label: 'Visualizar arquivos', description: 'Ver e abrir arquivos do Google Drive' },
+    { key: 'upload_files', label: 'Upload de arquivos', description: 'Enviar novos arquivos para o Drive' },
+    { key: 'delete_files', label: 'Deletar arquivos', description: 'Remover arquivos do Drive' },
+    { key: 'create_folders', label: 'Criar pastas', description: 'Criar novas subpastas' },
+  ],
 };
 
 export interface SectionPermission {

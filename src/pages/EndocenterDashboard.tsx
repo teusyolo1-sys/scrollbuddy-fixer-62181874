@@ -232,6 +232,7 @@ function DashboardContent() {
           {activeTab === "deadlines" && <DeadlineManagement />}
           {activeTab === "budget" && <BudgetCalculator companyId={companyId} />}
           {activeTab === "team" && <TeamAnalytics companyId={companyId} />}
+          {activeTab === "files" && companyId && <DriveFileManager companyId={companyId} companyName={company.name} />}
         </motion.div>
       </main>
 

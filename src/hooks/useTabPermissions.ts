@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { useUserRole } from './useUserRole';
 
-export const TAB_KEYS = ['dashboard', 'schedule', 'pipeline', 'matrix', 'workflow', 'deadlines', 'budget', 'team'] as const;
+export const TAB_KEYS = ['dashboard', 'schedule', 'pipeline', 'matrix', 'workflow', 'deadlines', 'budget', 'team', 'files'] as const;
 export type TabKey = typeof TAB_KEYS[number];
 
 export const TAB_LABELS: Record<TabKey, string> = {
@@ -15,6 +15,7 @@ export const TAB_LABELS: Record<TabKey, string> = {
   deadlines: 'Prazos & Crises',
   budget: 'Orçamento',
   team: 'Time',
+  files: 'Arquivos',
 };
 
 interface TabPermission {
