@@ -765,6 +765,8 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
           >
             {isAwaitingResponse && !chatOpen ? (
               <AnimatedAskIcon size={26} active={chatOpen} />
+            ) : isChatSeen && !chatOpen ? (
+              <AnimatedSeenIcon size={26} active={chatOpen} />
             ) : (
               <AnimatedChatIcon size={26} active={chatOpen} />
             )}
