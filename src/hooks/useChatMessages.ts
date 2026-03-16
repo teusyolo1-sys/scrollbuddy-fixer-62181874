@@ -23,7 +23,7 @@ export interface ChatProfile {
   avatar_url: string | null;
 }
 
-export function useChatMessages(taskId?: string) {
+export function useChatMessages(taskId?: string, companyId?: string) {
   const { user } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [profiles, setProfiles] = useState<ChatProfile[]>([]);
@@ -49,6 +49,10 @@ export function useChatMessages(taskId?: string) {
       query = query.is("task_id", null);
     }
 
+    if (companyId) {
+      query = query.eq("company_id", companyId);
+    }
+
     const { data } = await query;
 
     if (data) {
@@ -64,7 +68,7 @@ export function useChatMessages(taskId?: string) {
       setMessages(enriched);
     }
     setLoading(false);
-  }, [taskId]);
+  }, [taskId, companyId]);
 
   useEffect(() => {
     if (!user) return;
@@ -74,13 +78,13 @@ export function useChatMessages(taskId?: string) {
   useEffect(() => {
     if (!user) return;
     const channel = supabase
-      .channel(`chat_${taskId || "global"}`)
+      .channel(`chat_${taskId || "global"}_${companyId || "all"}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "chat_messages" }, () => {
         fetchMessages();
       })
       .subscribe();
     return () => { supabase.removeChannel(channel); };
-  }, [user, fetchMessages, taskId]);
+  }, [user, fetchMessages, taskId, companyId]);
 
   const sendMessage = useCallback(
     async (content: string, mentions: string[]) => {
@@ -90,9 +94,10 @@ export function useChatMessages(taskId?: string) {
         content,
         mentions,
         task_id: taskId || null,
+        company_id: companyId || null,
       } as any);
     },
-    [user, taskId]
+    [user, taskId, companyId]
   );
 
   const deleteMessage = useCallback(async (id: string) => {

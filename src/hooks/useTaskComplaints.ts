@@ -14,17 +14,23 @@ export interface TaskComplaint {
   created_at: string;
 }
 
-export function useTaskComplaints() {
+export function useTaskComplaints(companyId?: string) {
   const { user } = useAuth();
   const [complaints, setComplaints] = useState<TaskComplaint[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchComplaints = useCallback(async () => {
     if (!user) { setComplaints([]); setLoading(false); return; }
-    const { data } = await supabase
+    let query = supabase
       .from('task_complaints' as any)
       .select('*')
-      .order('created_at', { ascending: false }) as { data: any[] | null };
+      .order('created_at', { ascending: false });
+
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+
+    const { data } = await query as { data: any[] | null };
     setComplaints((data || []).map((d: any) => ({
       id: d.id,
       reporter_id: d.reporter_id,
@@ -37,7 +43,7 @@ export function useTaskComplaints() {
       created_at: d.created_at,
     })));
     setLoading(false);
-  }, [user]);
+  }, [user, companyId]);
 
   useEffect(() => { fetchComplaints(); }, [fetchComplaints]);
 
@@ -52,6 +58,7 @@ export function useTaskComplaints() {
     if (!user) throw new Error("Usuário não autenticado");
     const { error } = await supabase.from('task_complaints' as any).insert({
       reporter_id: user.id,
+      company_id: companyId || 'default',
       task_id: taskId,
       task_name: taskName,
       assigned_to: assignedTo,
