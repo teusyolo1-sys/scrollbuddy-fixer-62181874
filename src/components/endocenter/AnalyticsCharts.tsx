@@ -67,7 +67,9 @@ function IosDropdown({ value, onChange, options }: {
 }) {
   const [open, setOpen] = useState(false);
   const [menuStyle, setMenuStyle] = useState<CSSProperties>({});
+  const [isMobileMenu, setIsMobileMenu] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
   const selected = options.find((o) => o.value === value);
 
   useEffect(() => {
@@ -78,31 +80,55 @@ function IosDropdown({ value, onChange, options }: {
       if (!trigger) return;
 
       const rect = trigger.getBoundingClientRect();
+      const mobile = window.innerWidth < 640;
+      setIsMobileMenu(mobile);
+
+      if (mobile) {
+        setMenuStyle({
+          position: "fixed",
+          left: 16,
+          right: 16,
+          bottom: 16,
+          zIndex: 9999,
+        });
+        return;
+      }
+
       const viewportHeight = window.innerHeight;
-      const estimatedHeight = Math.min(options.length * 40 + 8, 240);
+      const estimatedHeight = Math.min(options.length * 48 + 12, 260);
       const spaceBelow = viewportHeight - rect.bottom;
       const openUpwards = spaceBelow < estimatedHeight && rect.top > estimatedHeight;
 
       setMenuStyle({
         position: "fixed",
         left: rect.left,
-        top: openUpwards ? Math.max(8, rect.top - estimatedHeight - 6) : rect.bottom + 6,
+        top: openUpwards ? Math.max(12, rect.top - estimatedHeight - 6) : rect.bottom + 6,
         width: rect.width,
         zIndex: 9999,
       });
     };
 
-    const close = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    const close = (e: MouseEvent | TouchEvent) => {
+      const target = e.target as Node;
+      if (ref.current?.contains(target) || menuRef.current?.contains(target)) return;
+      setOpen(false);
+    };
+
+    const closeOnEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
     };
 
     updatePosition();
     window.addEventListener("mousedown", close);
+    window.addEventListener("touchstart", close);
+    window.addEventListener("keydown", closeOnEscape);
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
 
     return () => {
       window.removeEventListener("mousedown", close);
+      window.removeEventListener("touchstart", close);
+      window.removeEventListener("keydown", closeOnEscape);
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
     };
@@ -110,7 +136,12 @@ function IosDropdown({ value, onChange, options }: {
 
   return (
     <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen(!open)} className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2"
+      >
         <div className="flex items-center gap-2 min-w-0">
           {selected?.color && <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: selected.color }} />}
           <span className="text-foreground truncate">{selected?.label || "Selecionar"}</span>
@@ -122,31 +153,47 @@ function IosDropdown({ value, onChange, options }: {
       {typeof document !== "undefined" && createPortal(
         <AnimatePresence>
           {open && (
-            <motion.div
-              initial={{ opacity: 0, y: -4, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -4, scale: 0.96 }}
-              transition={{ type: "spring", damping: 24, stiffness: 400 }}
-              className="bg-card border border-border/60 shadow-lg p-1 max-h-60 overflow-y-auto"
-              style={{
-                ...menuStyle,
-                borderRadius: "var(--ios-radius, 16px)",
-                boxShadow: "var(--ios-shadow-float, 0 8px 32px rgba(0,0,0,0.12))",
-              }}
-            >
-              {options.map((opt) => (
-                <button
+            <>
+              {isMobileMenu && (
+                <motion.button
                   type="button"
-                  key={opt.value}
-                  onClick={() => { onChange(opt.value); setOpen(false); }}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl hover:bg-secondary/60 transition-colors"
-                >
-                  {opt.color && <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: opt.color }} />}
-                  <span className="flex-1 text-left text-foreground">{opt.label}</span>
-                  {value === opt.value && <Check className="h-3.5 w-3.5 text-primary" />}
-                </button>
-              ))}
-            </motion.div>
+                  aria-label="Fechar seleção"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setOpen(false)}
+                  className="fixed inset-0 bg-background/45 backdrop-blur-sm"
+                  style={{ zIndex: 9998 }}
+                />
+              )}
+              <motion.div
+                ref={menuRef}
+                initial={{ opacity: 0, y: isMobileMenu ? 18 : -4, scale: isMobileMenu ? 1 : 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: isMobileMenu ? 18 : -4, scale: isMobileMenu ? 1 : 0.96 }}
+                transition={{ type: "spring", damping: 24, stiffness: 400 }}
+                className={isMobileMenu ? "bg-card border border-border/60 shadow-lg p-2 max-h-[50vh] overflow-y-auto" : "bg-card border border-border/60 shadow-lg p-1 max-h-60 overflow-y-auto"}
+                style={{
+                  ...menuStyle,
+                  borderRadius: isMobileMenu ? "var(--ios-radius-lg)" : "var(--ios-radius, 16px)",
+                  boxShadow: "var(--ios-shadow-float, 0 8px 32px rgba(0,0,0,0.12))",
+                }}
+              >
+                {isMobileMenu && <div className="mx-auto mb-2 h-1.5 w-12 rounded-full bg-border/80" />}
+                {options.map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.value}
+                    onClick={() => { onChange(opt.value); setOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2.5 text-sm rounded-xl hover:bg-secondary/60 transition-colors"
+                  >
+                    {opt.color && <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: opt.color }} />}
+                    <span className="flex-1 text-left text-foreground">{opt.label}</span>
+                    {value === opt.value && <Check className="h-3.5 w-3.5 text-primary" />}
+                  </button>
+                ))}
+              </motion.div>
+            </>
           )}
         </AnimatePresence>,
         document.body,
