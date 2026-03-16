@@ -631,13 +631,13 @@ export default function AnalyticsCharts() {
   const [chartStyles, setChartStyles] = useState<Record<string, ChartStyle>>({});
   const [colorOverrides, setColorOverrides] = useState<Record<string, string>>({});
 
-  const setStyleFor = (type: string, style: ChartStyle) => {
+  const setStyleFor = useCallback((type: string, style: ChartStyle) => {
     setChartStyles((prev) => ({ ...prev, [type]: style }));
-  };
+  }, []);
 
-  const setColorFor = (type: string, color: string) => {
+  const setColorFor = useCallback((type: string, color: string) => {
     setColorOverrides((prev) => ({ ...prev, [type]: color }));
-  };
+  }, []);
 
   const applyFunnelPalette = (palette: ColorPalette) => {
     const newOverrides: Record<string, string> = { ...colorOverrides };
