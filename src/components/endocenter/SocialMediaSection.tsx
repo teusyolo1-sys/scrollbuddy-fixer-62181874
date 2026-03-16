@@ -221,14 +221,16 @@ function UpdateMetricsModal({ open, onClose, account, onSave }: {
 }
 
 /* ── Account Card ── */
-const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin, canEdit, onUpdate, onDelete }: {
+const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin, canEdit, onUpdate, onDelete, onFetchApi }: {
   account: SocialAccount;
   metricsHistory: { date: string; followers: number; reach: number }[];
   isAdmin: boolean;
   canEdit: boolean;
   onUpdate: () => void;
   onDelete: () => void;
+  onFetchApi?: () => void;
 }) {
+  const [fetching, setFetching] = useState(false);
   const cfg = PLATFORM_CONFIG[account.platform];
   const PlatformIcon = PLATFORM_ICONS[account.platform];
 
