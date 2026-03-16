@@ -137,6 +137,14 @@ export function useSocialAccounts(companyId?: string) {
     await fetchAccounts();
   };
 
+  const addMetricEntry = async (accountId: string, metricData: Omit<SocialMetric, 'id' | 'account_id'>) => {
+    await supabase.from('social_metrics' as any).upsert({
+      account_id: accountId,
+      ...metricData,
+    } as any, { onConflict: 'account_id,date' });
+    await fetchAccounts();
+  };
+
   const fetchFromInstagramApi = async (accountId: string, username: string) => {
     try {
       const { data, error } = await supabase.functions.invoke('instagram-fetch', {
