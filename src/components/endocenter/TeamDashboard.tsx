@@ -714,7 +714,7 @@ function ProfileModal({ member, onClose, isAdmin = false, canEdit = true, onDele
                               if (!user?.email) { setDeleteError("Erro ao verificar usuário."); setDeleting(false); return; }
                               const { error } = await supabase.auth.signInWithPassword({ email: user.email, password });
                               if (error) { setDeleteError("Senha incorreta."); setDeleting(false); return; }
-                              await sendToTrash("member", member.id, member.name, { role: member.role, specialty: member.specialty, color: member.color } as Record<string, unknown>, user.id);
+                              await sendToTrash("member", member.id, member.name, { ...member, companyId } as Record<string, unknown>, user.id);
                               onDelete(member.id);
                               onClose();
                             } catch {
