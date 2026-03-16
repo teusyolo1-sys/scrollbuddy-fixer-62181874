@@ -281,6 +281,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     roleColor={roleColor}
                     roleName={roleName}
                     teamMembers={teamMembers}
+                    companyId={companyId}
                     editingDescription={editingDescription}
                     editorRef={editorRef}
                     onUpdate={onUpdate}
