@@ -292,15 +292,43 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
         const result = await mammoth.convertToHtml({ arrayBuffer: ab });
         editor.chain().focus().insertContent(result.value).run();
         toast.success("Documento Word importado!");
+      } else if (ext === "pdf") {
+        toast.info("Extraindo texto do PDF...");
+        const ab = await file.arrayBuffer();
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+        let fullHtml = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const lines: string[] = [];
+          let lastY: number | null = null;
+          for (const item of textContent.items as any[]) {
+            if (!item.str) continue;
+            const y = Math.round(item.transform[5]);
+            if (lastY !== null && Math.abs(y - lastY) > 5) {
+              lines.push("<br>");
+            }
+            lines.push(item.str);
+            lastY = y;
+          }
+          fullHtml += `<p>${lines.join(" ")}</p>`;
+          if (i < pdf.numPages) fullHtml += "<hr>";
+        }
+        editor.chain().focus().insertContent(fullHtml).run();
+        toast.success(`PDF importado! (${pdf.numPages} páginas)`);
       } else if (ext === "txt" || ext === "md") {
         const text = await file.text();
         const html = text.split("\n").map((l) => `<p>${l || "<br>"}</p>`).join("");
         editor.chain().focus().insertContent(html).run();
         toast.success("Arquivo de texto importado!");
       } else {
-        toast.error("Formato não suportado. Use .docx ou .txt");
+        toast.error("Formato não suportado. Use .docx, .pdf ou .txt");
       }
-    } catch { toast.error("Erro ao importar documento"); }
+    } catch (err) {
+      console.error("Import error:", err);
+      toast.error("Erro ao importar documento");
+    }
   }, [editor]);
 
   if (!editor) return null;
