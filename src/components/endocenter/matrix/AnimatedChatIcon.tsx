@@ -32,7 +32,7 @@ export default function AnimatedChatIcon({ size = 28, className = "", active = f
       transition: {
         delay: i * 0.15,
         duration: 0.5,
-        ease: "easeInOut",
+        ease: "easeInOut" as const,
       },
     }),
   };
@@ -41,7 +41,7 @@ export default function AnimatedChatIcon({ size = 28, className = "", active = f
     idle: { scale: 1 },
     pop: {
       scale: [1, 1.12, 1],
-      transition: { duration: 0.4, ease: "easeOut" },
+      transition: { duration: 0.4, ease: "easeOut" as const },
     },
   };
 
