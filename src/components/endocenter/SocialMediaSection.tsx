@@ -2,7 +2,7 @@ import { useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, ExternalLink, Trash2, TrendingUp, Users, Eye, Heart, MessageCircle, Share2, Loader2, X, Pencil,
-  Instagram, Facebook,
+  Instagram, Facebook, RefreshCw,
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useSocialAccounts, PLATFORM_CONFIG, type SocialPlatform, type SocialAccount } from "@/hooks/useSocialAccounts";
