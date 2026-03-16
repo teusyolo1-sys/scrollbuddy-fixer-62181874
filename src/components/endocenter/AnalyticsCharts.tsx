@@ -236,11 +236,15 @@ function ChartByStyle({ style, data, color, type }: {
       return (
         <ResponsiveContainer width="100%" height={160}>
           <ScatterChart>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.4} />
             <XAxis type="number" dataKey="x" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="number" dataKey="y" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} />
-            <Scatter data={scatterData} fill={color} />
+            <Scatter data={scatterData} fill={color} fillOpacity={0.8}>
+              {scatterData.map((_, i) => (
+                <Cell key={i} fill={color} stroke="hsl(var(--card))" strokeWidth={2} />
+              ))}
+            </Scatter>
           </ScatterChart>
         </ResponsiveContainer>
       );
