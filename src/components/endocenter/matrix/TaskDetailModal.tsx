@@ -341,14 +341,6 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 <h2 className="text-sm font-bold text-foreground truncate">{item.task}</h2>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <motion.button onClick={() => setChatOpen(!chatOpen)}
-                  whileHover={{ scale: 1.12 }}
-                  whileTap={{ scale: 0.9 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 14 }}
-                  className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${chatOpen ? "bg-primary/15 text-primary" : "bg-secondary/60 text-muted-foreground hover:text-foreground"}`}
-                  title="Chat">
-                  <MessageCircle className="h-3.5 w-3.5" />
-                </motion.button>
                 <motion.button onClick={onClose}
                   whileHover={{ scale: 1.12, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
