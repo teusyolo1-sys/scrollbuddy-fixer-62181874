@@ -10,7 +10,6 @@ import TableHeader from "@tiptap/extension-table-header";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import Underline from "@tiptap/extension-underline";
-import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
 import TextAlign from "@tiptap/extension-text-align";
 import Highlight from "@tiptap/extension-highlight";
@@ -24,8 +23,7 @@ import {
   Heading1, Heading2, Heading3, List, ListOrdered, CheckSquare,
   Quote, Minus, Image, Table as TableIcon, Link2, AlignLeft,
   AlignCenter, AlignRight, AlignJustify, Highlighter, FileUp,
-  Undo2, Redo2, ChevronDown, Subscript as SubscriptIcon,
-  Superscript as SuperscriptIcon, Type
+  Undo2, Redo2, ChevronDown, Superscript as SuperscriptIcon, Type
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import mammoth from "mammoth";
@@ -153,7 +151,6 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
       TaskList,
       TaskItem.configure({ nested: true }),
       Underline,
-      Subscript,
       Superscript,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Highlight.configure({ multicolor: true }),
@@ -353,9 +350,6 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
         </ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive("strike")} title="Tachado">
           <Strikethrough className="h-3.5 w-3.5" />
-        </ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleSubscript().run()} active={editor.isActive("subscript")} title="Subscrito">
-          <SubscriptIcon className="h-3.5 w-3.5" />
         </ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleSuperscript().run()} active={editor.isActive("superscript")} title="Sobrescrito">
           <SuperscriptIcon className="h-3.5 w-3.5" />
