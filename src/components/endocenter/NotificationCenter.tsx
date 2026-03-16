@@ -72,7 +72,7 @@ export default function NotificationCenter({ onNavigateToTask }: NotificationCen
           whileHover={{ rotate: [0, 15, -15, 10, -10, 0] }}
           transition={{ duration: 0.5, ease: "easeInOut" }}
         >
-          <Bell className="h-4 w-4 text-white/80" />
+          <Bell className="h-4 w-4 text-foreground" />
         </motion.div>
         <AnimatePresence>
           {count > 0 && (
