@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Calendar, CheckSquare, Clock, Image, Link2, Paperclip, Tag, Timer, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Calendar, CheckSquare, Paperclip, Timer } from "lucide-react";
 import { motion } from "framer-motion";
 import type { ResponsibilityItem, TaskLabel } from "@/store/endocenterStore";
 
