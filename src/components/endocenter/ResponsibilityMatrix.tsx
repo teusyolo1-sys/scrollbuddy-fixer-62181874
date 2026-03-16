@@ -274,6 +274,7 @@ export default function ResponsibilityMatrix({ companyId }: { companyId?: string
           roleColor={role.color}
           roleName={role.role}
           teamMembers={teamMembers}
+          companyId={companyId}
           onUpdate={(updates) => handleUpdateItem(selectedItem.item.id, updates)}
           onDelete={() => handleDeleteItem(selectedItem.item.id)}
           onClose={() => setSelectedItem(null)}

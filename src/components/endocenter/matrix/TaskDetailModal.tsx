@@ -19,14 +19,15 @@ interface Props {
   roleColor: string;
   roleName: string;
   teamMembers: string[];
+  companyId?: string;
   onUpdate: (updates: Partial<ResponsibilityItem>) => void;
   onDelete: () => void;
   onClose: () => void;
 }
 
-export default function TaskDetailModal({ item, roleColor, roleName, teamMembers, onUpdate, onDelete, onClose }: Props) {
+export default function TaskDetailModal({ item, roleColor, roleName, teamMembers, companyId, onUpdate, onDelete, onClose }: Props) {
   const { user } = useAuth();
-  const { messages: chatMessages } = useChatMessages(item.id);
+  const { messages: chatMessages } = useChatMessages(item.id, companyId);
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState(item.task);
   const [description, setDescription] = useState(item.description);
