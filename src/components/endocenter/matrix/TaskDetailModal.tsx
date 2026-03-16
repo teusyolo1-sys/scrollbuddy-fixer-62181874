@@ -115,8 +115,10 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: roleColor }}>
                   {roleName}
                 </span>
-                {item.critical && (
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-destructive/10 text-destructive shrink-0">Crítico</span>
+                {isCritical && (
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${isAutoCritical && !item.critical ? "bg-amber-500/10 text-amber-600" : "bg-destructive/10 text-destructive"}`}>
+                    {isAutoCritical && !item.critical ? "⏰ Urgente" : "✦ Crítico"}
+                  </span>
                 )}
                 {item.labels.map((l) => (
                   <span key={l.id} className="text-[10px] font-semibold px-2 py-0.5 rounded-full text-white shrink-0" style={{ backgroundColor: l.color }}>
