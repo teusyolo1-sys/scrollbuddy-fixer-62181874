@@ -186,7 +186,7 @@ function ChartByStyle({ style, data, color, type }: {
             <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
-            <Bar dataKey="value" fill={color} radius={[0, 6, 6, 0]} />
+            <Bar dataKey="value" fill={color} radius={[0, 6, 6, 0]} background={{ fill: 'transparent' }} />
           </BarChart>
         </ResponsiveContainer>
       );
