@@ -369,6 +369,18 @@ export default function PermissionsPage() {
   }, [user]);
 
   useEffect(() => {
+    const fetchCompanies = async () => {
+      const { data } = await supabase
+        .from('companies')
+        .select('id, name')
+        .order('created_at', { ascending: true });
+      setCompanies((data || []) as { id: string; name: string }[]);
+      setLoadingCompanies(false);
+    };
+    if (user) fetchCompanies();
+  }, [user]);
+
+  useEffect(() => {
     const fetchCompanyPerms = async () => {
       const { data } = await supabase.from('company_permissions').select('user_id, company_id, granted') as { data: CompanyPerm[] | null };
       setCompanyPerms(data || []);
