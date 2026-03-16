@@ -261,7 +261,6 @@
     background: hsl(var(--card) / 0.92);
     backdrop-filter: blur(20px) saturate(130%);
     -webkit-backdrop-filter: blur(20px) saturate(130%);
-    transform: translateZ(0);
   }
 
   .liquid-glass-navbar {
