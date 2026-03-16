@@ -437,8 +437,9 @@ export default function SocialMediaSection({ companyId }: { companyId?: string }
               }))}
               isAdmin={isAdmin}
               canEdit={canEdit}
-              onUpdate={() => setEditAccount(account)}
-              onDelete={() => handleDelete(account.id)}
+               onUpdate={() => setEditAccount(account)}
+               onDelete={() => handleDelete(account.id)}
+               onFetchApi={account.platform === 'instagram' ? () => fetchFromInstagramApi(account.id, account.profile_name) : undefined}
             />
           ))}
         </div>
