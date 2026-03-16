@@ -36,9 +36,8 @@ export default function AnimatedChatIcon({ size = 22, className = "", active = f
       animate={playing ? { scale: [1, 1.06, 1] } : {}}
       transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      {/* Speech bubble */}
       <path
-        d="M12 2C6.477 2 2 5.92 2 10.667c0 2.627 1.3 4.98 3.333 6.573V22l4.453-2.48A11.07 11.07 0 0 0 12 19.333C17.523 19.333 22 15.413 22 10.667 22 5.92 17.523 2 12 2Z"
+        d="M5.5 7.5C5.5 5.567 7.067 4 9 4h6c3.038 0 5.5 2.239 5.5 5s-2.462 5-5.5 5h-2.8L8 17.5V14.3C6.495 13.55 5.5 12.161 5.5 10.5V7.5Z"
         stroke={strokeCol}
         strokeWidth={1.8}
         strokeLinecap="round"
