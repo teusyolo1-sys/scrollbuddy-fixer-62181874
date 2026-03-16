@@ -113,6 +113,16 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
     );
   }, [chatMessages, user, chatOpen]);
 
+  // Detect if 12h+ without response from the current user
+  const isAwaitingResponse = useMemo(() => {
+    if (!user || chatMessages.length === 0) return false;
+    const lastMsg = chatMessages[chatMessages.length - 1];
+    if (lastMsg.user_id === user.id) return false; // user already replied
+    const lastTime = new Date(lastMsg.created_at).getTime();
+    const twelveHours = 12 * 60 * 60 * 1000;
+    return Date.now() - lastTime > twelveHours;
+  }, [chatMessages, user]);
+
   // When chat opens, mark as read
   useEffect(() => {
     if (chatOpen) {
