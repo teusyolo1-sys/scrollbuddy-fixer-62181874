@@ -151,7 +151,6 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
       TaskList,
       TaskItem.configure({ nested: true }),
       Underline,
-      Subscript,
       Superscript,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       Highlight.configure({ multicolor: true }),
