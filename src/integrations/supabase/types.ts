@@ -557,6 +557,115 @@ export type Database = {
         }
         Relationships: []
       }
+      social_accounts: {
+        Row: {
+          company_id: string
+          created_at: string
+          created_by: string
+          engagement_rate: number
+          followers: number
+          id: string
+          last_updated: string
+          notes: string
+          platform: string
+          posts_count: number
+          profile_name: string
+          profile_url: string
+          reach: number
+          updated_at: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          created_by: string
+          engagement_rate?: number
+          followers?: number
+          id?: string
+          last_updated?: string
+          notes?: string
+          platform?: string
+          posts_count?: number
+          profile_name?: string
+          profile_url?: string
+          reach?: number
+          updated_at?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          created_by?: string
+          engagement_rate?: number
+          followers?: number
+          id?: string
+          last_updated?: string
+          notes?: string
+          platform?: string
+          posts_count?: number
+          profile_name?: string
+          profile_url?: string
+          reach?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: false
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_metrics: {
+        Row: {
+          account_id: string
+          comments: number
+          created_at: string
+          date: string
+          engagement_rate: number
+          followers: number
+          id: string
+          impressions: number
+          likes: number
+          reach: number
+          shares: number
+        }
+        Insert: {
+          account_id: string
+          comments?: number
+          created_at?: string
+          date?: string
+          engagement_rate?: number
+          followers?: number
+          id?: string
+          impressions?: number
+          likes?: number
+          reach?: number
+          shares?: number
+        }
+        Update: {
+          account_id?: string
+          comments?: number
+          created_at?: string
+          date?: string
+          engagement_rate?: number
+          followers?: number
+          id?: string
+          impressions?: number
+          likes?: number
+          reach?: number
+          shares?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_metrics_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tab_permissions: {
         Row: {
           created_at: string
