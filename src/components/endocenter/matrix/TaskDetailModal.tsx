@@ -524,10 +524,21 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     <SideSection icon={Paperclip} label={`Anexos${item.attachments.length > 0 ? ` (${item.attachments.length})` : ""}`} defaultOpen={item.attachments.length > 0}>
                       {item.attachments.length > 0 && (
                         <div className="space-y-1.5">
-                          {item.attachments.map((att) => (
+                          {item.attachments.map((att) => {
+                            const isPdf = att.name?.toLowerCase().endsWith(".pdf") || att.url?.toLowerCase().endsWith(".pdf");
+                            return (
                             <div key={att.id} className="relative group rounded-lg border border-border/60 overflow-hidden">
                               {att.type === "image" ? (
                                 <img src={att.url} alt={att.name} className="w-full h-16 object-cover" />
+                              ) : isPdf ? (
+                                <button
+                                  onClick={() => setViewingPdf(att.url)}
+                                  className="flex items-center gap-2 p-2 text-[10px] text-primary hover:bg-primary/5 w-full transition-colors"
+                                >
+                                  <FileText className="h-3.5 w-3.5 shrink-0" />
+                                  <span className="truncate font-medium">{att.name}</span>
+                                  <span className="text-[9px] text-muted-foreground ml-auto shrink-0">Preview</span>
+                                </button>
                               ) : (
                                 <a href={att.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 text-[10px] text-primary hover:underline">
                                   <Link2 className="h-3 w-3 shrink-0" /><span className="truncate">{att.name}</span>
@@ -548,7 +559,8 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                                 </button>
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                       <div className="flex flex-wrap gap-1">
