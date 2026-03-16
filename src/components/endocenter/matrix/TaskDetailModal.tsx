@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Flag, Image, Link2, MessageCircle, Paperclip, 
