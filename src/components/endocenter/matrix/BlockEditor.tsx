@@ -351,9 +351,6 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
         <ToolBtn onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive("strike")} title="Tachado">
           <Strikethrough className="h-3.5 w-3.5" />
         </ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleSubscript().run()} active={editor.isActive("subscript")} title="Subscrito">
-          <SubscriptIcon className="h-3.5 w-3.5" />
-        </ToolBtn>
         <ToolBtn onClick={() => editor.chain().focus().toggleSuperscript().run()} active={editor.isActive("superscript")} title="Sobrescrito">
           <SuperscriptIcon className="h-3.5 w-3.5" />
         </ToolBtn>
