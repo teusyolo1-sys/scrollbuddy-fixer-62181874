@@ -101,37 +101,17 @@ function AnimatedBackground() {
         style={{
           width: "60%", height: "25%", bottom: "5%", left: "-5%",
           background: `radial-gradient(ellipse, hsl(0 0% 100% / ${wispOpacity}), transparent 65%)`,
-          filter: "blur(40px)", willChange: "transform",
+          filter: "blur(40px)",
         }}
         animate={{ x: [0, 60, 0] }}
         transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div
-        className="absolute"
-        style={{
-          width: "50%", height: "20%", bottom: "12%", right: "-8%",
-          background: `radial-gradient(ellipse, hsl(0 0% 100% / ${wispOpacity * 0.85}), transparent 60%)`,
-          filter: "blur(35px)", willChange: "transform",
-        }}
-        animate={{ x: [0, -50, 0] }}
-        transition={{ duration: 55, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div
-        className="absolute"
-        style={{
-          width: "40%", height: "15%", bottom: "20%", left: "20%",
-          background: `radial-gradient(ellipse, hsl(210 30% ${isDark ? '20%' : '96%'} / ${wispOpacity * 0.7}), transparent 60%)`,
-          filter: "blur(30px)", willChange: "transform",
-        }}
-        animate={{ x: [0, 30, -20, 0] }}
-        transition={{ duration: 38, repeat: Infinity, ease: "linear" }}
       />
       <motion.div
         className="absolute rounded-full"
         style={{
           width: 600, height: 600,
           background: `radial-gradient(circle, hsl(215 50% ${isDark ? '25%' : '80%'} / ${orbOpacity}), transparent 65%)`,
-          filter: "blur(80px)", top: "-10%", right: "10%", willChange: "transform",
+          filter: "blur(80px)", top: "-10%", right: "10%",
         }}
         animate={{ x: [0, -30, 15, 0], y: [0, 20, -10, 0] }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
@@ -279,7 +259,7 @@ export default function LobbyPage() {
 
   return (
     <>
-    <div className="min-h-screen relative" style={{ isolation: "isolate" }}>
+    <div className="min-h-screen relative">
       {/* Animated background */}
       <AnimatedBackground />
 
@@ -393,11 +373,9 @@ export default function LobbyPage() {
             <motion.button
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              whileHover={{ y: -6, scale: 1.03, boxShadow: "0 16px 40px rgba(0,0,0,0.08)" }}
-              whileTap={{ scale: 0.96 }}
               transition={{ delay: companies.length * 0.08, type: "spring", damping: 22 }}
               onClick={addCompany}
-              className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group"
+              className="liquid-glass-card border border-border/40 rounded-3xl flex flex-col items-center justify-center min-h-[220px] group hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
               style={{ boxShadow: "none" }}
             >
               <div className="w-14 h-14 rounded-2xl bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
@@ -468,10 +446,8 @@ function CompanyCardItem({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -6, scale: 1.02, boxShadow: "0 20px 50px rgba(0,0,0,0.12)" }}
-      whileTap={{ scale: 0.97, y: 0 }}
       transition={{ delay: Math.min(index * 0.05, 0.15), type: "spring", damping: 22, stiffness: 300 }}
-      className="liquid-glass-card border border-white/30 dark:border-white/10 rounded-3xl p-0 text-left overflow-hidden group cursor-pointer"
+      className="liquid-glass-card border border-border/40 rounded-3xl p-0 text-left overflow-hidden group cursor-pointer hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
       onClick={(e) => {
         // Don't navigate if editing
         if (editingName || editingSubtitle) return;

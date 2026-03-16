@@ -449,7 +449,7 @@ export default function PermissionsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="liquid-glass-navbar sticky top-0 w-full z-30 border-b border-white/5">
+      <header className="liquid-glass-navbar sticky top-0 w-full z-30 border-b border-border/20">
         <div className="max-w-3xl mx-auto px-5 sm:px-6 py-4 flex items-center gap-3">
           <motion.button
             whileTap={{ scale: 0.9 }}
