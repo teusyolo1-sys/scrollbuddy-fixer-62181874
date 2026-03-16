@@ -21,29 +21,7 @@ const FloatingOrb = ({ delay, duration, x, y, size, color }: { delay: number; du
   />
 );
 
-type PasswordStrength = 'weak' | 'medium' | 'strong' | 'very-strong';
-
-function getPasswordStrength(pw: string): { level: PasswordStrength; score: number; label: string } {
-  let score = 0;
-  if (pw.length >= 6) score++;
-  if (pw.length >= 8) score++;
-  if (/[A-Z]/.test(pw)) score++;
-  if (/[0-9]/.test(pw)) score++;
-  if (/[^A-Za-z0-9]/.test(pw)) score++;
-  if (pw.length >= 12) score++;
-
-  if (score <= 1) return { level: 'weak', score: 1, label: 'Fraca' };
-  if (score <= 2) return { level: 'medium', score: 2, label: 'Média' };
-  if (score <= 4) return { level: 'strong', score: 3, label: 'Forte' };
-  return { level: 'very-strong', score: 4, label: 'Muito forte' };
-}
-
-const strengthColors: Record<PasswordStrength, string> = {
-  'weak': 'hsl(0 72% 51%)',
-  'medium': 'hsl(38 92% 50%)',
-  'strong': 'hsl(142 71% 45%)',
-  'very-strong': 'hsl(152 100% 40%)',
-};
+import { getPasswordStrength, strengthColors, type PasswordStrength } from '@/lib/passwordStrength';
 
 const strengthIcons: Record<PasswordStrength, typeof ShieldCheck> = {
   'weak': ShieldX,
@@ -429,27 +407,20 @@ const AuthPage = () => {
               )}
             </AnimatePresence>
 
-            {/* Forgot password — shown on login after error */}
-            <AnimatePresence>
-              {isLogin && loginError && (
-                <motion.div
-                  initial={{ opacity: 0, y: -4 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -4 }}
-                  className="text-center"
+            {/* Forgot password — always visible on login */}
+            {isLogin && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  disabled={forgotLoading}
+                  className="text-sm text-primary hover:underline transition-colors inline-flex items-center gap-1"
                 >
-                  <button
-                    type="button"
-                    onClick={handleForgotPassword}
-                    disabled={forgotLoading}
-                    className="text-sm text-primary hover:underline transition-colors inline-flex items-center gap-1"
-                  >
-                    {forgotLoading && <Loader2 size={12} className="animate-spin" />}
-                    Esqueceu sua senha?
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                  {forgotLoading && <Loader2 size={12} className="animate-spin" />}
+                  Esqueceu sua senha?
+                </button>
+              </div>
+            )}
 
             <motion.button
               whileHover={{ scale: 1.01 }}

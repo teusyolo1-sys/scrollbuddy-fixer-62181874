@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, Moon, RefreshCw, Rocket, Settings, Shield, Sun, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
@@ -43,9 +43,11 @@ function DashboardContent() {
   const [activeTab, setActiveTab] = useState<TabKey>(visibleTabs[0]?.id || "dashboard");
 
   // Ensure activeTab is valid when permissions load
-  if (!permLoading && visibleTabs.length > 0 && !visibleTabs.find(t => t.id === activeTab)) {
-    setActiveTab(visibleTabs[0].id);
-  }
+  useEffect(() => {
+    if (!permLoading && visibleTabs.length > 0 && !visibleTabs.find(t => t.id === activeTab)) {
+      setActiveTab(visibleTabs[0].id);
+    }
+  }, [permLoading, visibleTabs, activeTab]);
 
   if (permLoading) {
     return (
@@ -83,19 +85,19 @@ function DashboardContent() {
                 whileHover={{ scale: 1.12, x: -3 }}
                 transition={{ type: "spring", stiffness: 400, damping: 14 }}
                 onClick={() => navigate("/")}
-                className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                className="w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
               >
-                <ArrowLeft className="h-4 w-4 text-white/80" />
+                <ArrowLeft className="h-4 w-4 text-foreground" />
               </motion.button>
               <div>
                 <motion.h1
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-lg sm:text-xl font-bold text-white tracking-tight"
+                  className="text-lg sm:text-xl font-bold text-foreground tracking-tight"
                 >
                   {company.name}
                 </motion.h1>
-                <p className="text-xs text-white/45 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {company.subtitle} · {company.month}
                 </p>
               </div>
@@ -109,10 +111,10 @@ function DashboardContent() {
                   whileTap={{ scale: 0.88 }}
                   transition={{ type: "spring", stiffness: 500, damping: 15 }}
                   onClick={() => navigate("/permissions")}
-                  className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                  className="w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
                   title="Gerenciar permissões"
                 >
-                  <Shield className="h-4 w-4 text-white/80" />
+                  <Shield className="h-4 w-4 text-foreground" />
                 </motion.button>
               )}
 
@@ -120,7 +122,7 @@ function DashboardContent() {
                 whileTap={{ scale: 0.88 }}
                 transition={{ type: "spring", stiffness: 500, damping: 15 }}
                 onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-                className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                className="w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
                 title={resolvedTheme === "dark" ? "Modo claro" : "Modo escuro"}
               >
                 <motion.div
@@ -132,7 +134,7 @@ function DashboardContent() {
                   {resolvedTheme === "dark" ? (
                     <Sun className="h-4 w-4 text-yellow-400" />
                   ) : (
-                    <Moon className="h-4 w-4 text-white/80" />
+                    <Moon className="h-4 w-4 text-foreground" />
                   )}
                 </motion.div>
               </motion.button>
@@ -143,10 +145,10 @@ function DashboardContent() {
                   whileHover={{ scale: 1.12, rotate: 45 }}
                   transition={{ type: "spring", stiffness: 400, damping: 14 }}
                   onClick={() => setSettingsOpen(true)}
-                  className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+                  className="w-9 h-9 rounded-2xl bg-secondary/50 flex items-center justify-center hover:bg-secondary transition-colors"
                   title="Configurações"
                 >
-                  <Settings className="h-4 w-4 text-white/80" />
+                  <Settings className="h-4 w-4 text-foreground" />
                 </motion.button>
               )}
             </div>

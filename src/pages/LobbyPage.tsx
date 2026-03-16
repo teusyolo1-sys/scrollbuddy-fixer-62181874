@@ -67,7 +67,8 @@ const gradients = [
 
 /* ── Framer-inspired animated mesh background ── */
 function AnimatedBackground() {
-  const isDark = document.documentElement.classList.contains("dark");
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
 
   const base = isDark
     ? "linear-gradient(180deg, hsl(220 20% 10%) 0%, hsl(220 18% 8%) 30%, hsl(220 15% 7%) 60%, hsl(220 20% 9%) 100%)"
