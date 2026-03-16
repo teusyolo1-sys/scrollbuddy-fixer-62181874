@@ -59,7 +59,7 @@ export default function ChatFAB({
               </button>
             </div>
             <div className="flex-1 min-h-0 overflow-hidden p-3">
-              <TaskChat taskId={taskId} taskName={taskName} />
+              <TaskChat taskId={taskId} taskName={taskName} companyId={companyId} />
             </div>
           </motion.div>
         )}

@@ -300,6 +300,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
         <ChatFAB
           taskId={item.id}
           taskName={item.task}
+          companyId={companyId}
           chatOpen={chatOpen}
           setChatOpen={setChatOpen}
           chatMessages={chatMessages}

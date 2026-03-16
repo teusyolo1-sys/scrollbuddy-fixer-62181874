@@ -42,11 +42,12 @@ function renderContent(content: string) {
 interface TaskChatProps {
   taskId: string;
   taskName?: string;
+  companyId?: string;
 }
 
-export default function TaskChat({ taskId, taskName }: TaskChatProps) {
+export default function TaskChat({ taskId, taskName, companyId }: TaskChatProps) {
   const { user } = useAuth();
-  const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages(taskId);
+  const { messages, profiles, loading, sendMessage, deleteMessage } = useChatMessages(taskId, companyId);
   const addNotification = useNotificationStore((s) => s.addNotification);
   const [input, setInput] = useState(""); // display text (shows @Name)
   const [rawInput, setRawInput] = useState(""); // raw text (stores @[Name](id))
