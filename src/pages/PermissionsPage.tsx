@@ -454,13 +454,13 @@ export default function PermissionsPage() {
           <motion.button
             whileTap={{ scale: 0.9 }}
             onClick={() => navigate('/')}
-            className="w-9 h-9 rounded-2xl bg-white/10 flex items-center justify-center hover:bg-white/15 transition-colors"
+            className="w-9 h-9 rounded-2xl bg-secondary flex items-center justify-center hover:bg-secondary/80 transition-colors"
           >
-            <ArrowLeft className="h-4 w-4 text-white/80" />
+            <ArrowLeft className="h-4 w-4 text-foreground" />
           </motion.button>
           <div className="flex items-center gap-2">
             <Shield className="h-5 w-5 text-primary" />
-            <h1 className="text-lg font-bold text-white">Gerenciar Permissões</h1>
+            <h1 className="text-lg font-bold text-foreground">Gerenciar Permissões</h1>
           </div>
         </div>
       </header>
