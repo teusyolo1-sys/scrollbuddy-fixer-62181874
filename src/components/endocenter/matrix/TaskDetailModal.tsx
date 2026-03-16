@@ -741,7 +741,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             }`}
             style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}
           >
-            <MessageCircle className="h-6 w-6" />
+            <AnimatedChatIcon size={26} active={chatOpen} />
             {hasUnreadMention && !chatOpen && (
               <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold flex items-center justify-center">
                 !
