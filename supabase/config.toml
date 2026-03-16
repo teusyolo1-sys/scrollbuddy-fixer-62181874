@@ -2,3 +2,6 @@ project_id = "wpihinnvryhwizdgdmqr"
 
 [functions.instagram-fetch]
 verify_jwt = false
+
+[functions.social-metrics-cron]
+verify_jwt = false
