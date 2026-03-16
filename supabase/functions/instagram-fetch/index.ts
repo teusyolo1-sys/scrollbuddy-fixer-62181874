@@ -28,9 +28,9 @@ serve(async (req) => {
     // Clean username (remove @ if present)
     const cleanUsername = username.replace(/^@/, "").trim();
 
-    // Fetch profile info from Instagram120 API
+    // Fetch profile info from Instagram120 API (POST /api/instagram/profile)
     const profileResponse = await fetch(
-      "https://instagram120.p.rapidapi.com/api/instagram/userInfo",
+      "https://instagram120.p.rapidapi.com/api/instagram/profile",
       {
         method: "POST",
         headers: {
