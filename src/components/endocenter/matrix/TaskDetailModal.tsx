@@ -681,37 +681,6 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               </div>{/* flex */}
         </motion.div>
 
-        {/* Floating Chat Balloon — compact mode only */}
-        <AnimatePresence>
-          {!editingDescription && chatBalloonOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: -20, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -20, scale: 0.95 }}
-              transition={{ type: "spring", damping: 25, stiffness: 400 }}
-              className="rounded-2xl overflow-hidden flex flex-col shrink-0"
-              style={{
-                width: 320,
-                height: "60vh",
-                maxHeight: "75vh",
-                background: "hsl(var(--card))",
-                boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
-                border: "1px solid hsl(var(--border) / 0.3)",
-              }}
-            >
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 shrink-0">
-                <MessageCircle className="h-4 w-4 text-primary" />
-                <span className="text-xs font-bold text-foreground flex-1">Chat</span>
-                <button onClick={() => setChatBalloonOpen(false)} className="w-6 h-6 rounded-lg bg-secondary/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-              <div className="flex-1 min-h-0 overflow-hidden p-3">
-                <TaskChat taskId={item.id} taskName={item.task} />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
         </div>{/* wrapper div */}
 
         {/* PDF Viewer overlay */}
