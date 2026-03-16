@@ -204,6 +204,15 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const escapeHtml = useCallback((text: string) => {
+    return text
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/\"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }, []);
+
   const importDocument = useCallback(async (file: File) => {
     const ext = file.name.split(".").pop()?.toLowerCase();
 
@@ -217,48 +226,107 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
         }
         toast.success("Documento Word importado!");
       } else if (ext === "pdf") {
-        const arrayBuffer = await file.arrayBuffer();
-        // Load pdf.js from CDN to avoid bundling issues
-        const PDFJS_VERSION = "4.4.168";
-        const cdnBase = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${PDFJS_VERSION}`;
-        if (!(window as any).pdfjsLib) {
+        const win = window as Window & { pdfjsLib?: any };
+        if (!win.pdfjsLib) {
           await new Promise<void>((resolve, reject) => {
+            const existing = document.querySelector('script[data-pdfjs="true"]') as HTMLScriptElement | null;
+            if (existing) {
+              existing.addEventListener("load", () => resolve(), { once: true });
+              existing.addEventListener("error", () => reject(new Error("Falha ao carregar PDF.js")), { once: true });
+              return;
+            }
+
             const script = document.createElement("script");
-            script.src = `${cdnBase}/pdf.min.mjs`;
-            script.type = "module";
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+            script.async = true;
+            script.dataset.pdfjs = "true";
             script.onload = () => resolve();
-            script.onerror = reject;
+            script.onerror = () => reject(new Error("Falha ao carregar PDF.js"));
             document.head.appendChild(script);
           });
         }
-        // Fallback: use global pdfjsLib or dynamic import from CDN
-        let pdfjsLib = (window as any).pdfjsLib;
+
+        const pdfjsLib = win.pdfjsLib;
         if (!pdfjsLib) {
-          // Use dynamic import from CDN
-          const mod = await import(/* @vite-ignore */ `${cdnBase}/pdf.min.mjs`);
-          pdfjsLib = mod;
-          (window as any).pdfjsLib = pdfjsLib;
+          throw new Error("PDF.js não foi inicializado");
         }
-        pdfjsLib.GlobalWorkerOptions.workerSrc = `${cdnBase}/pdf.worker.min.mjs`;
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+        const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let html = "";
-        const scale = 2;
+        let importedAsImage = false;
+
         for (let i = 1; i <= pdf.numPages; i++) {
           const page = await pdf.getPage(i);
-          const viewport = page.getViewport({ scale });
+          const content = await page.getTextContent();
+          const items = content.items as Array<{ str?: string; transform?: number[]; hasEOL?: boolean }>;
+
+          const lines: string[] = [];
+          let currentLine: string[] = [];
+          let lastY: number | null = null;
+
+          for (const item of items) {
+            const rawText = item.str?.trim();
+            const y = item.transform?.[5] ?? null;
+
+            if (!rawText) {
+              if (item.hasEOL && currentLine.length > 0) {
+                lines.push(currentLine.join(" "));
+                currentLine = [];
+                lastY = null;
+              }
+              continue;
+            }
+
+            const shouldBreakLine = lastY !== null && y !== null && Math.abs(y - lastY) > 4;
+            if (shouldBreakLine && currentLine.length > 0) {
+              lines.push(currentLine.join(" "));
+              currentLine = [];
+            }
+
+            currentLine.push(escapeHtml(rawText));
+            lastY = y;
+
+            if (item.hasEOL) {
+              lines.push(currentLine.join(" "));
+              currentLine = [];
+              lastY = null;
+            }
+          }
+
+          if (currentLine.length > 0) {
+            lines.push(currentLine.join(" "));
+          }
+
+          const cleanedLines = lines.filter((line) => line.trim().length > 0);
+
+          if (cleanedLines.length > 0) {
+            html += `<section data-pdf-page="${i}">${cleanedLines.map((line) => `<p>${line}</p>`).join("")}</section>`;
+            if (i < pdf.numPages) html += "<hr />";
+            continue;
+          }
+
+          importedAsImage = true;
+          const viewport = page.getViewport({ scale: 2 });
           const canvas = document.createElement("canvas");
           canvas.width = viewport.width;
           canvas.height = viewport.height;
-          const ctx = canvas.getContext("2d")!;
+          const ctx = canvas.getContext("2d");
+          if (!ctx) continue;
+
           await page.render({ canvasContext: ctx, viewport }).promise;
           const dataUrl = canvas.toDataURL("image/png");
-          html += `<div style="margin-bottom:12px;"><img src="${dataUrl}" style="max-width:100%;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15);" /></div>`;
+          html += `<figure><img src="${dataUrl}" alt="Página ${i} do PDF" /></figure>`;
         }
+
         if (editorRef.current) {
           editorRef.current.innerHTML += html;
           emitChange();
         }
-        toast.success("PDF importado com design!");
+
+        toast.success(importedAsImage ? "PDF importado; páginas escaneadas ficaram como imagem." : "PDF importado como conteúdo editável!");
       } else if (ext === "txt" || ext === "md") {
         const text = await file.text();
         const html = text.split("\n").map((l) => `<p>${l || "<br>"}</p>`).join("");
@@ -274,7 +342,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
       console.error("Import error:", err);
       toast.error("Erro ao importar documento");
     }
-  }, [emitChange]);
+  }, [emitChange, escapeHtml]);
 
   const toggleBlock = useCallback((tag: string) => {
     restoreSelection();
@@ -671,7 +739,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
                     onClick={() => setSelectedImg(null)}
                     title="Concluir edição"
                   >
-                    <Check className="h-3.5 w-3.5 text-emerald-500" />
+                    <Check className="h-3.5 w-3.5 text-primary" />
                   </ImgToolBtn>
                 </div>
               </motion.div>
