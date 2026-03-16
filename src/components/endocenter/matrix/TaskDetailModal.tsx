@@ -38,6 +38,18 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const editorRef = useRef<BlockEditorHandle>(null);
   const lastSeenCountRef = useRef(chatMessages.length);
 
+  // Auto-critical based on due date
+  const isAutoCritical = useMemo(() => {
+    if (item.done || !item.dueDate) return false;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const due = new Date(item.dueDate);
+    due.setHours(0, 0, 0, 0);
+    const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+    return diffDays <= 2;
+  }, [item.dueDate, item.done]);
+  const isCritical = item.critical || isAutoCritical;
+
   // When chat opens, mark as read
   useEffect(() => {
     if (chatOpen) {
