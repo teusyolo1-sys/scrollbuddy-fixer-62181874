@@ -101,37 +101,17 @@ function AnimatedBackground() {
         style={{
           width: "60%", height: "25%", bottom: "5%", left: "-5%",
           background: `radial-gradient(ellipse, hsl(0 0% 100% / ${wispOpacity}), transparent 65%)`,
-          filter: "blur(40px)", willChange: "transform",
+          filter: "blur(40px)",
         }}
         animate={{ x: [0, 60, 0] }}
         transition={{ duration: 45, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div
-        className="absolute"
-        style={{
-          width: "50%", height: "20%", bottom: "12%", right: "-8%",
-          background: `radial-gradient(ellipse, hsl(0 0% 100% / ${wispOpacity * 0.85}), transparent 60%)`,
-          filter: "blur(35px)", willChange: "transform",
-        }}
-        animate={{ x: [0, -50, 0] }}
-        transition={{ duration: 55, repeat: Infinity, ease: "linear" }}
-      />
-      <motion.div
-        className="absolute"
-        style={{
-          width: "40%", height: "15%", bottom: "20%", left: "20%",
-          background: `radial-gradient(ellipse, hsl(210 30% ${isDark ? '20%' : '96%'} / ${wispOpacity * 0.7}), transparent 60%)`,
-          filter: "blur(30px)", willChange: "transform",
-        }}
-        animate={{ x: [0, 30, -20, 0] }}
-        transition={{ duration: 38, repeat: Infinity, ease: "linear" }}
       />
       <motion.div
         className="absolute rounded-full"
         style={{
           width: 600, height: 600,
           background: `radial-gradient(circle, hsl(215 50% ${isDark ? '25%' : '80%'} / ${orbOpacity}), transparent 65%)`,
-          filter: "blur(80px)", top: "-10%", right: "10%", willChange: "transform",
+          filter: "blur(80px)", top: "-10%", right: "10%",
         }}
         animate={{ x: [0, -30, 15, 0], y: [0, 20, -10, 0] }}
         transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
