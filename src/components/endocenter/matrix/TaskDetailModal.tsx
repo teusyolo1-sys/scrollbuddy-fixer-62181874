@@ -3,12 +3,13 @@ import { createPortal } from "react-dom";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Flag, Image, Link2, MessageCircle, Paperclip, 
   Plus, Tag, Timer, Trash2, X, Play, Pause, Square, Type, Users, Upload,
-  ChevronDown, ChevronRight, Settings2, Pencil, ImagePlus
+  ChevronDown, ChevronRight, Settings2, Pencil, ImagePlus, FileText
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import type { ResponsibilityItem, TaskLabel, TaskChecklist, TaskAttachment } from "@/store/endocenterStore";
-import RichTextEditor, { type RichTextEditorHandle } from "./RichTextEditor";
+import BlockEditor, { type BlockEditorHandle } from "./BlockEditor";
+import PdfViewer from "./PdfViewer";
 import TaskChat from "./TaskChat";
 import { useTaskComplaints } from "@/hooks/useTaskComplaints";
 import { useAuth } from "@/hooks/useAuth";
