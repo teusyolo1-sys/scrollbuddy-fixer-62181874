@@ -209,9 +209,7 @@
   .ios-glass,
   .ios-glass-heavy,
   .ios-glass-ultra {
-    isolation: isolate;
-    will-change: backdrop-filter;
-    transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
   }
 
