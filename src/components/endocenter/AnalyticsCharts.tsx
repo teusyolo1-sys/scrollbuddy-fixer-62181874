@@ -519,7 +519,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
       </ContextMenuContent>
     </ContextMenu>
   );
-}
+});
 
 /* ── Funnel visualization ── */
 function ConversionFunnel({ data, colorOverrides, onApplyPalette }: {
