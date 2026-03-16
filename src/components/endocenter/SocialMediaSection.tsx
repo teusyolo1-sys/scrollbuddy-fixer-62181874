@@ -2,7 +2,7 @@ import { useState, memo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, ExternalLink, Trash2, TrendingUp, Users, Eye, Heart, MessageCircle, Share2, Loader2, X, Pencil,
-  Instagram, Facebook,
+  Instagram, Facebook, RefreshCw,
 } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useSocialAccounts, PLATFORM_CONFIG, type SocialPlatform, type SocialAccount } from "@/hooks/useSocialAccounts";
@@ -221,14 +221,16 @@ function UpdateMetricsModal({ open, onClose, account, onSave }: {
 }
 
 /* ── Account Card ── */
-const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin, canEdit, onUpdate, onDelete }: {
+const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin, canEdit, onUpdate, onDelete, onFetchApi }: {
   account: SocialAccount;
   metricsHistory: { date: string; followers: number; reach: number }[];
   isAdmin: boolean;
   canEdit: boolean;
   onUpdate: () => void;
   onDelete: () => void;
+  onFetchApi?: () => void;
 }) {
+  const [fetching, setFetching] = useState(false);
   const cfg = PLATFORM_CONFIG[account.platform];
   const PlatformIcon = PLATFORM_ICONS[account.platform];
 
@@ -267,6 +269,20 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
           </div>
         </div>
         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          {onFetchApi && (isAdmin || canEdit) && (
+            <button
+              onClick={async () => {
+                setFetching(true);
+                await onFetchApi();
+                setFetching(false);
+              }}
+              disabled={fetching}
+              className="p-2 rounded-xl hover:bg-primary/10 transition-colors"
+              title="Buscar dados via API"
+            >
+              {fetching ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> : <RefreshCw className="h-3.5 w-3.5 text-primary" />}
+            </button>
+          )}
           {account.profile_url && (
             <a
               href={account.profile_url}
@@ -335,7 +351,7 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
 
 /* ── Main Section Component ── */
 export default function SocialMediaSection({ companyId }: { companyId?: string }) {
-  const { accounts, metrics, loading, addAccount, updateAccount, deleteAccount, addMetricEntry } = useSocialAccounts(companyId);
+  const { accounts, metrics, loading, addAccount, updateAccount, deleteAccount, addMetricEntry, fetchFromInstagramApi } = useSocialAccounts(companyId);
   const { isAdmin } = useUserRole();
   const { canViewSection, canEditSection } = useSectionPermissions();
   const [addOpen, setAddOpen] = useState(false);
@@ -421,8 +437,9 @@ export default function SocialMediaSection({ companyId }: { companyId?: string }
               }))}
               isAdmin={isAdmin}
               canEdit={canEdit}
-              onUpdate={() => setEditAccount(account)}
-              onDelete={() => handleDelete(account.id)}
+               onUpdate={() => setEditAccount(account)}
+               onDelete={() => handleDelete(account.id)}
+               onFetchApi={account.platform === 'instagram' ? () => fetchFromInstagramApi(account.id, account.profile_name) : undefined}
             />
           ))}
         </div>

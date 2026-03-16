@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { toast } from '@/hooks/use-toast';
 
 export type SocialPlatform = 'instagram' | 'facebook' | 'tiktok' | 'youtube' | 'linkedin' | 'twitter';
 
@@ -136,13 +137,50 @@ export function useSocialAccounts(companyId?: string) {
     await fetchAccounts();
   };
 
-  const addMetricEntry = async (accountId: string, data: Omit<SocialMetric, 'id' | 'account_id'>) => {
+  const addMetricEntry = async (accountId: string, metricData: Omit<SocialMetric, 'id' | 'account_id'>) => {
     await supabase.from('social_metrics' as any).upsert({
       account_id: accountId,
-      ...data,
+      ...metricData,
     } as any, { onConflict: 'account_id,date' });
     await fetchAccounts();
   };
 
-  return { accounts, metrics, loading, addAccount, updateAccount, deleteAccount, addMetricEntry, refetch: fetchAccounts };
+  const fetchFromInstagramApi = async (accountId: string, username: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('instagram-fetch', {
+        body: { username },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      const updates: Partial<SocialAccount> = {
+        followers: Number(data.followers) || 0,
+        posts_count: Number(data.posts_count) || 0,
+      };
+
+      await updateAccount(accountId, updates);
+
+      // Also add metric entry
+      await addMetricEntry(accountId, {
+        date: new Date().toISOString().split('T')[0],
+        followers: updates.followers!,
+        engagement_rate: 0,
+        reach: 0,
+        impressions: 0,
+        likes: 0,
+        comments: 0,
+        shares: 0,
+      });
+
+      toast({ title: "Dados atualizados via API", description: `${data.followers} seguidores, ${data.posts_count} posts` });
+      return data;
+    } catch (err: any) {
+      console.error('Instagram API fetch error:', err);
+      toast({ title: "Erro ao buscar dados", description: err.message || 'Falha na API', variant: "destructive" });
+      return null;
+    }
+  };
+
+  return { accounts, metrics, loading, addAccount, updateAccount, deleteAccount, addMetricEntry, fetchFromInstagramApi, refetch: fetchAccounts };
 }
