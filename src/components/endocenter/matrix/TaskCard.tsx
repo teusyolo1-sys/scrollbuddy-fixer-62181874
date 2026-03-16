@@ -1,4 +1,3 @@
-import { useState, useRef } from "react";
 import { AlertTriangle, Calendar, CheckSquare, Paperclip, Timer } from "lucide-react";
 import { motion } from "framer-motion";
 import type { ResponsibilityItem, TaskLabel } from "@/store/endocenterStore";
