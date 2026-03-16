@@ -646,15 +646,10 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                     {/* Sinalizar Problema — discreto */}
                     <SideSection icon={Flag} label="Sinalizar" defaultOpen={false}>
                       <div className="space-y-2">
-                        <select
+                        <ComplaintCategoryPicker
                           value={complaintCategory}
-                          onChange={(e) => setComplaintCategory(e.target.value)}
-                          className="ios-input w-full px-2 py-1.5 text-[11px]"
-                        >
-                          {COMPLAINT_CATEGORIES.map((c) => (
-                            <option key={c} value={c}>{c}</option>
-                          ))}
-                        </select>
+                          onChange={setComplaintCategory}
+                        />
                         <textarea
                           value={complaintDesc}
                           onChange={(e) => setComplaintDesc(e.target.value)}
