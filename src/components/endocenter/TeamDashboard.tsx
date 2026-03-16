@@ -5,6 +5,7 @@ import { BarChart3, Check, ChevronDown, ChevronUp, Clock3, DollarSign, Pencil, P
 import { supabase } from "@/integrations/supabase/client";
 import { sendToTrash } from "@/lib/trash";
 import AnalyticsCharts from "./AnalyticsCharts";
+import SocialMediaSection from "./SocialMediaSection";
 import { motion, AnimatePresence } from "framer-motion";
 import { useEndocenter, type MetricPeriod } from "@/store/endocenterStore";
 import { useUserRole } from "@/hooks/useUserRole";
