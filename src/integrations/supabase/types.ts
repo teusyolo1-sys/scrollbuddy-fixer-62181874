@@ -461,6 +461,38 @@ export type Database = {
         }
         Relationships: []
       }
+      company_drive_folders: {
+        Row: {
+          company_id: string
+          created_at: string
+          drive_folder_id: string
+          folder_name: string
+          id: string
+        }
+        Insert: {
+          company_id: string
+          created_at?: string
+          drive_folder_id?: string
+          folder_name?: string
+          id?: string
+        }
+        Update: {
+          company_id?: string
+          created_at?: string
+          drive_folder_id?: string
+          folder_name?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "company_drive_folders_company_id_fkey"
+            columns: ["company_id"]
+            isOneToOne: true
+            referencedRelation: "companies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_permissions: {
         Row: {
           company_id: string
