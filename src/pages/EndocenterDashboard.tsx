@@ -40,7 +40,21 @@ function DashboardContent() {
   const navigate = useNavigate();
 
   const visibleTabs = tabDefs.filter(t => allowedTabs.includes(t.id));
-  const [activeTab, setActiveTab] = useState<TabKey>(visibleTabs[0]?.id || "dashboard");
+  // Persistir aba ativa por empresa no sessionStorage
+  const tabStorageKey = `activeTab_${companyId || 'default'}`;
+
+  const [activeTab, setActiveTabState] = useState<TabKey>(() => {
+    const saved = sessionStorage.getItem(tabStorageKey);
+    if (saved && visibleTabs.find(t => t.id === saved)) {
+      return saved as TabKey;
+    }
+    return visibleTabs[0]?.id || "dashboard";
+  });
+
+  const setActiveTab = useCallback((tab: TabKey) => {
+    setActiveTabState(tab);
+    sessionStorage.setItem(tabStorageKey, tab);
+  }, [tabStorageKey]);
 
   // Ensure activeTab is valid when permissions load
   useEffect(() => {
