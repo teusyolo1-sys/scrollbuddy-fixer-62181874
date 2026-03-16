@@ -335,12 +335,12 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
             <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
               {editingDescription ? (
                 <div className="flex flex-col h-full">
-                  <RichTextEditor
+                  <BlockEditor
                     ref={editorRef}
                     value={description}
                     onChange={handleDescriptionChange}
                     minHeight="100%"
-                    placeholder="Comece a escrever seu roteiro, notas ou descrição detalhada aqui..."
+                    placeholder="Digite '/' para comandos · Comece a escrever..."
                   />
                 </div>
               ) : (
