@@ -419,7 +419,7 @@ function ChartByStyle({ style, data, color, type }: {
 }
 
 /* ── Individual Metric Chart Card ── */
-function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange }: {
+const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange }: {
   type: MetricType;
   data: { name: string; value: number }[];
   delay: number;
