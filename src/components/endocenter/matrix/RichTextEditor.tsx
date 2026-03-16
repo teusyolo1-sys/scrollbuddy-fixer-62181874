@@ -226,10 +226,34 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
         }
         toast.success("Documento Word importado!");
       } else if (ext === "pdf") {
-        const arrayBuffer = await file.arrayBuffer();
-        const pdfjsLib = await import(/* @vite-ignore */ "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.min.mjs");
-        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/build/pdf.worker.min.mjs";
+        const win = window as Window & { pdfjsLib?: any };
+        if (!win.pdfjsLib) {
+          await new Promise<void>((resolve, reject) => {
+            const existing = document.querySelector('script[data-pdfjs="true"]') as HTMLScriptElement | null;
+            if (existing) {
+              existing.addEventListener("load", () => resolve(), { once: true });
+              existing.addEventListener("error", () => reject(new Error("Falha ao carregar PDF.js")), { once: true });
+              return;
+            }
 
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
+            script.async = true;
+            script.dataset.pdfjs = "true";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Falha ao carregar PDF.js"));
+            document.head.appendChild(script);
+          });
+        }
+
+        const pdfjsLib = win.pdfjsLib;
+        if (!pdfjsLib) {
+          throw new Error("PDF.js não foi inicializado");
+        }
+
+        pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+        const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
         let html = "";
         let importedAsImage = false;
@@ -262,7 +286,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
               currentLine = [];
             }
 
-            currentLine.push(this.escapeHtml ? this.escapeHtml(rawText) : rawText);
+            currentLine.push(escapeHtml(rawText));
             lastY = y;
 
             if (item.hasEOL) {
@@ -280,9 +304,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
 
           if (cleanedLines.length > 0) {
             html += `<section data-pdf-page="${i}">${cleanedLines.map((line) => `<p>${line}</p>`).join("")}</section>`;
-            if (i < pdf.numPages) {
-              html += "<hr />";
-            }
+            if (i < pdf.numPages) html += "<hr />";
             continue;
           }
 
@@ -292,7 +314,6 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
           canvas.width = viewport.width;
           canvas.height = viewport.height;
           const ctx = canvas.getContext("2d");
-
           if (!ctx) continue;
 
           await page.render({ canvasContext: ctx, viewport }).promise;
@@ -305,11 +326,7 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
           emitChange();
         }
 
-        toast.success(
-          importedAsImage
-            ? "PDF importado; páginas sem texto ficaram como imagem."
-            : "PDF importado como conteúdo editável!"
-        );
+        toast.success(importedAsImage ? "PDF importado; páginas escaneadas ficaram como imagem." : "PDF importado como conteúdo editável!");
       } else if (ext === "txt" || ext === "md") {
         const text = await file.text();
         const html = text.split("\n").map((l) => `<p>${l || "<br>"}</p>`).join("");
