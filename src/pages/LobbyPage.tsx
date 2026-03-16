@@ -279,7 +279,7 @@ export default function LobbyPage() {
 
   return (
     <>
-    <div className="min-h-screen relative" style={{ isolation: "isolate" }}>
+    <div className="min-h-screen relative">
       {/* Animated background */}
       <AnimatedBackground />
 
