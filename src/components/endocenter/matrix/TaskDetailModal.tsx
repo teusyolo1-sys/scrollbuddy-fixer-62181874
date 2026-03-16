@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { 
   AlertTriangle, Calendar, CheckSquare, Clock, Flag, Image, Link2, MessageCircle, Paperclip, 
@@ -12,6 +12,7 @@ import BlockEditor, { type BlockEditorHandle } from "./BlockEditor";
 import PdfViewer from "./PdfViewer";
 import TaskChat from "./TaskChat";
 import { useTaskComplaints } from "@/hooks/useTaskComplaints";
+import { useChatMessages } from "@/hooks/useChatMessages";
 import { useAuth } from "@/hooks/useAuth";
 
 const priorityOptions = [
@@ -75,6 +76,7 @@ function SideSection({
 export default function TaskDetailModal({ item, roleColor, roleName, teamMembers, onUpdate, onDelete, onClose }: Props) {
   const { user } = useAuth();
   const { addComplaint } = useTaskComplaints();
+  const { messages: chatMessages } = useChatMessages(item.id);
   const [editingTitle, setEditingTitle] = useState(false);
   const [title, setTitle] = useState(item.task);
   const [description, setDescription] = useState(item.description);
@@ -89,7 +91,7 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const [timerSeconds, setTimerSeconds] = useState(item.timerSeconds);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [editingDescription, setEditingDescription] = useState(false);
-  const [chatBalloonOpen, setChatBalloonOpen] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
   const [showComplaintForm, setShowComplaintForm] = useState(false);
   const [complaintCategory, setComplaintCategory] = useState(COMPLAINT_CATEGORIES[0]);
   const [complaintDesc, setComplaintDesc] = useState("");
@@ -98,6 +100,23 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
   const editorRef = useRef<BlockEditorHandle>(null);
   const timerRef = useRef<ReturnType<typeof setInterval>>();
   const [viewingPdf, setViewingPdf] = useState<string | null>(null);
+  const lastSeenCountRef = useRef(chatMessages.length);
+
+  // Track unread mentions for current user
+  const hasUnreadMention = useMemo(() => {
+    if (!user || chatOpen) return false;
+    const newMessages = chatMessages.slice(lastSeenCountRef.current);
+    return newMessages.some(
+      (msg) => msg.user_id !== user.id && msg.mentions?.includes(user.id)
+    );
+  }, [chatMessages, user, chatOpen]);
+
+  // When chat opens, mark as read
+  useEffect(() => {
+    if (chatOpen) {
+      lastSeenCountRef.current = chatMessages.length;
+    }
+  }, [chatOpen, chatMessages.length]);
 
   useEffect(() => {
     if (editingTitle && titleRef.current) titleRef.current.focus();
@@ -322,11 +341,11 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                 <h2 className="text-sm font-bold text-foreground truncate">{item.task}</h2>
               </div>
               <div className="flex items-center gap-1.5 shrink-0">
-                <motion.button onClick={() => setChatBalloonOpen(!chatBalloonOpen)}
+                <motion.button onClick={() => setChatOpen(!chatOpen)}
                   whileHover={{ scale: 1.12 }}
                   whileTap={{ scale: 0.9 }}
                   transition={{ type: "spring", stiffness: 400, damping: 14 }}
-                  className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${chatBalloonOpen ? "bg-primary/15 text-primary" : "bg-secondary/60 text-muted-foreground hover:text-foreground"}`}
+                  className={`w-7 h-7 rounded-xl flex items-center justify-center transition-colors ${chatOpen ? "bg-primary/15 text-primary" : "bg-secondary/60 text-muted-foreground hover:text-foreground"}`}
                   title="Chat">
                   <MessageCircle className="h-3.5 w-3.5" />
                 </motion.button>
@@ -608,10 +627,6 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
                       )}
                     </SideSection>
 
-                    {/* Chat */}
-                    <SideSection icon={MessageCircle} label="Chat" defaultOpen>
-                      <TaskChat taskId={item.id} taskName={item.task} />
-                    </SideSection>
 
                     {/* Sinalizar Problema — discreto */}
                     <SideSection icon={Flag} label="Sinalizar" defaultOpen={false}>
@@ -685,38 +700,62 @@ export default function TaskDetailModal({ item, roleColor, roleName, teamMembers
               </div>{/* flex */}
         </motion.div>
 
-        {/* Floating Chat Balloon — compact mode only */}
-        <AnimatePresence>
-          {!editingDescription && chatBalloonOpen && (
-            <motion.div
-              initial={{ opacity: 0, x: -20, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -20, scale: 0.95 }}
-              transition={{ type: "spring", damping: 25, stiffness: 400 }}
-              className="rounded-2xl overflow-hidden flex flex-col shrink-0"
-              style={{
-                width: 320,
-                height: "60vh",
-                maxHeight: "75vh",
-                background: "hsl(var(--card))",
-                boxShadow: "0 24px 80px rgba(0,0,0,0.25)",
-                border: "1px solid hsl(var(--border) / 0.3)",
-              }}
-            >
-              <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 shrink-0">
-                <MessageCircle className="h-4 w-4 text-primary" />
-                <span className="text-xs font-bold text-foreground flex-1">Chat</span>
-                <button onClick={() => setChatBalloonOpen(false)} className="w-6 h-6 rounded-lg bg-secondary/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-              <div className="flex-1 min-h-0 overflow-hidden p-3">
-                <TaskChat taskId={item.id} taskName={item.task} />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
         </div>{/* wrapper div */}
+
+        {/* Floating Chat FAB — bottom right */}
+        <div className="fixed bottom-6 right-6 z-[105] flex flex-col items-end gap-3" onClick={(e) => e.stopPropagation()}>
+          <AnimatePresence>
+            {chatOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                transition={{ type: "spring", damping: 25, stiffness: 400 }}
+                className="rounded-2xl overflow-hidden flex flex-col"
+                style={{
+                  width: 340,
+                  height: "50vh",
+                  maxHeight: "60vh",
+                  background: "hsl(var(--card))",
+                  boxShadow: "0 24px 80px rgba(0,0,0,0.35)",
+                  border: "1px solid hsl(var(--border) / 0.3)",
+                }}
+              >
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-border/30 shrink-0">
+                  <MessageCircle className="h-4 w-4 text-primary" />
+                  <span className="text-xs font-bold text-foreground flex-1">Chat — {item.task}</span>
+                  <button onClick={() => setChatOpen(false)} className="w-6 h-6 rounded-lg bg-secondary/50 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors">
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+                <div className="flex-1 min-h-0 overflow-hidden p-3">
+                  <TaskChat taskId={item.id} taskName={item.task} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.button
+            onClick={() => setChatOpen(!chatOpen)}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            animate={hasUnreadMention ? {
+              rotate: [0, -8, 8, -8, 8, 0],
+              transition: { repeat: Infinity, repeatDelay: 2, duration: 0.5 },
+            } : { rotate: 0 }}
+            className={`w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-colors relative ${
+              chatOpen ? "bg-primary text-primary-foreground" : "bg-card text-foreground border border-border/50"
+            }`}
+            style={{ boxShadow: "0 8px 30px rgba(0,0,0,0.3)" }}
+          >
+            <MessageCircle className="h-6 w-6" />
+            {hasUnreadMention && !chatOpen && (
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive text-destructive-foreground text-[8px] font-bold flex items-center justify-center">
+                !
+              </span>
+            )}
+          </motion.button>
+        </div>
 
         {/* PDF Viewer overlay */}
         <AnimatePresence>
