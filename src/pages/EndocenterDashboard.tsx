@@ -16,6 +16,7 @@ import BudgetCalculator from "@/components/endocenter/BudgetCalculator";
 import TeamAnalytics from "@/components/endocenter/TeamAnalytics";
 import SettingsDialog from "@/components/endocenter/SettingsDialog";
 import NotificationCenter from "@/components/endocenter/NotificationCenter";
+import DriveFileManager from "@/components/endocenter/DriveFileManager";
 
 
 const tabDefs = [
@@ -27,6 +28,7 @@ const tabDefs = [
   { id: "deadlines" as const, icon: AlertTriangle },
   { id: "budget" as const, icon: DollarSign },
   { id: "team" as const, icon: Users },
+  { id: "files" as const, icon: FolderOpen },
 ];
 
 function DashboardContent() {
