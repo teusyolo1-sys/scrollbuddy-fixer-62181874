@@ -529,6 +529,7 @@ export default function SocialMediaSection({ companyId }: { companyId?: string }
                 date: m.date,
                 followers: m.followers,
                 reach: m.reach,
+                engagement_rate: m.engagement_rate,
               }))}
               isAdmin={isAdmin}
               canEdit={canEdit}
