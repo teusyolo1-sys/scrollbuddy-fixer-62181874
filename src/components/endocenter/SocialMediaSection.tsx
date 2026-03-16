@@ -4,7 +4,7 @@ import {
   Plus, ExternalLink, Trash2, TrendingUp, Users, Eye, Heart, MessageCircle, Share2, Loader2, X, Pencil,
   Instagram, Facebook, RefreshCw,
 } from "lucide-react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
+import { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { useSocialAccounts, PLATFORM_CONFIG, type SocialPlatform, type SocialAccount } from "@/hooks/useSocialAccounts";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useSectionPermissions } from "@/hooks/useSectionPermissions";
@@ -223,7 +223,7 @@ function UpdateMetricsModal({ open, onClose, account, onSave }: {
 /* ── Account Card ── */
 const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin, canEdit, onUpdate, onDelete, onFetchApi }: {
   account: SocialAccount;
-  metricsHistory: { date: string; followers: number; reach: number }[];
+  metricsHistory: { date: string; followers: number; reach: number; engagement_rate: number }[];
   isAdmin: boolean;
   canEdit: boolean;
   onUpdate: () => void;
@@ -231,19 +231,19 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
   onFetchApi?: () => void;
 }) {
   const [fetching, setFetching] = useState(false);
-  const [showChart, setShowChart] = useState(false);
-  const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [activeChart, setActiveChart] = useState<string | null>(null);
   const cfg = PLATFORM_CONFIG[account.platform];
   const PlatformIcon = PLATFORM_ICONS[account.platform];
 
-  const handleMouseEnter = useCallback(() => {
-    hoverTimer.current = setTimeout(() => setShowChart(true), 2000);
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    setContextMenu({ x: e.clientX, y: e.clientY });
+    setActiveChart(null);
   }, []);
 
-  const handleMouseLeave = useCallback(() => {
-    if (hoverTimer.current) clearTimeout(hoverTimer.current);
-    hoverTimer.current = null;
-    setShowChart(false);
+  const handleCloseMenu = useCallback(() => {
+    setContextMenu(null);
   }, []);
 
   const formatNumber = (n: number) => {
@@ -261,135 +261,186 @@ const AccountCard = memo(function AccountCard({ account, metricsHistory, isAdmin
 
   const hasHistory = metricsHistory.length > 1;
 
+  const chartOptions = [
+    { key: 'followers', label: 'Seguidores', icon: Users, color: '#3b82f6' },
+    { key: 'engagement_rate', label: 'Engajamento', icon: Heart, color: '#8b5cf6' },
+    { key: 'reach', label: 'Alcance', icon: Eye, color: '#06b6d4' },
+    { key: 'all', label: 'Todos os gráficos', icon: TrendingUp, color: cfg.color },
+  ];
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="ios-card p-0 overflow-hidden group relative"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      {/* Header with platform color */}
-      <div className="px-5 pt-4 pb-3 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: `${cfg.color}15` }}>
-            {PlatformIcon ? (
-              <PlatformIcon className="h-5 w-5" style={{ color: cfg.color }} />
-            ) : (
-              <span className="text-lg">{cfg.icon}</span>
+    <>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="ios-card p-0 overflow-hidden group relative"
+        onContextMenu={handleContextMenu}
+      >
+        {/* Header */}
+        <div className="px-5 pt-4 pb-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center" style={{ background: `${cfg.color}15` }}>
+              {PlatformIcon ? (
+                <PlatformIcon className="h-5 w-5" style={{ color: cfg.color }} />
+              ) : (
+                <span className="text-lg">{cfg.icon}</span>
+              )}
+            </div>
+            <div>
+              <p className="text-sm font-bold text-foreground">{account.profile_name}</p>
+              <p className="text-[11px] text-muted-foreground">{cfg.label}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {onFetchApi && (isAdmin || canEdit) && (
+              <button
+                onClick={async () => { setFetching(true); await onFetchApi(); setFetching(false); }}
+                disabled={fetching}
+                className="p-2 rounded-xl hover:bg-primary/10 transition-colors"
+                title="Buscar dados via API"
+              >
+                {fetching ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> : <RefreshCw className="h-3.5 w-3.5 text-primary" />}
+              </button>
+            )}
+            {account.profile_url && (
+              <a href={account.profile_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="p-2 rounded-xl hover:bg-secondary/50 transition-colors">
+                <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+              </a>
+            )}
+            {(isAdmin || canEdit) && (
+              <>
+                <button onClick={onUpdate} className="p-2 rounded-xl hover:bg-primary/10 transition-colors"><Pencil className="h-3.5 w-3.5 text-primary" /></button>
+                <button onClick={onDelete} className="p-2 rounded-xl hover:bg-destructive/10 transition-colors"><Trash2 className="h-3.5 w-3.5 text-destructive" /></button>
+              </>
             )}
           </div>
-          <div>
-            <p className="text-sm font-bold text-foreground">{account.profile_name}</p>
-            <p className="text-[11px] text-muted-foreground">{cfg.label}</p>
-          </div>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {onFetchApi && (isAdmin || canEdit) && (
-            <button
-              onClick={async () => {
-                setFetching(true);
-                await onFetchApi();
-                setFetching(false);
-              }}
-              disabled={fetching}
-              className="p-2 rounded-xl hover:bg-primary/10 transition-colors"
-              title="Buscar dados via API"
-            >
-              {fetching ? <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" /> : <RefreshCw className="h-3.5 w-3.5 text-primary" />}
-            </button>
-          )}
-          {account.profile_url && (
-            <a
-              href={account.profile_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={e => e.stopPropagation()}
-              className="p-2 rounded-xl hover:bg-secondary/50 transition-colors"
-            >
-              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
-            </a>
-          )}
-          {(isAdmin || canEdit) && (
-            <>
-              <button onClick={onUpdate} className="p-2 rounded-xl hover:bg-primary/10 transition-colors">
-                <Pencil className="h-3.5 w-3.5 text-primary" />
-              </button>
-              <button onClick={onDelete} className="p-2 rounded-xl hover:bg-destructive/10 transition-colors">
-                <Trash2 className="h-3.5 w-3.5 text-destructive" />
-              </button>
-            </>
-          )}
+
+        {/* Stats grid */}
+        <div className="grid grid-cols-4 gap-px bg-border/30 mx-5 rounded-2xl overflow-hidden mb-4">
+          {stats.map(s => {
+            const Icon = s.icon;
+            return (
+              <div key={s.label} className="bg-card p-3 text-center">
+                <Icon className="h-3.5 w-3.5 mx-auto mb-1 text-muted-foreground" />
+                <p className="text-sm font-bold text-foreground">{s.value}</p>
+                <p className="text-[9px] text-muted-foreground">{s.label}</p>
+              </div>
+            );
+          })}
         </div>
-      </div>
 
-      {/* Stats grid */}
-      <div className="grid grid-cols-4 gap-px bg-border/30 mx-5 rounded-2xl overflow-hidden mb-4">
-        {stats.map(s => {
-          const Icon = s.icon;
-          return (
-            <div key={s.label} className="bg-card p-3 text-center">
-              <Icon className="h-3.5 w-3.5 mx-auto mb-1 text-muted-foreground" />
-              <p className="text-sm font-bold text-foreground">{s.value}</p>
-              <p className="text-[9px] text-muted-foreground">{s.label}</p>
-            </div>
-          );
-        })}
-      </div>
+        {/* Inline chart — shown after selecting from context menu */}
+        <AnimatePresence>
+          {activeChart && hasHistory && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: activeChart === 'all' ? 320 : 140 }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ type: "spring", damping: 22, stiffness: 260 }}
+              className="px-4 overflow-hidden"
+            >
+              {activeChart === 'all' ? (
+                <div className="space-y-3">
+                  {chartOptions.filter(o => o.key !== 'all').map(opt => (
+                    <div key={opt.key}>
+                      <div className="flex items-center gap-1.5 mb-0.5">
+                        <opt.icon className="h-3 w-3" style={{ color: opt.color }} />
+                        <p className="text-[10px] font-semibold text-muted-foreground">{opt.label}</p>
+                      </div>
+                      <ResponsiveContainer width="100%" height={80}>
+                        <LineChart data={metricsHistory}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.1)" />
+                          <XAxis dataKey="date" tick={{ fontSize: 7, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 7, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={30} />
+                          <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 10 }} />
+                          <Line type="monotone" dataKey={opt.key} stroke={opt.color} strokeWidth={2} dot={false} name={opt.label} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <TrendingUp className="h-3 w-3 text-muted-foreground" />
+                    <p className="text-[10px] font-semibold text-muted-foreground">
+                      {chartOptions.find(o => o.key === activeChart)?.label}
+                    </p>
+                    <button onClick={() => setActiveChart(null)} className="ml-auto p-1 rounded-lg hover:bg-secondary/50">
+                      <X className="h-3 w-3 text-muted-foreground" />
+                    </button>
+                  </div>
+                  <ResponsiveContainer width="100%" height={100}>
+                    <AreaChart data={metricsHistory}>
+                      <defs>
+                        <linearGradient id={`cgrad-${account.id}-${activeChart}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={chartOptions.find(o => o.key === activeChart)?.color || cfg.color} stopOpacity={0.3} />
+                          <stop offset="100%" stopColor={chartOptions.find(o => o.key === activeChart)?.color || cfg.color} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.1)" />
+                      <XAxis dataKey="date" tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
+                      <YAxis tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={35} />
+                      <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 11 }} />
+                      <Area type="monotone" dataKey={activeChart} stroke={chartOptions.find(o => o.key === activeChart)?.color || cfg.color} strokeWidth={2} fill={`url(#cgrad-${account.id}-${activeChart})`} />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </>
+              )}
+            </motion.div>
+          )}
+          {activeChart && !hasHistory && (
+            <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 50 }} exit={{ opacity: 0, height: 0 }} className="px-5 flex items-center justify-center">
+              <p className="text-[10px] text-muted-foreground italic">Dados insuficientes para exibir gráfico. Atualize mais de uma vez.</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-      {/* Hover chart overlay — appears after 2s hover */}
+        {/* Last updated */}
+        <div className="px-5 pb-3 pt-1">
+          <p className="text-[10px] text-muted-foreground">
+            Atualizado em {new Date(account.last_updated).toLocaleDateString('pt-BR')}
+          </p>
+        </div>
+      </motion.div>
+
+      {/* Context menu portal */}
       <AnimatePresence>
-        {showChart && hasHistory && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 140 }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ type: "spring", damping: 22, stiffness: 260 }}
-            className="px-4 overflow-hidden"
-          >
-            <div className="flex items-center gap-1.5 mb-1">
-              <TrendingUp className="h-3 w-3 text-muted-foreground" />
-              <p className="text-[10px] font-semibold text-muted-foreground">Evolução de seguidores</p>
-            </div>
-            <ResponsiveContainer width="100%" height={100}>
-              <AreaChart data={metricsHistory}>
-                <defs>
-                  <linearGradient id={`hgrad-${account.id}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={cfg.color} stopOpacity={0.3} />
-                    <stop offset="100%" stopColor={cfg.color} stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground) / 0.1)" />
-                <XAxis dataKey="date" tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} />
-                <YAxis tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }} tickLine={false} axisLine={false} width={35} />
-                <Tooltip
-                  contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 11 }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                />
-                <Area type="monotone" dataKey="followers" stroke={cfg.color} strokeWidth={2} fill={`url(#hgrad-${account.id})`} name="Seguidores" />
-              </AreaChart>
-            </ResponsiveContainer>
-          </motion.div>
-        )}
-        {showChart && !hasHistory && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 50 }}
-            exit={{ opacity: 0, height: 0 }}
-            className="px-5 flex items-center justify-center"
-          >
-            <p className="text-[10px] text-muted-foreground italic">Dados insuficientes para exibir gráfico. Atualize mais de uma vez.</p>
-          </motion.div>
+        {contextMenu && (
+          <>
+            <div className="fixed inset-0 z-[9998]" onClick={handleCloseMenu} onContextMenu={e => { e.preventDefault(); handleCloseMenu(); }} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.92 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.92 }}
+              transition={{ duration: 0.15 }}
+              className="fixed z-[9999] w-52 rounded-2xl border border-border bg-card shadow-2xl overflow-hidden py-1"
+              style={{ left: Math.min(contextMenu.x, window.innerWidth - 220), top: Math.min(contextMenu.y, window.innerHeight - 200) }}
+            >
+              <div className="px-3 py-2 border-b border-border">
+                <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">📊 Gráficos</p>
+              </div>
+              {chartOptions.map(opt => {
+                const Icon = opt.icon;
+                return (
+                  <button
+                    key={opt.key}
+                    onClick={() => { setActiveChart(opt.key); handleCloseMenu(); }}
+                    className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-foreground hover:bg-secondary/50 transition-colors text-left"
+                  >
+                    <div className="w-6 h-6 rounded-lg flex items-center justify-center" style={{ background: `${opt.color}20` }}>
+                      <Icon className="h-3.5 w-3.5" style={{ color: opt.color }} />
+                    </div>
+                    <span className="text-xs font-medium">{opt.label}</span>
+                  </button>
+                );
+              })}
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
-
-      {/* Last updated */}
-      <div className="px-5 pb-3 pt-1">
-        <p className="text-[10px] text-muted-foreground">
-          Atualizado em {new Date(account.last_updated).toLocaleDateString('pt-BR')}
-        </p>
-      </div>
-    </motion.div>
+    </>
   );
 });
 
@@ -478,6 +529,7 @@ export default function SocialMediaSection({ companyId }: { companyId?: string }
                 date: m.date,
                 followers: m.followers,
                 reach: m.reach,
+                engagement_rate: m.engagement_rate,
               }))}
               isAdmin={isAdmin}
               canEdit={canEdit}
