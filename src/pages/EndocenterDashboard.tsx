@@ -93,11 +93,11 @@ function DashboardContent() {
                 <motion.h1
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-lg sm:text-xl font-bold text-white tracking-tight"
+                  className="text-lg sm:text-xl font-bold text-foreground tracking-tight"
                 >
                   {company.name}
                 </motion.h1>
-                <p className="text-xs text-white/45 mt-0.5">
+                <p className="text-xs text-muted-foreground mt-0.5">
                   {company.subtitle} · {company.month}
                 </p>
               </div>
