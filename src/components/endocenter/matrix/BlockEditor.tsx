@@ -448,33 +448,6 @@ const BlockEditor = forwardRef<BlockEditorHandle, BlockEditorProps>(function Blo
         </AnimatePresence>
       </div>
 
-      {/* Bubble menu for inline formatting */}
-      {editor && (
-        <BubbleMenu editor={editor} tippyOptions={{ duration: 150 }}
-          className="flex items-center gap-0.5 px-1.5 py-1 rounded-xl bg-card border border-border/60 shadow-lg">
-          <ToolBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive("bold")}>
-            <Bold className="h-3.5 w-3.5" />
-          </ToolBtn>
-          <ToolBtn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive("italic")}>
-            <Italic className="h-3.5 w-3.5" />
-          </ToolBtn>
-          <ToolBtn onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive("underline")}>
-            <UnderlineIcon className="h-3.5 w-3.5" />
-          </ToolBtn>
-          <ToolBtn onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive("strike")}>
-            <Strikethrough className="h-3.5 w-3.5" />
-          </ToolBtn>
-          <ToolBtn onClick={() => editor.chain().focus().toggleHighlight().run()} active={editor.isActive("highlight")}>
-            <Highlighter className="h-3.5 w-3.5" />
-          </ToolBtn>
-          <ToolBtn onClick={() => {
-            const url = prompt("URL do link:");
-            if (url) editor.chain().focus().setLink({ href: url }).run();
-          }} active={editor.isActive("link")}>
-            <Link2 className="h-3.5 w-3.5" />
-          </ToolBtn>
-        </BubbleMenu>
-      )}
     </div>
   );
 });
