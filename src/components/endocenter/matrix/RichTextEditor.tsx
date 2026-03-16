@@ -5,8 +5,10 @@ import {
   Minus, Link2, Image, Undo2, Redo2, ChevronDown,
   Subscript, Superscript, Quote, Code, RemoveFormatting, MousePointer2,
   RectangleHorizontal, Square, Maximize, PanelLeft, PanelRight, Columns2,
-  CircleDot, BoxSelect, Trash2, Check
+  CircleDot, BoxSelect, Trash2, Check, FileUp
 } from "lucide-react";
+import mammoth from "mammoth";
+import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 
 export interface RichTextEditorHandle {
@@ -200,6 +202,54 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
     if (url) exec("insertImage", url);
   }, [exec]);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const importDocument = useCallback(async (file: File) => {
+    const ext = file.name.split(".").pop()?.toLowerCase();
+
+    try {
+      if (ext === "docx") {
+        const arrayBuffer = await file.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer });
+        if (editorRef.current) {
+          editorRef.current.innerHTML += result.value;
+          emitChange();
+        }
+        toast.success("Documento Word importado!");
+      } else if (ext === "pdf") {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdfjsLib = await import("pdfjs-dist");
+        pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        let html = "";
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const lines = content.items.map((item: any) => (item as any).str).join(" ");
+          html += `<p>${lines}</p>`;
+        }
+        if (editorRef.current) {
+          editorRef.current.innerHTML += html;
+          emitChange();
+        }
+        toast.success("PDF importado!");
+      } else if (ext === "txt" || ext === "md") {
+        const text = await file.text();
+        const html = text.split("\n").map((l) => `<p>${l || "<br>"}</p>`).join("");
+        if (editorRef.current) {
+          editorRef.current.innerHTML += html;
+          emitChange();
+        }
+        toast.success("Arquivo de texto importado!");
+      } else {
+        toast.error("Formato não suportado. Use .docx, .pdf ou .txt");
+      }
+    } catch (err) {
+      console.error("Import error:", err);
+      toast.error("Erro ao importar documento");
+    }
+  }, [emitChange]);
+
   const toggleBlock = useCallback((tag: string) => {
     restoreSelection();
     const sel = window.getSelection();
@@ -346,6 +396,18 @@ const RichTextEditor = forwardRef<RichTextEditorHandle, RichTextEditorProps>(fun
 
         <ToolBtn onClick={insertLink} title="Link"><Link2 className="h-3.5 w-3.5" /></ToolBtn>
         <ToolBtn onClick={insertImage} title="Imagem"><Image className="h-3.5 w-3.5" /></ToolBtn>
+        <ToolBtn onClick={() => fileInputRef.current?.click()} title="Importar documento"><FileUp className="h-3.5 w-3.5" /></ToolBtn>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".docx,.pdf,.txt,.md"
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) importDocument(file);
+            e.target.value = "";
+          }}
+        />
         <Divider />
         <ToolBtn onClick={() => exec("removeFormat")} title="Limpar formatação"><RemoveFormatting className="h-3.5 w-3.5" /></ToolBtn>
       </div>
