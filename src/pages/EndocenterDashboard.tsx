@@ -134,7 +134,7 @@ function DashboardContent() {
                   {resolvedTheme === "dark" ? (
                     <Sun className="h-4 w-4 text-yellow-400" />
                   ) : (
-                    <Moon className="h-4 w-4 text-white/80" />
+                    <Moon className="h-4 w-4 text-foreground" />
                   )}
                 </motion.div>
               </motion.button>
