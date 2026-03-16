@@ -1,4 +1,5 @@
-import { useMemo, useState, useRef, useEffect, memo, useCallback } from "react";
+import { useMemo, useState, useRef, useEffect, memo, useCallback, type CSSProperties } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette } from "lucide-react";
 import {
