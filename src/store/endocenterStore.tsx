@@ -749,14 +749,10 @@ const loadFromStorage = (companyId?: string): Partial<PersistedData> | null => {
     const key = getStorageKey(companyId);
     const raw = localStorage.getItem(key);
     if (raw) return JSON.parse(raw);
-    // Fallback to legacy key for the default company
-    if (companyId) {
-      const legacyRaw = localStorage.getItem(STORAGE_KEY);
-      if (legacyRaw) return JSON.parse(legacyRaw);
-    }
   } catch {
     return null;
   }
+  // NÃO fazer fallback para outra chave — empresa nova começa vazia
   return null;
 };
 

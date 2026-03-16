@@ -33,26 +33,6 @@ interface CompanyPerm {
   granted: boolean;
 }
 
-const COMPANIES_KEY = "endocenter_companies";
-const STORAGE_KEY = "endocenter_settings";
-
-function loadCompanyList(): { id: string; name: string }[] {
-  try {
-    const raw = localStorage.getItem(COMPANIES_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return parsed.map((c: any) => ({ id: c.id, name: c.name }));
-    }
-  } catch {}
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const data = JSON.parse(raw);
-      return [{ id: "default", name: data.company?.name || "Endocenter" }];
-    }
-  } catch {}
-  return [{ id: "default", name: "Endocenter" }];
-}
 
 function getInitials(name: string | null, email: string | null) {
   if (name) return name.slice(0, 2).toUpperCase();
