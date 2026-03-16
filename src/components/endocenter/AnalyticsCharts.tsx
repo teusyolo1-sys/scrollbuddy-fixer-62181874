@@ -185,7 +185,7 @@ function ChartByStyle({ style, data, color, type }: {
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.15} horizontal vertical />
             <XAxis type="number" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} width={40} />
-            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+            <Tooltip contentStyle={tooltipStyle} formatter={fmt} cursor={{ fill: "transparent" }} />
             <Bar dataKey="value" fill={color} radius={[0, 6, 6, 0]} background={{ fill: 'transparent' }} />
           </BarChart>
         </ResponsiveContainer>
