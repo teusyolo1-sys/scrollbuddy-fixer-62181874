@@ -50,7 +50,6 @@ export function useTaskComplaints() {
     description: string
   ) => {
     if (!user) throw new Error("Usuário não autenticado");
-    console.log("[addComplaint] user.id:", user.id, "taskId:", taskId);
     const { error } = await supabase.from('task_complaints' as any).insert({
       reporter_id: user.id,
       task_id: taskId,
@@ -61,7 +60,7 @@ export function useTaskComplaints() {
       description,
     } as any);
     if (error) {
-      console.error("[addComplaint] Supabase error:", error);
+      console.error("Complaint error:", error.message);
       throw new Error(error.message);
     }
     await fetchComplaints();
