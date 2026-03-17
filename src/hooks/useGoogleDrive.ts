@@ -140,11 +140,25 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
   }, [uploadFile]);
 
   const deleteFile = useCallback(async (fileId: string) => {
-    const { error } = await supabase.functions.invoke('google-drive', {
-      body: { file_id: fileId },
-      headers: { 'x-action': 'delete' },
-    });
-    if (error) { toast.error('Erro ao deletar'); return; }
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const session = (await supabase.auth.getSession()).data.session;
+    try {
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/google-drive?action=delete`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ file_id: fileId }),
+        }
+      );
+      if (!res.ok) { toast.error('Erro ao deletar'); return; }
+    } catch {
+      toast.error('Erro ao deletar'); return;
+    }
     toast.success('Arquivo removido');
     const targetFolder = currentPath.length > 0 ? currentPath[currentPath.length - 1].id : folderId;
     await fetchFiles(targetFolder || undefined);
