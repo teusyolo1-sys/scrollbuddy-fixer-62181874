@@ -512,7 +512,7 @@ function ChartByStyle({ style, data, color, type }: {
 }
 
 /* ── Individual Metric Chart Card ── */
-const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange }: {
+const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange, onDelete }: {
   type: MetricType;
   data: { name: string; value: number }[];
   delay: number;
@@ -521,6 +521,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
   relatedInfo?: string;
   color: string;
   onColorChange: (color: string) => void;
+  onDelete: () => void;
 }) {
   const cfg = METRIC_CONFIG[type];
   const Icon = ICONS[type];
