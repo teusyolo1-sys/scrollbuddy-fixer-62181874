@@ -171,7 +171,8 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
 
   const createSubfolder = useCallback(async (folderName: string) => {
     const parentId = currentPath.length > 0 ? currentPath[currentPath.length - 1].id : folderId;
-    if (!parentId) return;
+    console.log('[GoogleDrive] createSubfolder:', { folderName, parentId, currentPath, folderId });
+    if (!parentId) { console.log('[GoogleDrive] createSubfolder: no parentId'); return; }
     const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
     const session = (await supabase.auth.getSession()).data.session;
     try {
@@ -188,11 +189,13 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
         }
       );
       const data = await res.json();
+      console.log('[GoogleDrive] createSubfolder response:', { ok: res.ok, status: res.status, data });
       if (!res.ok) { toast.error('Erro ao criar pasta'); return; }
       toast.success(`Pasta "${folderName}" criada`);
       await fetchFiles(parentId);
       return data?.folder_id;
-    } catch {
+    } catch (err) {
+      console.error('[GoogleDrive] createSubfolder error:', err);
       toast.error('Erro ao criar pasta');
     }
   }, [folderId, currentPath, fetchFiles]);
