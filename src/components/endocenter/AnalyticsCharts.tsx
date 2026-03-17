@@ -878,6 +878,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
               relatedInfo={getRelatedInfo(type)}
               color={colorOverrides[type] || METRIC_CONFIG[type].color}
               onColorChange={(c) => setColorFor(type, c)}
+              onDelete={() => removeAllByType(type)}
             />
           ))}
         </div>
