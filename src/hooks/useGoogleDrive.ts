@@ -24,15 +24,28 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
 
   const ensureFolder = useCallback(async () => {
     if (!user || !companyId || !companyName) return null;
-    const { data, error } = await supabase.functions.invoke('google-drive', {
-      body: { company_id: companyId, company_name: companyName },
-      headers: { 'x-action': 'ensure_folder' },
-    });
-    if (error) {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const session = (await supabase.auth.getSession()).data.session;
+    try {
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/google-drive?action=ensure_folder`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ company_id: companyId, company_name: companyName }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) { toast.error('Erro ao conectar com Google Drive'); return null; }
+      return data?.folder_id || null;
+    } catch {
       toast.error('Erro ao conectar com Google Drive');
       return null;
     }
-    return data?.folder_id || null;
   }, [user, companyId, companyName]);
 
   const fetchFiles = useCallback(async (targetFolderId?: string) => {
@@ -126,11 +139,25 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
   }, [uploadFile]);
 
   const deleteFile = useCallback(async (fileId: string) => {
-    const { error } = await supabase.functions.invoke('google-drive', {
-      body: { file_id: fileId },
-      headers: { 'x-action': 'delete' },
-    });
-    if (error) { toast.error('Erro ao deletar'); return; }
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const session = (await supabase.auth.getSession()).data.session;
+    try {
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/google-drive?action=delete`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ file_id: fileId }),
+        }
+      );
+      if (!res.ok) { toast.error('Erro ao deletar'); return; }
+    } catch {
+      toast.error('Erro ao deletar'); return;
+    }
     toast.success('Arquivo removido');
     const targetFolder = currentPath.length > 0 ? currentPath[currentPath.length - 1].id : folderId;
     await fetchFiles(targetFolder || undefined);
@@ -139,14 +166,29 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
   const createSubfolder = useCallback(async (folderName: string) => {
     const parentId = currentPath.length > 0 ? currentPath[currentPath.length - 1].id : folderId;
     if (!parentId) return;
-    const { data, error } = await supabase.functions.invoke('google-drive', {
-      body: { folder_name: folderName, parent_id: parentId },
-      headers: { 'x-action': 'create_folder' },
-    });
-    if (error) { toast.error('Erro ao criar pasta'); return; }
-    toast.success(`Pasta "${folderName}" criada`);
-    await fetchFiles(parentId);
-    return data?.folder_id;
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const session = (await supabase.auth.getSession()).data.session;
+    try {
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/google-drive?action=create_folder`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ folder_name: folderName, parent_id: parentId }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) { toast.error('Erro ao criar pasta'); return; }
+      toast.success(`Pasta "${folderName}" criada`);
+      await fetchFiles(parentId);
+      return data?.folder_id;
+    } catch {
+      toast.error('Erro ao criar pasta');
+    }
   }, [folderId, currentPath, fetchFiles]);
 
   const openFolder = useCallback(async (folder: DriveFile) => {
