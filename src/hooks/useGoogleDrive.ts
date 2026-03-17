@@ -47,7 +47,6 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
       return null;
     }
   }, [user, companyId, companyName]);
-  }, [user, companyId, companyName]);
 
   const fetchFiles = useCallback(async (targetFolderId?: string) => {
     const id = targetFolderId || folderId;
