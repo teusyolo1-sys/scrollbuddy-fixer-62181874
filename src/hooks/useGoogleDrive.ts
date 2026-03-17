@@ -24,11 +24,25 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
 
   const ensureFolder = useCallback(async () => {
     if (!user || !companyId || !companyName) return null;
-    const { data, error } = await supabase.functions.invoke('google-drive', {
-      body: { company_id: companyId, company_name: companyName },
-      headers: { 'x-action': 'ensure_folder' },
-    });
-    if (error) {
+    const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
+    const session = (await supabase.auth.getSession()).data.session;
+    try {
+      const res = await fetch(
+        `https://${projectId}.supabase.co/functions/v1/google-drive?action=ensure_folder`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${session?.access_token}`,
+            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ company_id: companyId, company_name: companyName }),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) { toast.error('Erro ao conectar com Google Drive'); return null; }
+      return data?.folder_id || null;
+    } catch {
       toast.error('Erro ao conectar com Google Drive');
       return null;
     }
