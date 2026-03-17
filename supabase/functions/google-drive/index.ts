@@ -129,6 +129,9 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
+    const url = new URL(req.url)
+    const action = url.searchParams.get('action') || ''
+
     if (!SERVICE_EMAIL || !PRIVATE_KEY || !ROOT_FOLDER_ID) {
       return new Response(JSON.stringify({ error: 'Google Drive secrets not configured' }), {
         status: 500,
@@ -158,8 +161,6 @@ Deno.serve(async (req) => {
     }
 
     const token = await getAccessToken()
-    const url = new URL(req.url)
-    const action = url.searchParams.get('action') || ''
 
     // ENSURE FOLDER
     if (action === 'ensure_folder') {
