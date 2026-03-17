@@ -129,6 +129,44 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
+    const url = new URL(req.url)
+    const action = url.searchParams.get('action') || ''
+
+    // Diagnostic endpoint - no auth required
+    if (action === 'diagnose') {
+      const diag: Record<string, any> = {
+        SERVICE_EMAIL_exists: !!SERVICE_EMAIL,
+        SERVICE_EMAIL_value: SERVICE_EMAIL ? SERVICE_EMAIL.substring(0, 10) + '...' : null,
+        PRIVATE_KEY_exists: !!PRIVATE_KEY,
+        PRIVATE_KEY_starts: PRIVATE_KEY ? PRIVATE_KEY.substring(0, 30) : null,
+        ROOT_FOLDER_ID_exists: !!ROOT_FOLDER_ID,
+        ROOT_FOLDER_ID_value: ROOT_FOLDER_ID || null,
+      }
+      
+      // Try to get an access token
+      try {
+        const token = await getAccessToken()
+        diag.token_obtained = !!token
+        diag.token_preview = token ? token.substring(0, 20) + '...' : null
+        
+        // Try to list files in root folder
+        const query = `'${ROOT_FOLDER_ID}' in parents and trashed = false`
+        const res = await fetch(
+          `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name)&pageSize=5`,
+          { headers: { 'Authorization': `Bearer ${token}` } }
+        )
+        const data = await res.json()
+        diag.drive_api_status = res.status
+        diag.drive_api_response = data
+      } catch (e: any) {
+        diag.token_error = e.message
+      }
+      
+      return new Response(JSON.stringify(diag, null, 2), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     if (!SERVICE_EMAIL || !PRIVATE_KEY || !ROOT_FOLDER_ID) {
       return new Response(JSON.stringify({ error: 'Google Drive secrets not configured' }), {
         status: 500,
@@ -158,8 +196,6 @@ Deno.serve(async (req) => {
     }
 
     const token = await getAccessToken()
-    const url = new URL(req.url)
-    const action = url.searchParams.get('action') || ''
 
     // ENSURE FOLDER
     if (action === 'ensure_folder') {
