@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect, memo, useCallback, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette, Trash2 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ScatterChart, Scatter,
@@ -512,7 +512,7 @@ function ChartByStyle({ style, data, color, type }: {
 }
 
 /* ── Individual Metric Chart Card ── */
-const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange }: {
+const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange, onDelete }: {
   type: MetricType;
   data: { name: string; value: number }[];
   delay: number;
@@ -521,6 +521,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
   relatedInfo?: string;
   color: string;
   onColorChange: (color: string) => void;
+  onDelete: () => void;
 }) {
   const cfg = METRIC_CONFIG[type];
   const Icon = ICONS[type];
@@ -609,6 +610,14 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             })}
           </ContextMenuSubContent>
         </ContextMenuSub>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          onClick={onDelete}
+          className="flex items-center gap-2 text-destructive focus:text-destructive"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          <span className="text-xs font-medium">Excluir gráfico</span>
+        </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -716,7 +725,7 @@ function ConversionFunnel({ data, colorOverrides, onApplyPalette }: {
 export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
-  const { metrics, loading, addMetric } = useClientMetrics(companyId);
+  const { metrics, loading, addMetric, removeAllByType } = useClientMetrics(companyId);
   const [showForm, setShowForm] = useState(false);
   const [formType, setFormType] = useState<MetricType>("seguidores");
   const [formValue, setFormValue] = useState("");
@@ -869,6 +878,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
               relatedInfo={getRelatedInfo(type)}
               color={colorOverrides[type] || METRIC_CONFIG[type].color}
               onColorChange={(c) => setColorFor(type, c)}
+              onDelete={() => removeAllByType(type)}
             />
           ))}
         </div>

@@ -174,5 +174,15 @@ export function useClientMetrics(companyId?: string) {
     await fetchMetrics();
   };
 
-  return { metrics: mergedMetrics, loading, addMetric, removeMetric, refetch: fetchMetrics };
+  const removeAllByType = async (metricType: MetricType) => {
+    if (!user) return;
+    let query = supabase.from('client_metrics' as any).delete().eq('metric_type', metricType);
+    if (companyId) {
+      query = query.eq('company_id', companyId);
+    }
+    await query;
+    await fetchMetrics();
+  };
+
+  return { metrics: mergedMetrics, loading, addMetric, removeMetric, removeAllByType, refetch: fetchMetrics };
 }
