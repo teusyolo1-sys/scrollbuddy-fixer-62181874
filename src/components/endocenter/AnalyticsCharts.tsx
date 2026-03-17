@@ -610,6 +610,14 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             })}
           </ContextMenuSubContent>
         </ContextMenuSub>
+        <ContextMenuSeparator />
+        <ContextMenuItem
+          onClick={onDelete}
+          className="flex items-center gap-2 text-destructive focus:text-destructive"
+        >
+          <Trash2 className="h-3.5 w-3.5" />
+          <span className="text-xs font-medium">Excluir gráfico</span>
+        </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
