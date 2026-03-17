@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.social-metrics-cron]
 verify_jwt = false
+
+[functions.google-drive]
+verify_jwt = false
