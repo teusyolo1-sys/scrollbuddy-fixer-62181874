@@ -9,7 +9,20 @@ const SERVICE_EMAIL = Deno.env.get('GOOGLE_SERVICE_ACCOUNT_EMAIL')!
 const PRIVATE_KEY = (Deno.env.get('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY') || '').replace(/\\n/g, '\n')
 const ROOT_FOLDER_ID = Deno.env.get('GOOGLE_DRIVE_ROOT_FOLDER_ID')!
 
-// Generate JWT for Google API auth
+async function parseGoogleResponse(response: Response, action: string) {
+  const payload = await response.json().catch(async () => ({ error: { message: await response.text().catch(() => '') } }))
+
+  if (!response.ok) {
+    console.error(`Google Drive ${action} failed`, {
+      status: response.status,
+      payload,
+    })
+    throw new Error(payload?.error?.message || `Google Drive ${action} failed`)
+  }
+
+  return payload
+}
+
 async function getAccessToken(): Promise<string> {
   const now = Math.floor(Date.now() / 1000)
   const header = btoa(JSON.stringify({ alg: 'RS256', typ: 'JWT' }))
@@ -49,16 +62,21 @@ async function getAccessToken(): Promise<string> {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
   })
-  const tokenData = await tokenRes.json()
+
+  const tokenData = await parseGoogleResponse(tokenRes, 'token')
+
+  if (!tokenData.access_token) {
+    throw new Error('Google OAuth did not return an access token')
+  }
+
   return tokenData.access_token
 }
 
-// Create folder in Drive
 async function createFolder(name: string, parentId: string, token: string): Promise<string> {
-  const res = await fetch('https://www.googleapis.com/drive/v3/files', {
+  const response = await fetch('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true&fields=id,name,mimeType,webViewLink', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
@@ -67,22 +85,27 @@ async function createFolder(name: string, parentId: string, token: string): Prom
       parents: [parentId],
     }),
   })
-  const data = await res.json()
+
+  const data = await parseGoogleResponse(response, 'create_folder')
+
+  if (!data.id) {
+    throw new Error('Google Drive did not return the folder id')
+  }
+
   return data.id
 }
 
-// List files in folder
 async function listFiles(folderId: string, token: string) {
   const query = `'${folderId}' in parents and trashed = false`
-  const res = await fetch(
-    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,size,modifiedTime,webViewLink,iconLink,thumbnailLink)&orderBy=modifiedTime desc&pageSize=100`,
-    { headers: { 'Authorization': `Bearer ${token}` } }
+  const response = await fetch(
+    `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType,size,modifiedTime,webViewLink,iconLink,thumbnailLink)&orderBy=folder,name&pageSize=100&supportsAllDrives=true&includeItemsFromAllDrives=true`,
+    { headers: { Authorization: `Bearer ${token}` } }
   )
-  const data = await res.json()
+
+  const data = await parseGoogleResponse(response, 'list_files')
   return data.files || []
 }
 
-// Upload file
 async function uploadFile(fileName: string, fileData: Uint8Array, mimeType: string, folderId: string, token: string) {
   const metadata = JSON.stringify({ name: fileName, parents: [folderId] })
   const boundary = 'taskflow_boundary'
@@ -103,26 +126,30 @@ async function uploadFile(fileName: string, fileData: Uint8Array, mimeType: stri
   combined.set(fileData, part1.length + part2.length)
   combined.set(ending, part1.length + part2.length + fileData.length)
 
-  const res = await fetch(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size,modifiedTime,webViewLink',
+  const response = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name,mimeType,size,modifiedTime,webViewLink&supportsAllDrives=true',
     {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
         'Content-Type': `multipart/related; boundary=${boundary}`,
       },
       body: combined,
     }
   )
-  return await res.json()
+
+  return await parseGoogleResponse(response, 'upload_file')
 }
 
-// Delete file
 async function deleteFile(fileId: string, token: string) {
-  await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}`, {
+  const response = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?supportsAllDrives=true`, {
     method: 'DELETE',
-    headers: { 'Authorization': `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${token}` },
   })
+
+  if (!response.ok) {
+    await parseGoogleResponse(response, 'delete_file')
+  }
 }
 
 Deno.serve(async (req) => {
@@ -144,33 +171,42 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Verify user
     const authHeader = req.headers.get('Authorization')
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-    const { data: { user } } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
-    if (!user) {
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const token = await getAccessToken()
+    const tokenValue = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabase.auth.getUser(tokenValue)
 
-    // ENSURE FOLDER
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const googleToken = await getAccessToken()
+
     if (action === 'ensure_folder') {
       const { company_id, company_name } = await req.json()
 
-      const { data: existing } = await supabase
+      if (!company_id || !company_name) {
+        throw new Error('company_id and company_name required')
+      }
+
+      const { data: existing, error: existingError } = await supabase
         .from('company_drive_folders')
-        .select('drive_folder_id')
+        .select('id, drive_folder_id')
         .eq('company_id', company_id)
-        .single()
+        .maybeSingle()
+
+      if (existingError) {
+        throw existingError
+      }
 
       if (existing?.drive_folder_id) {
         return new Response(JSON.stringify({ folder_id: existing.drive_folder_id }), {
@@ -178,30 +214,43 @@ Deno.serve(async (req) => {
         })
       }
 
-      const folderId = await createFolder(company_name, ROOT_FOLDER_ID, token)
+      const folderId = await createFolder(company_name, ROOT_FOLDER_ID, googleToken)
 
-      await supabase.from('company_drive_folders').insert({
-        company_id,
-        drive_folder_id: folderId,
-        folder_name: company_name,
-      })
+      if (existing?.id) {
+        const { error: updateError } = await supabase
+          .from('company_drive_folders')
+          .update({
+            drive_folder_id: folderId,
+            folder_name: company_name,
+          })
+          .eq('id', existing.id)
+
+        if (updateError) throw updateError
+      } else {
+        const { error: insertError } = await supabase.from('company_drive_folders').insert({
+          company_id,
+          drive_folder_id: folderId,
+          folder_name: company_name,
+        })
+
+        if (insertError) throw insertError
+      }
 
       return new Response(JSON.stringify({ folder_id: folderId }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // LIST FILES
     if (action === 'list') {
       const folderId = url.searchParams.get('folder_id')
       if (!folderId) throw new Error('folder_id required')
-      const files = await listFiles(folderId, token)
+
+      const files = await listFiles(folderId, googleToken)
       return new Response(JSON.stringify({ files }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // UPLOAD FILE
     if (action === 'upload') {
       const formData = await req.formData()
       const file = formData.get('file') as File
@@ -210,28 +259,28 @@ Deno.serve(async (req) => {
       if (!file || !folderId) throw new Error('file and folder_id required')
 
       const buffer = new Uint8Array(await file.arrayBuffer())
-      const result = await uploadFile(file.name, buffer, file.type || 'application/octet-stream', folderId, token)
+      const result = await uploadFile(file.name, buffer, file.type || 'application/octet-stream', folderId, googleToken)
 
       return new Response(JSON.stringify(result), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // DELETE FILE
     if (action === 'delete') {
       const { file_id } = await req.json()
       if (!file_id) throw new Error('file_id required')
-      await deleteFile(file_id, token)
+
+      await deleteFile(file_id, googleToken)
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    // CREATE SUBFOLDER
     if (action === 'create_folder') {
       const { folder_name, parent_id } = await req.json()
       if (!folder_name || !parent_id) throw new Error('folder_name and parent_id required')
-      const newId = await createFolder(folder_name, parent_id, token)
+
+      const newId = await createFolder(folder_name.trim(), parent_id, googleToken)
       return new Response(JSON.stringify({ folder_id: newId }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -243,7 +292,7 @@ Deno.serve(async (req) => {
     })
   } catch (err: any) {
     console.error('Google Drive error:', err)
-    return new Response(JSON.stringify({ error: err.message }), {
+    return new Response(JSON.stringify({ error: err.message || 'Unknown Google Drive error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
