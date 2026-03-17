@@ -46,7 +46,7 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
       toast.error('Erro ao conectar com Google Drive');
       return null;
     }
-    return data?.folder_id || null;
+  }, [user, companyId, companyName]);
   }, [user, companyId, companyName]);
 
   const fetchFiles = useCallback(async (targetFolderId?: string) => {
