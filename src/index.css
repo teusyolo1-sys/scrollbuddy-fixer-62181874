@@ -177,6 +177,10 @@
     cursor: url('/cursors/pointer.svg') 5 1, pointer !important;
   }
 
+  .cursor-default {
+    cursor: url('/cursors/default.svg') 1 1, default !important;
+  }
+
   [draggable="true"], .drag-handle, .cursor-grab {
     cursor: url('/cursors/grab.svg') 8 8, grab !important;
   }
