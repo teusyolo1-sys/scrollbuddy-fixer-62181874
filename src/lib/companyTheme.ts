@@ -96,11 +96,11 @@ export const SOLID_PRESETS = [
   { name: 'Vinho', css: 'hsl(340 30% 12%)' },
   { name: 'Chocolate', css: 'hsl(25 25% 12%)' },
   { name: 'Branco', css: 'hsl(0 0% 100%)' },
-  { name: 'Neve', css: 'hsl(210 20% 98%)' },
-  { name: 'Creme', css: 'hsl(40 30% 96%)' },
-  { name: 'Lavanda claro', css: 'hsl(250 30% 97%)' },
-  { name: 'Menta claro', css: 'hsl(160 25% 96%)' },
-  { name: 'Rosa claro', css: 'hsl(340 25% 97%)' },
+  { name: 'Neve', css: 'hsl(210 24% 96%)' },
+  { name: 'Creme', css: 'hsl(42 55% 91%)' },
+  { name: 'Lavanda claro', css: 'hsl(258 52% 93%)' },
+  { name: 'Menta claro', css: 'hsl(160 38% 91%)' },
+  { name: 'Rosa claro', css: 'hsl(340 48% 94%)' },
 ];
 
 // ── Gradient (Linear) Presets ──
@@ -112,11 +112,11 @@ export const GRADIENT_PRESETS = [
   { name: 'Floresta negra', css: 'linear-gradient(180deg, hsl(150 30% 10%) 0%, hsl(170 25% 14%) 50%, hsl(140 20% 8%) 100%)' },
   { name: 'Vinho tinto', css: 'linear-gradient(135deg, hsl(340 40% 12%) 0%, hsl(350 35% 16%) 50%, hsl(330 30% 10%) 100%)' },
   { name: 'Carvão dourado', css: 'linear-gradient(135deg, hsl(0 0% 10%) 0%, hsl(35 30% 15%) 100%)' },
-  { name: 'Gelo', css: 'linear-gradient(180deg, hsl(200 30% 92%) 0%, hsl(210 25% 96%) 100%)' },
-  { name: 'Névoa rosa', css: 'linear-gradient(135deg, hsl(330 20% 95%) 0%, hsl(270 15% 96%) 100%)' },
-  { name: 'Amanhecer', css: 'linear-gradient(180deg, hsl(35 40% 94%) 0%, hsl(20 50% 92%) 50%, hsl(340 30% 95%) 100%)' },
-  { name: 'Azul celeste', css: 'linear-gradient(180deg, hsl(200 50% 93%) 0%, hsl(210 40% 97%) 100%)' },
-  { name: 'Menta suave', css: 'linear-gradient(135deg, hsl(160 30% 94%) 0%, hsl(180 25% 96%) 100%)' },
+  { name: 'Gelo', css: 'linear-gradient(180deg, hsl(200 46% 88%) 0%, hsl(210 36% 94%) 100%)' },
+  { name: 'Névoa rosa', css: 'linear-gradient(135deg, hsl(330 34% 91%) 0%, hsl(270 24% 94%) 100%)' },
+  { name: 'Amanhecer', css: 'linear-gradient(180deg, hsl(35 58% 89%) 0%, hsl(20 62% 87%) 50%, hsl(340 42% 92%) 100%)' },
+  { name: 'Azul celeste', css: 'linear-gradient(180deg, hsl(200 64% 87%) 0%, hsl(210 48% 93%) 100%)' },
+  { name: 'Menta suave', css: 'linear-gradient(135deg, hsl(160 42% 89%) 0%, hsl(180 34% 93%) 100%)' },
 ];
 
 // ── Pattern Presets ──
