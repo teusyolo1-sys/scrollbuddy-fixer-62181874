@@ -310,11 +310,11 @@ export default function DriveFileManager({ companyId, companyName }: DriveFileMa
         {/* Skeleton loading (first time, no cache) */}
         {loading && files.length === 0 ? (
           <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className="ios-card p-4 animate-pulse">
-                <div className="w-10 h-10 rounded-lg bg-muted/50 mb-3" />
-                <div className="h-4 bg-muted/50 rounded w-3/4 mb-2" />
-                <div className="h-3 bg-muted/50 rounded w-1/2" />
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="ios-card p-4 space-y-3">
+                <div className="w-10 h-10 rounded-lg bg-muted/30 animate-pulse" />
+                <div className="h-4 bg-muted/30 rounded w-3/4 animate-pulse" />
+                <div className="h-3 bg-muted/20 rounded w-1/2 animate-pulse" />
               </div>
             ))}
           </div>
