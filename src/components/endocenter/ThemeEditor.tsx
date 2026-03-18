@@ -223,15 +223,21 @@ export default function ThemeEditor({ companyId }: Props) {
 
         {/* Segmented control */}
         <div className="flex flex-wrap gap-1 mb-4 p-1 rounded-xl bg-secondary/40">
-          {BG_TABS.map(tab => (
-            <button key={tab.key} onClick={() => {
-              setBgTab(tab.key);
-              if (tab.key === 'none') selectBg('none', '');
-            }}
-              className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
-                bgTab === tab.key ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}>
-              {tab.label}
+          {BG_TABS.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button key={tab.key} onClick={() => {
+                setBgTab(tab.key);
+                if (tab.key === 'none') selectBg('none', '');
+              }}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                  bgTab === tab.key ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}>
+                <Icon className="h-3 w-3" />
+                {tab.label}
+              </button>
+            );
+          })}
             </button>
           ))}
         </div>
