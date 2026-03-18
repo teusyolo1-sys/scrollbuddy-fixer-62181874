@@ -78,13 +78,15 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
     base['--radius'] = cssVars['--theme-radius'];
     base['fontFamily'] = cssVars['--theme-font'];
 
-    // Force dark foreground text when light wallpaper is active in dark mode
+    // Force appropriate text colors when wallpaper conflicts with theme mode
     if (forceLightText) {
-      Object.assign(base, LIGHT_FOREGROUND_OVERRIDES);
+      Object.assign(base, LIGHT_TOKENS);
+    } else if (forceDarkText) {
+      Object.assign(base, DARK_TOKENS);
     }
 
     return base;
-  }, [cssVars, forceLightText]);
+  }, [cssVars, forceLightText, forceDarkText]);
 
   const targets = theme.radiusTargets || ALL_RADIUS_TARGETS;
   const dataAttrs = useMemo(() => {
