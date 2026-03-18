@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Check, Palette, RotateCcw, Save, Upload, X } from 'lucide-react';
+import { Check, Ban, Grid3x3, Circle, Blend, Fingerprint, Image, Sparkles, Palette, RotateCcw, Save, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useEndocenter } from '@/store/endocenterStore';
