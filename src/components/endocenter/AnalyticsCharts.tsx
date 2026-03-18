@@ -240,8 +240,12 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
   const yDomain = getScaleDomain(data, scale);
   const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
   const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))", opacity: 0.7 };
-  const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
-
+  // When a scale is active, show full integers instead of abbreviated (5.9k → 5900)
+  const fmtValue = scale !== 'auto'
+    ? (v: number) => v.toLocaleString("pt-BR")
+    : (v: number) => cfg?.format(v) ?? String(v);
+  const fmt = (v: number) => [fmtValue(v), cfg?.label ?? type];
+  const tickFormatter = scale !== 'auto' ? (v: number) => v.toLocaleString("pt-BR") : undefined;
   // Only compute pareto data when needed
   const paretoData = useMemo(() => {
     if (style !== "pareto") return data;
