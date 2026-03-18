@@ -810,7 +810,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
     return result;
   }, [metrics]);
 
-  const activeTypes = METRIC_TYPES.filter((t) => perMetricData[t]?.length > 0);
+  const activeTypes = METRIC_TYPES.filter((t) => perMetricData[t]?.length > 0 && !hiddenCharts.includes(t));
 
   const getRelatedInfo = (type: MetricType): string | undefined => {
     if (type === "conversao" && perMetricData.leads && perMetricData.vendas) return "⚡ Calculado automaticamente: Vendas ÷ Leads × 100";
