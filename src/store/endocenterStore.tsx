@@ -757,6 +757,11 @@ interface PersistedData {
   deadlines: DeadlineRecord[];
   crisisScenarios: CrisisScenario[];
   budgetEntries: BudgetEntry[];
+  chartStyles?: Record<string, string>;
+  chartColors?: Record<string, string>;
+  funnelPalette?: Record<string, string>;
+  sectionCollapsed?: Record<string, boolean>;
+  activeFilters?: Record<string, string>;
 }
 
 const loadFromStorage = (companyId?: string): Partial<PersistedData> | null => {
