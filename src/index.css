@@ -711,3 +711,9 @@
 [style*="--theme-font"] button {
   font-family: inherit !important;
 }
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="animation"] {
+    animation: none !important;
+  }
+}
