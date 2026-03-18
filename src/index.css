@@ -149,57 +149,40 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     letter-spacing: -0.01em;
-    cursor: url('/cursors/default.svg') 1 1, default;
   }
 
+  /* ── Cursores nativos — sem SVG customizado ── */
   *, *::before, *::after {
-    cursor: url('/cursors/default.svg') 1 1, default !important;
+    cursor: default;
   }
 
-  /* ── Pointer cursor ── */
   a[href], button, [role="button"], [type="button"], [type="submit"], [type="reset"],
-  select, summary, .cursor-pointer, [onclick], label[for],
-  [tabindex]:not([tabindex="-1"]) {
-    cursor: url('/cursors/pointer.svg') 5 1, pointer !important;
+  select, summary, .cursor-pointer, [onclick], label[for] {
+    cursor: pointer;
   }
 
-  /* ── Text cursor ── */
-  input, textarea, [contenteditable="true"], [role="textbox"] {
-    cursor: url('/cursors/text.svg') 4 8, text !important;
+  input:not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]),
+  textarea, [contenteditable="true"], [role="textbox"] {
+    cursor: text;
   }
 
-  .dark input, .dark textarea, .dark [contenteditable="true"], .dark [role="textbox"] {
-    cursor: url('/cursors/text-light.svg') 4 8, text !important;
-  }
-
-  /* ── Exclude non-text inputs from text cursor ── */
   input[type="range"] {
-    cursor: url('/cursors/grab.svg') 8 8, grab !important;
+    cursor: grab;
   }
   input[type="range"]:active {
-    cursor: url('/cursors/move.svg') 7 7, grabbing !important;
+    cursor: grabbing;
   }
+
   input[type="color"], input[type="checkbox"], input[type="radio"],
-  input[type="file"], input[type="button"], input[type="submit"],
-  input[type="reset"], input[type="hidden"] {
-    cursor: url('/cursors/pointer.svg') 5 1, pointer !important;
+  input[type="file"] {
+    cursor: pointer;
   }
 
-  /* ── Drag cursors ── */
-  [draggable="true"], .drag-handle, .cursor-grab, [style*="cursor: grab"], [style*="cursor:grab"] {
-    cursor: url('/cursors/grab.svg') 8 8, grab !important;
+  [draggable="true"], .drag-handle, .cursor-grab {
+    cursor: grab;
   }
-  [draggable="true"]:active, .drag-handle:active, .cursor-grabbing, [style*="cursor: grabbing"], [style*="cursor:grabbing"] {
-    cursor: url('/cursors/move.svg') 7 7, grabbing !important;
-  }
-
-  .cursor-move, [style*="cursor: move"] {
-    cursor: url('/cursors/move.svg') 7 7, move !important;
-  }
-
-  .is-dragging-cursor,
-  .is-dragging-cursor * {
-    cursor: url('/cursors/move.svg') 7 7, grabbing !important;
+  [draggable="true"]:active, .drag-handle:active, .cursor-grabbing {
+    cursor: grabbing;
   }
 
   /* iOS-style thin scrollbar */
