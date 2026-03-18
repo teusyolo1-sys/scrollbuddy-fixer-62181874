@@ -203,13 +203,15 @@ function IosDropdown({ value, onChange, options }: {
 }
 
 /* ── Scale types ── */
-export type ChartScale = 'auto' | 'unidade' | 'dezena' | 'centena' | 'milhar';
+export type ChartScale = 'auto' | 'unidade' | 'dezena' | 'centena' | 'milhar' | 'dez_milhar' | 'cem_milhar';
 const SCALE_OPTIONS: { key: ChartScale; label: string; padding: number }[] = [
   { key: 'auto', label: 'Automático', padding: 0 },
-  { key: 'unidade', label: 'Unidade (±1)', padding: 10 },
-  { key: 'dezena', label: 'Dezena (±10)', padding: 50 },
-  { key: 'centena', label: 'Centena (±100)', padding: 200 },
-  { key: 'milhar', label: 'U.Milhar (±1000)', padding: 2000 },
+  { key: 'unidade', label: '1ª Ordem — Unidade', padding: 10 },
+  { key: 'dezena', label: '2ª Ordem — Dezena', padding: 50 },
+  { key: 'centena', label: '3ª Ordem — Centena', padding: 200 },
+  { key: 'milhar', label: '4ª Ordem — U. de Milhar', padding: 2000 },
+  { key: 'dez_milhar', label: '5ª Ordem — D. de Milhar', padding: 20000 },
+  { key: 'cem_milhar', label: '6ª Ordem — C. de Milhar', padding: 200000 },
 ];
 
 function getScaleDomain(data: { value: number }[], scale: ChartScale): [number, number] | undefined {
@@ -238,8 +240,12 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
   const yDomain = getScaleDomain(data, scale);
   const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
   const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))", opacity: 0.7 };
-  const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
-
+  // When a scale is active, show full integers instead of abbreviated (5.9k → 5900)
+  const fmtValue = scale !== 'auto'
+    ? (v: number) => v.toLocaleString("pt-BR")
+    : (v: number) => cfg?.format(v) ?? String(v);
+  const fmt = (v: number) => [fmtValue(v), cfg?.label ?? type];
+  const tickFormatter = scale !== 'auto' ? (v: number) => v.toLocaleString("pt-BR") : undefined;
   // Only compute pareto data when needed
   const paretoData = useMemo(() => {
     if (style !== "pareto") return data;
@@ -259,7 +265,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={scale !== 'auto' ? 55 : 40} domain={yDomain} tickFormatter={tickFormatter} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={{ r: 4, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }} activeDot={{ r: 6, stroke: color, strokeWidth: 2, fill: "hsl(var(--card))" }} />
           </LineChart>
@@ -278,7 +284,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={scale !== 'auto' ? 55 : 40} domain={yDomain} tickFormatter={tickFormatter} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} dot={{ r: 3, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }} activeDot={{ r: 5 }} />
           </AreaChart>
@@ -307,7 +313,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
           <BarChart data={data} barSize={16} maxBarSize={24}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={scale !== 'auto' ? 55 : 40} domain={yDomain} tickFormatter={tickFormatter} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
           </BarChart>
@@ -409,7 +415,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
           <BarChart data={data} barSize={16} maxBarSize={24}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={scale !== 'auto' ? 55 : 40} domain={yDomain} tickFormatter={tickFormatter} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {data.map((entry, i) => {
@@ -571,7 +577,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
               <div>
                 <h4 className="text-sm font-bold text-foreground">{cfg.label}</h4>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-extrabold" style={{ color }}>{cfg.format(latest)}</span>
+                  <span className="text-lg font-extrabold" style={{ color }}>{scale !== 'auto' ? latest.toLocaleString("pt-BR") : cfg.format(latest)}</span>
                   {change !== 0 && (
                     <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${change > 0 ? "text-green-500" : "text-red-500"}`}>
                       {change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
