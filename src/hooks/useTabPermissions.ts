@@ -108,8 +108,6 @@ export const useTabPermissions = () => {
     } else {
       await supabase.from('tab_permissions').delete().eq('user_id', userId);
     }
-    // Invalidar cache e sincronizar
-    sessionStorage.removeItem(`cache_tab_perms_${user?.id}`);
     await fetchPermissions();
   };
 
