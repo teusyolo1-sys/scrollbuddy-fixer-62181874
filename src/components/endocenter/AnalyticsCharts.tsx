@@ -633,6 +633,24 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             })}
           </ContextMenuSubContent>
         </ContextMenuSub>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <Ruler className="h-3.5 w-3.5 mr-2" />
+            Escala
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-48">
+            {SCALE_OPTIONS.map((opt) => (
+              <ContextMenuItem
+                key={opt.key}
+                onClick={() => setScale(opt.key)}
+                className="flex items-center gap-2"
+              >
+                <span className="text-xs font-medium">{opt.label}</span>
+                {scale === opt.key && <Check className="h-3 w-3 ml-auto text-primary" />}
+              </ContextMenuItem>
+            ))}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
         <ContextMenuSeparator />
         <ContextMenuItem
           onClick={onDelete}
