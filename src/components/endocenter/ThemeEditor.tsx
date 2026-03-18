@@ -109,13 +109,15 @@ export default function ThemeEditor({ companyId }: Props) {
       title={label}
     >
       {children || <div className="absolute inset-0" style={style} />}
-      <span
-        className="absolute bottom-0.5 left-0 right-0 text-[8px] font-medium text-center truncate px-0.5"
-        style={{ color: '#fff', textShadow: '0 0 3px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)' }}
-      >
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-background/95 via-background/75 to-transparent" />
+      <span className="absolute bottom-1 left-1 right-1 text-[8px] font-medium text-foreground text-center truncate">
         {label}
       </span>
-      {active && <Check className="h-3 w-3 text-white absolute top-1 right-1" style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.7))' }} />}
+      {active && (
+        <span className="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-background/85 ring-1 ring-border/60">
+          <Check className="h-2.5 w-2.5 text-primary" />
+        </span>
+      )}
     </button>
   );
 
