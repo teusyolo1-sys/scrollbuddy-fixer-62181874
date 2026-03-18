@@ -572,3 +572,30 @@
     background: hsl(var(--primary) / 0.1);
   }
 }
+
+/* ── Tema dinâmico por empresa ── */
+[style*="--theme-accent"] {
+  --primary: var(--theme-accent);
+  --accent: var(--theme-accent);
+  --ring: var(--theme-accent);
+}
+
+[style*="--theme-radius"] .ios-card,
+[style*="--theme-radius"] .ios-card-interactive,
+[style*="--theme-radius"] .liquid-glass-card {
+  border-radius: var(--theme-radius) !important;
+}
+
+[style*="--theme-font"] {
+  font-family: var(--theme-font) !important;
+}
+
+[style*="--theme-font"] h1,
+[style*="--theme-font"] h2,
+[style*="--theme-font"] h3,
+[style*="--theme-font"] h4,
+[style*="--theme-font"] p,
+[style*="--theme-font"] span,
+[style*="--theme-font"] button {
+  font-family: inherit !important;
+}
