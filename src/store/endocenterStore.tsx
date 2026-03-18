@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 export type MetricPeriod = "Diária" | "Semanal" | "Mensal" | "Anual";
 export type TaskStatus = "pending" | "in_progress" | "done" | "blocked";
