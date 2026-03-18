@@ -44,6 +44,18 @@ export const useTabPermissions = () => {
 
   useEffect(() => { fetchPermissions(); }, [fetchPermissions]);
 
+  // Realtime: re-fetch when any permission changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel('tab_permissions_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tab_permissions' }, () => {
+        fetchPermissions();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [user, fetchPermissions]);
+
   const hasAccess = (tabKey: TabKey): boolean => {
     if (isAdmin) return true;
     if (!user) return false;
