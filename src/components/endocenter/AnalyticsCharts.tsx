@@ -252,19 +252,16 @@ function ChartTooltip({ active, payload, label, type, scale = 'auto', data }: {
     : (Math.abs(diff) >= 1000 ? `${(Math.abs(diff) / 1000).toFixed(1)}k` : String(Math.abs(diff)));
 
   return (
-    <div className="rounded-xl border border-border bg-card px-3 py-2 text-[11px] shadow-lg">
-      <div className="mb-1 font-semibold text-foreground">{label}</div>
-      <div className="text-primary font-medium">{cfg?.label}: {formattedValue}</div>
-      {hasPrevious && (
-        <div className={`mt-1 flex items-center gap-1 font-semibold ${diff > 0 ? "text-primary" : diff < 0 ? "text-destructive" : "text-muted-foreground"}`}>
-          <span>{diff > 0 ? "▲" : diff < 0 ? "▼" : "="}</span>
-          <span>
-            {diff > 0 ? "+" : diff < 0 ? "-" : ""}
-            {formattedDiff}
+    <div className="rounded-xl border border-border bg-card px-3 py-2 text-[11px] shadow-lg min-w-[120px]">
+      <div className="flex items-center justify-between gap-3 mb-1">
+        <span className="font-semibold text-foreground">{label}</span>
+        {hasPrevious && diff !== 0 && (
+          <span className={`flex items-center gap-0.5 font-bold text-[10px] px-1.5 py-0.5 rounded-md ${diff > 0 ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"}`}>
+            {diff > 0 ? "▲" : "▼"} {diff > 0 ? "+" : ""}{formattedDiff}
           </span>
-          <span className="text-muted-foreground">vs anterior</span>
-        </div>
-      )}
+        )}
+      </div>
+      <div className="text-primary font-medium">{cfg?.label}: {formattedValue}</div>
     </div>
   );
 }
