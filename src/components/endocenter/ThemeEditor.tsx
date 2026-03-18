@@ -242,7 +242,7 @@ export default function ThemeEditor({ companyId }: Props) {
               {(theme.radiusTargets || ALL_RADIUS_TARGETS).length === ALL_RADIUS_TARGETS.length ? 'Desmarcar todas' : 'Selecionar todas'}
             </button>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
             {RADIUS_TARGETS.map(({ key, label }) => {
               const targets = theme.radiusTargets || ALL_RADIUS_TARGETS;
               const checked = targets.includes(key);
