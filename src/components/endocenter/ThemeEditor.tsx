@@ -104,15 +104,18 @@ export default function ThemeEditor({ companyId }: Props) {
     <button
       onClick={onClick}
       className={`shrink-0 w-20 h-14 rounded-xl border-2 overflow-hidden transition-all relative ${
-        active ? 'border-primary ring-2 ring-primary/30 scale-105' : 'border-border/40 hover:border-border'
+        active ? 'border-primary ring-2 ring-primary/30 scale-105' : 'border-border hover:border-foreground/30'
       }`}
       title={label}
     >
       {children || <div className="absolute inset-0" style={style} />}
-      <span className="absolute bottom-0.5 left-0 right-0 text-[8px] font-medium text-foreground/70 text-center truncate px-0.5">
+      <span
+        className="absolute bottom-0.5 left-0 right-0 text-[8px] font-medium text-center truncate px-0.5"
+        style={{ color: '#fff', textShadow: '0 0 3px rgba(0,0,0,0.8), 0 1px 2px rgba(0,0,0,0.6)' }}
+      >
         {label}
       </span>
-      {active && <Check className="h-3 w-3 text-primary absolute top-1 right-1" />}
+      {active && <Check className="h-3 w-3 text-white absolute top-1 right-1" style={{ filter: 'drop-shadow(0 0 2px rgba(0,0,0,0.7))' }} />}
     </button>
   );
 
