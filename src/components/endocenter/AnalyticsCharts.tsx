@@ -19,6 +19,7 @@ import {
   ContextMenuItem,
 } from "@/components/ui/context-menu";
 import { useClientMetrics, METRIC_CONFIG, METRIC_TYPES, type MetricType } from "@/hooks/useClientMetrics";
+import { useEndocenter } from "@/store/endocenterStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { CHART_STYLES, ChartStyleMenuItem, type ChartStyle } from "./ChartStylePicker";
@@ -901,12 +902,11 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
   const { metrics, loading, addMetric, removeAllByType } = useClientMetrics(companyId);
+  const { chartStyles, setChartStyles, chartColors, setChartColors, funnelPalette, setFunnelPalette } = useEndocenter();
   const [showForm, setShowForm] = useState(false);
   const [formType, setFormType] = useState<MetricType>("seguidores");
   const [formValue, setFormValue] = useState("");
   const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
-  const [chartStyles, setChartStyles] = useState<Record<string, ChartStyle>>({});
-  const [colorOverrides, setColorOverrides] = useState<Record<string, string>>({});
 
   // Hidden charts persisted in localStorage per company
   const storageKey = `hidden-charts-${companyId || 'default'}`;
@@ -937,19 +937,20 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
 
   const setStyleFor = useCallback((type: string, style: ChartStyle) => {
     setChartStyles((prev) => ({ ...prev, [type]: style }));
-  }, []);
+  }, [setChartStyles]);
 
   const setColorFor = useCallback((type: string, color: string) => {
-    setColorOverrides((prev) => ({ ...prev, [type]: color }));
-  }, []);
+    setChartColors((prev) => ({ ...prev, [type]: color }));
+  }, [setChartColors]);
 
-  const applyFunnelPalette = (palette: ColorPalette) => {
-    const newOverrides: Record<string, string> = { ...colorOverrides };
+  const applyFunnelPalette = useCallback((palette: ColorPalette) => {
+    const newOverrides: Record<string, string> = {};
     METRIC_TYPES.forEach((t, i) => {
       newOverrides[t] = palette.colors[i % palette.colors.length];
     });
-    setColorOverrides(newOverrides);
-  };
+    setChartColors((prev) => ({ ...prev, ...newOverrides }));
+    setFunnelPalette(newOverrides);
+  }, [setChartColors, setFunnelPalette]);
 
   const perMetricData = useMemo(() => {
     const result: Record<MetricType, { name: string; value: number; rawDate: string }[]> = {} as any;
@@ -1029,7 +1030,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const dropdownOptions = METRIC_TYPES.map((t) => ({
     value: t,
     label: METRIC_CONFIG[t].label,
-    color: colorOverrides[t] || METRIC_CONFIG[t].color,
+    color: chartColors[t] || METRIC_CONFIG[t].color,
   }));
 
   const defaultStyles: Record<string, ChartStyle> = {
@@ -1077,7 +1078,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
       </AnimatePresence>
 
       {activeTypes.length >= 2 && (
-        <ConversionFunnel data={perMetricData} colorOverrides={colorOverrides} onApplyPalette={applyFunnelPalette} />
+        <ConversionFunnel data={perMetricData} colorOverrides={chartColors} onApplyPalette={applyFunnelPalette} />
       )}
 
       {activeTypes.length > 0 ? (
@@ -1088,10 +1089,10 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
               type={type}
               data={perMetricData[type]}
               delay={i * 0.06}
-              chartStyle={chartStyles[type] || defaultStyles[type] || "area"}
+              chartStyle={(chartStyles[type] as ChartStyle) || defaultStyles[type] || "area"}
               onStyleChange={(s) => setStyleFor(type, s)}
               relatedInfo={getRelatedInfo(type)}
-              color={colorOverrides[type] || METRIC_CONFIG[type].color}
+              color={chartColors[type] || METRIC_CONFIG[type].color}
               onColorChange={(c) => setColorFor(type, c)}
               onDelete={() => hideChart(type)}
             />
