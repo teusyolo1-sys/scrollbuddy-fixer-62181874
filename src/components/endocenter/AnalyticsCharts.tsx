@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect, memo, useCallback, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette, Trash2 } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette, Trash2, Ruler } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ScatterChart, Scatter,
@@ -202,17 +202,40 @@ function IosDropdown({ value, onChange, options }: {
   );
 }
 
+/* ── Scale types ── */
+export type ChartScale = 'auto' | 'unidade' | 'dezena' | 'centena' | 'milhar';
+const SCALE_OPTIONS: { key: ChartScale; label: string; padding: number }[] = [
+  { key: 'auto', label: 'Automático', padding: 0 },
+  { key: 'unidade', label: 'Unidade (±1)', padding: 10 },
+  { key: 'dezena', label: 'Dezena (±10)', padding: 50 },
+  { key: 'centena', label: 'Centena (±100)', padding: 200 },
+  { key: 'milhar', label: 'U.Milhar (±1000)', padding: 2000 },
+];
+
+function getScaleDomain(data: { value: number }[], scale: ChartScale): [number, number] | undefined {
+  if (scale === 'auto' || data.length === 0) return undefined;
+  const values = data.map((d) => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const opt = SCALE_OPTIONS.find((s) => s.key === scale)!;
+  const range = max - min;
+  const padding = Math.max(opt.padding, range * 0.2, 1);
+  return [Math.max(0, Math.floor(min - padding)), Math.ceil(max + padding)];
+}
+
 /* ── Chart renderer supporting all styles ── */
 const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4"];
 
-function ChartByStyle({ style, data, color, type }: {
+function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
   style: ChartStyle;
   data: { name: string; value: number }[];
   color: string;
   type: string;
+  scale?: ChartScale;
 }) {
   const cfg = METRIC_CONFIG[type as MetricType];
   const gradientId = `grad-${type}-${style}-${color.replace("#", "")}`;
+  const yDomain = getScaleDomain(data, scale);
   const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
   const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))", opacity: 0.7 };
   const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
@@ -236,7 +259,7 @@ function ChartByStyle({ style, data, color, type }: {
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={{ r: 4, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }} activeDot={{ r: 6, stroke: color, strokeWidth: 2, fill: "hsl(var(--card))" }} />
           </LineChart>
@@ -255,7 +278,7 @@ function ChartByStyle({ style, data, color, type }: {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} dot={{ r: 3, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }} activeDot={{ r: 5 }} />
           </AreaChart>
@@ -284,7 +307,7 @@ function ChartByStyle({ style, data, color, type }: {
           <BarChart data={data} barSize={16} maxBarSize={24}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Bar dataKey="value" fill={color} radius={[4, 4, 0, 0]} />
           </BarChart>
@@ -386,7 +409,7 @@ function ChartByStyle({ style, data, color, type }: {
           <BarChart data={data} barSize={16} maxBarSize={24}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {data.map((entry, i) => {
@@ -525,7 +548,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
 }) {
   const cfg = METRIC_CONFIG[type];
   const Icon = ICONS[type];
-
+  const [scale, setScale] = useState<ChartScale>('auto');
   const latest = data[data.length - 1]?.value ?? 0;
   const prev = data.length > 1 ? data[data.length - 2].value : latest;
   const change = prev > 0 ? ((latest - prev) / prev * 100) : 0;
@@ -567,11 +590,12 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
           )}
 
           <div className="flex-1 min-h-0">
-            <ChartByStyle style={chartStyle} data={data} color={color} type={type} />
+            <ChartByStyle style={chartStyle} data={data} color={color} type={type} scale={scale} />
           </div>
 
-          <div className="mt-auto pt-1 text-[10px] text-muted-foreground/50 text-right">
-            Clique direito para alterar estilo
+          <div className="mt-auto pt-1 flex items-center justify-between text-[10px] text-muted-foreground/50">
+            {scale !== 'auto' && <span className="text-primary/60 font-medium">🔍 {SCALE_OPTIONS.find(s => s.key === scale)?.label}</span>}
+            <span className="ml-auto">Clique direito para alterar estilo</span>
           </div>
         </motion.div>
       </ContextMenuTrigger>
@@ -608,6 +632,24 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
                 </ContextMenuItem>
               );
             })}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <Ruler className="h-3.5 w-3.5 mr-2" />
+            Escala
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-48">
+            {SCALE_OPTIONS.map((opt) => (
+              <ContextMenuItem
+                key={opt.key}
+                onClick={() => setScale(opt.key)}
+                className="flex items-center gap-2"
+              >
+                <span className="text-xs font-medium">{opt.label}</span>
+                {scale === opt.key && <Check className="h-3 w-3 ml-auto text-primary" />}
+              </ContextMenuItem>
+            ))}
           </ContextMenuSubContent>
         </ContextMenuSub>
         <ContextMenuSeparator />
