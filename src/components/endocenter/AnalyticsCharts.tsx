@@ -830,6 +830,8 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const handleAdd = async () => {
     const val = parseFloat(formValue);
     if (isNaN(val)) return;
+    // Unhide the chart type if it was hidden
+    unhideChart(formType);
     await addMetric(formType, val, formDate);
     setFormValue("");
     setShowForm(false);
