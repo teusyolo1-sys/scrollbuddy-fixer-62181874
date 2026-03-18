@@ -1,5 +1,5 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
-import { Check, Palette, RotateCcw, Save, Upload, X } from 'lucide-react';
+import { Check, Ban, Grid3x3, Circle, Blend, Fingerprint, Image, Sparkles, Palette, RotateCcw, Save, Upload, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useEndocenter } from '@/store/endocenterStore';
@@ -14,14 +14,14 @@ import {
 
 interface Props { companyId?: string; }
 
-const BG_TABS: { key: WallpaperCategory; label: string }[] = [
-  { key: 'none', label: 'Nenhum' },
-  { key: 'mesh', label: 'Mesh' },
-  { key: 'solid', label: 'Sólido' },
-  { key: 'gradient', label: 'Degradê' },
-  { key: 'pattern', label: 'Padrão' },
-  { key: 'image', label: 'Imagem' },
-  { key: 'animated', label: 'Animado' },
+const BG_TABS: { key: WallpaperCategory; label: string; icon: React.ElementType }[] = [
+  { key: 'none', label: 'Nenhum', icon: Ban },
+  { key: 'mesh', label: 'Mesh', icon: Grid3x3 },
+  { key: 'solid', label: 'Sólido', icon: Circle },
+  { key: 'gradient', label: 'Degradê', icon: Blend },
+  { key: 'pattern', label: 'Padrão', icon: Fingerprint },
+  { key: 'image', label: 'Imagem', icon: Image },
+  { key: 'animated', label: 'Animado', icon: Sparkles },
 ];
 
 export default function ThemeEditor({ companyId }: Props) {
@@ -223,17 +223,21 @@ export default function ThemeEditor({ companyId }: Props) {
 
         {/* Segmented control */}
         <div className="flex flex-wrap gap-1 mb-4 p-1 rounded-xl bg-secondary/40">
-          {BG_TABS.map(tab => (
-            <button key={tab.key} onClick={() => {
-              setBgTab(tab.key);
-              if (tab.key === 'none') selectBg('none', '');
-            }}
-              className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
-                bgTab === tab.key ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-              }`}>
-              {tab.label}
-            </button>
-          ))}
+          {BG_TABS.map(tab => {
+            const Icon = tab.icon;
+            return (
+              <button key={tab.key} onClick={() => {
+                setBgTab(tab.key);
+                if (tab.key === 'none') selectBg('none', '');
+              }}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all ${
+                  bgTab === tab.key ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}>
+                <Icon className="h-3 w-3" />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {/* Mesh */}
