@@ -591,9 +591,9 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
 
             {/* Superávit / Déficit badge */}
             {absDiff !== 0 && (
-              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold ${absDiff > 0 ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}>
-                {absDiff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                <span>{absDiff > 0 ? "+" : ""}{scale !== 'auto' ? absDiff.toLocaleString("pt-BR") : absDiff >= 1000 || absDiff <= -1000 ? `${(absDiff/1000).toFixed(1)}k` : String(absDiff)}</span>
+              <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold ${absDiff > 0 ? "bg-green-500/15 text-green-400" : "bg-red-500/15 text-red-400"}`}>
+                <span className="text-sm">{absDiff > 0 ? "▲" : "▼"}</span>
+                <span>{absDiff > 0 ? "+" : ""}{scale !== 'auto' ? absDiff.toLocaleString("pt-BR") : Math.abs(absDiff) >= 1000 ? `${(absDiff/1000).toFixed(1)}k` : String(absDiff)}</span>
               </div>
             )}
           </div>
