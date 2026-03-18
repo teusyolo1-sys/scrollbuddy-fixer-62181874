@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, lazy } from "react";
+import CompanyThemeProvider from "@/components/endocenter/ThemeProvider";
 import { AlertTriangle, ArrowLeft, BarChart3, Calendar, CheckSquare, DollarSign, FolderOpen, Monitor, Moon, RefreshCw, Rocket, Settings, Shield, Sun, Users } from "lucide-react";
 import { motion } from "framer-motion";
 import { useNavigate, useParams } from "react-router-dom";
