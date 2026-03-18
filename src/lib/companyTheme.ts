@@ -30,6 +30,7 @@ export const DEFAULT_THEME: CompanyTheme = {
   accentName: 'Azul',
   fontFamily: 'Inter',
   borderRadius: 'rounded',
+  radiusTargets: [...ALL_RADIUS_TARGETS],
   wallpaper: 'none',
   wallpaperUrl: '',
   wallpaperOpacity: 0.08,
