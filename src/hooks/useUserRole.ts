@@ -17,20 +17,6 @@ export const useUserRole = () => {
     }
 
     const fetchRoles = async () => {
-      // Tentar cache primeiro
-      const cacheKey = `cache_roles_${user.id}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) {
-        try {
-          const parsed = JSON.parse(cached);
-          if (Date.now() - parsed.ts < 5 * 60 * 1000) {
-            setRoles(parsed.roles);
-            setLoading(false);
-            return;
-          }
-        } catch {}
-      }
-
       const { data } = await supabase
         .from('user_roles')
         .select('role')
@@ -39,8 +25,6 @@ export const useUserRole = () => {
       const fetchedRoles = (data || []).map((r: any) => r.role as AppRole);
       setRoles(fetchedRoles);
       setLoading(false);
-
-      sessionStorage.setItem(cacheKey, JSON.stringify({ roles: fetchedRoles, ts: Date.now() }));
     };
 
     fetchRoles();
