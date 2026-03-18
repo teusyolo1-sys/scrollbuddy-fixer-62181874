@@ -228,6 +228,47 @@ function getScaleDomain(data: { value: number }[], scale: ChartScale): [number, 
 /* ── Chart renderer supporting all styles ── */
 const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4"];
 
+function ChartTooltip({ active, payload, label, type, scale = 'auto', data }: {
+  active?: boolean;
+  payload?: Array<{ value?: number }>;
+  label?: string;
+  type: string;
+  scale?: ChartScale;
+  data: { name: string; value: number }[];
+}) {
+  if (!active || !payload?.length) return null;
+
+  const cfg = METRIC_CONFIG[type as MetricType];
+  const currentValue = Number(payload[0]?.value ?? 0);
+  const currentIndex = data.findIndex((item) => item.name === label && item.value === currentValue);
+  const previousValue = currentIndex > 0 ? data[currentIndex - 1]?.value ?? currentValue : currentValue;
+  const diff = currentValue - previousValue;
+  const hasPrevious = currentIndex > 0;
+  const formattedValue = scale !== 'auto'
+    ? currentValue.toLocaleString("pt-BR")
+    : (cfg?.format(currentValue) ?? String(currentValue));
+  const formattedDiff = scale !== 'auto'
+    ? Math.abs(diff).toLocaleString("pt-BR")
+    : (Math.abs(diff) >= 1000 ? `${(Math.abs(diff) / 1000).toFixed(1)}k` : String(Math.abs(diff)));
+
+  return (
+    <div className="rounded-xl border border-border bg-card px-3 py-2 text-[11px] shadow-lg">
+      <div className="mb-1 font-semibold text-foreground">{label}</div>
+      <div className="text-primary font-medium">{cfg?.label}: {formattedValue}</div>
+      {hasPrevious && (
+        <div className={`mt-1 flex items-center gap-1 font-semibold ${diff > 0 ? "text-primary" : diff < 0 ? "text-destructive" : "text-muted-foreground"}`}>
+          <span>{diff > 0 ? "▲" : diff < 0 ? "▼" : "="}</span>
+          <span>
+            {diff > 0 ? "+" : diff < 0 ? "-" : ""}
+            {formattedDiff}
+          </span>
+          <span className="text-muted-foreground">vs anterior</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
   style: ChartStyle;
   data: { name: string; value: number }[];
@@ -240,13 +281,12 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
   const yDomain = getScaleDomain(data, scale);
   const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
   const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))", opacity: 0.7 };
-  // When a scale is active, show full integers instead of abbreviated (5.9k → 5900)
   const fmtValue = scale !== 'auto'
     ? (v: number) => v.toLocaleString("pt-BR")
     : (v: number) => cfg?.format(v) ?? String(v);
   const fmt = (v: number) => [fmtValue(v), cfg?.label ?? type];
   const tickFormatter = scale !== 'auto' ? (v: number) => v.toLocaleString("pt-BR") : undefined;
-  // Only compute pareto data when needed
+  const tooltipContent = (props: any) => <ChartTooltip {...props} type={type} scale={scale} data={data} />;
   const paretoData = useMemo(() => {
     if (style !== "pareto") return data;
     const sorted = [...data].sort((a, b) => b.value - a.value);
@@ -266,7 +306,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={scale !== 'auto' ? 55 : 40} domain={yDomain} tickFormatter={tickFormatter} />
-            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+            <Tooltip content={tooltipContent} />
             <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={{ r: 4, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }} activeDot={{ r: 6, stroke: color, strokeWidth: 2, fill: "hsl(var(--card))" }} />
           </LineChart>
         </ResponsiveContainer>
@@ -285,7 +325,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
             <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={scale !== 'auto' ? 55 : 40} domain={yDomain} tickFormatter={tickFormatter} />
-            <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
+            <Tooltip content={tooltipContent} />
             <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} dot={{ r: 3, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }} activeDot={{ r: 5 }} />
           </AreaChart>
         </ResponsiveContainer>
