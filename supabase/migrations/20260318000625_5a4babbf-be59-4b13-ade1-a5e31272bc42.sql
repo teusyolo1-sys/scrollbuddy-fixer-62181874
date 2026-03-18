@@ -1,0 +1,1 @@
+DELETE FROM client_metrics WHERE id = '69c72b43-d6b7-4eb1-abef-e080a569d98b'
