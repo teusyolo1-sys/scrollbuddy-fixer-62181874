@@ -2,10 +2,40 @@ import { useEffect, useMemo } from 'react';
 import { useEndocenter } from '@/store/endocenterStore';
 import { useTheme } from '@/hooks/useTheme';
 import {
-  DEFAULT_THEME, themeToCSS, FONT_PRESETS, MESH_PRESETS, SOLID_PRESETS,
+  DEFAULT_THEME, themeToCSS, isWallpaperLight, isWallpaperDark, FONT_PRESETS, MESH_PRESETS, SOLID_PRESETS,
   GRADIENT_PRESETS, PATTERN_PRESETS, ANIMATED_PRESETS, ALL_RADIUS_TARGETS,
   type CompanyTheme, type RadiusTarget,
 } from '@/lib/companyTheme';
+
+// Light-mode tokens — dark text + light surfaces for readability on light backgrounds
+const LIGHT_TOKENS: Record<string, string> = {
+  '--foreground': '230 25% 12%',
+  '--card-foreground': '230 25% 12%',
+  '--popover-foreground': '230 25% 12%',
+  '--secondary-foreground': '230 20% 30%',
+  '--muted-foreground': '230 8% 52%',
+  '--card': '0 0% 100%',
+  '--popover': '0 0% 100%',
+  '--secondary': '230 12% 92%',
+  '--muted': '230 14% 94%',
+  '--border': '230 12% 90%',
+  '--input': '230 12% 90%',
+};
+
+// Dark-mode tokens — light text + dark surfaces for readability on dark backgrounds
+const DARK_TOKENS: Record<string, string> = {
+  '--foreground': '220 15% 93%',
+  '--card-foreground': '220 15% 93%',
+  '--popover-foreground': '220 15% 93%',
+  '--secondary-foreground': '220 12% 82%',
+  '--muted-foreground': '220 8% 65%',
+  '--card': '228 18% 14%',
+  '--popover': '228 18% 14%',
+  '--secondary': '228 14% 22%',
+  '--muted': '228 14% 19%',
+  '--border': '228 12% 24%',
+  '--input': '228 12% 24%',
+};
 
 export default function CompanyThemeProvider({ children }: { children: React.ReactNode }) {
   const { company } = useEndocenter();
@@ -21,6 +51,8 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
   }, [company]);
 
   const cssVars = useMemo(() => themeToCSS(theme, isDark), [theme, isDark]);
+  const forceLightText = useMemo(() => isDark && isWallpaperLight(theme), [isDark, theme]);
+  const forceDarkText = useMemo(() => !isDark && isWallpaperDark(theme), [isDark, theme]);
 
   // Load custom font
   useEffect(() => {
@@ -45,8 +77,16 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
     base['--ring'] = cssVars['--theme-accent'];
     base['--radius'] = cssVars['--theme-radius'];
     base['fontFamily'] = cssVars['--theme-font'];
+
+    // Force appropriate text colors when wallpaper conflicts with theme mode
+    if (forceLightText) {
+      Object.assign(base, LIGHT_TOKENS);
+    } else if (forceDarkText) {
+      Object.assign(base, DARK_TOKENS);
+    }
+
     return base;
-  }, [cssVars]);
+  }, [cssVars, forceLightText, forceDarkText]);
 
   const targets = theme.radiusTargets || ALL_RADIUS_TARGETS;
   const dataAttrs = useMemo(() => {

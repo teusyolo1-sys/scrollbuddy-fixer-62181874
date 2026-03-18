@@ -304,6 +304,55 @@ function hexToHSL(hex: string): { h: number; s: number; l: number } {
   return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
 }
 
+/** Parse an hsl(...) string and return lightness 0-100, or null */
+function parseHslLightness(css: string): number | null {
+  // Match formats like: hsl(220 40% 13%), hsl(0 0% 100%)
+  const m = css.match(/hsl\(\s*[\d.]+\s+[\d.]+%?\s+([\d.]+)%/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+/** Extract all lightness values from a CSS string containing hsl() */
+function extractHslLightnesses(css: string): number[] {
+  const matches = [...css.matchAll(/hsl\(\s*[\d.]+\s+[\d.]+%?\s+([\d.]+)%/g)];
+  return matches.map(m => parseFloat(m[1]));
+}
+
+/** Determine if a wallpaper produces a light background */
+export function isWallpaperLight(theme: CompanyTheme): boolean {
+  if (theme.wallpaper === 'none') return false;
+  if (theme.wallpaper === 'solid') {
+    const l = parseHslLightness(theme.wallpaperUrl);
+    return l !== null && l > 60;
+  }
+  if (theme.wallpaper === 'gradient') {
+    const preset = GRADIENT_PRESETS.find(g => g.name === theme.wallpaperUrl);
+    if (!preset) return false;
+    const lightnesses = extractHslLightnesses(preset.css);
+    if (lightnesses.length === 0) return false;
+    const avgL = lightnesses.reduce((a, b) => a + b, 0) / lightnesses.length;
+    return avgL > 60;
+  }
+  return false;
+}
+
+/** Determine if a wallpaper produces a dark background */
+export function isWallpaperDark(theme: CompanyTheme): boolean {
+  if (theme.wallpaper === 'none') return false;
+  if (theme.wallpaper === 'solid') {
+    const l = parseHslLightness(theme.wallpaperUrl);
+    return l !== null && l < 30;
+  }
+  if (theme.wallpaper === 'gradient') {
+    const preset = GRADIENT_PRESETS.find(g => g.name === theme.wallpaperUrl);
+    if (!preset) return false;
+    const lightnesses = extractHslLightnesses(preset.css);
+    if (lightnesses.length === 0) return false;
+    const avgL = lightnesses.reduce((a, b) => a + b, 0) / lightnesses.length;
+    return avgL < 30;
+  }
+  return false;
+}
+
 export function themeToCSS(theme: CompanyTheme, isDark: boolean): Record<string, string> {
   const { h, s, l } = hexToHSL(theme.accentColor);
   const fontValue = theme.fontFamily === 'Inter'
@@ -311,7 +360,7 @@ export function themeToCSS(theme: CompanyTheme, isDark: boolean): Record<string,
     : `${FONT_PRESETS.find(f => f.name === theme.fontFamily)?.value || theme.fontFamily}, "Inter", sans-serif`;
   const radiusValue = RADIUS_PRESETS.find(r => r.value === theme.borderRadius)?.cssVar || '12px';
 
-  return {
+  const vars: Record<string, string> = {
     '--theme-accent': `${h} ${s}% ${isDark ? Math.min(l + 10, 70) : l}%`,
     '--theme-accent-hex': theme.accentColor,
     '--theme-accent-fg': l > 55 ? '0 0% 10%' : '0 0% 100%',
@@ -321,4 +370,12 @@ export function themeToCSS(theme: CompanyTheme, isDark: boolean): Record<string,
     '--theme-wallpaper-opacity': String(theme.wallpaperOpacity),
     '--theme-wallpaper-blur': `${theme.wallpaperBlur}px`,
   };
+
+  // When a light wallpaper is active in dark mode, force dark text for readability
+  const lightWallpaper = isWallpaperLight(theme);
+  if (lightWallpaper && isDark) {
+    vars['--theme-force-light-text'] = '1';
+  }
+
+  return vars;
 }
