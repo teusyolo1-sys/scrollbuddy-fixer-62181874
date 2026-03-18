@@ -26,6 +26,7 @@ const tabs: { id: TabId; label: string; icon: typeof Settings }[] = [
 ];
 
 export default function SettingsDialog({ open, onClose }: Props) {
+  const { companyId } = useParams<{ companyId: string }>();
   const [tab, setTab] = useState<TabId>("company");
   const reduceMotion = useReducedMotion();
 
