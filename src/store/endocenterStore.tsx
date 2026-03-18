@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useRef, useCallback, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { type CompanyTheme, DEFAULT_THEME } from "@/lib/companyTheme";
 
 export type MetricPeriod = "Diária" | "Semanal" | "Mensal" | "Anual";
 export type TaskStatus = "pending" | "in_progress" | "done" | "blocked";
@@ -64,6 +65,7 @@ export interface CompanyInfo {
   month: string;
   createdAt: string;
   tabLabels?: TabLabels;
+  theme?: CompanyTheme;
 }
 
 export interface MetricEntry {
@@ -328,6 +330,7 @@ const defaultCompany: CompanyInfo = {
   subtitle: "Gestão operacional de marketing",
   month: "Março 2025",
   createdAt: new Date().toISOString(),
+  theme: DEFAULT_THEME,
 };
 
 const defaultTeam: TeamMember[] = [
@@ -876,11 +879,11 @@ export function EndocenterProvider({ children, companyId }: { children: ReactNod
     return () => clearInterval(interval);
   }, [companyId, chartStyles, chartColors, funnelPalette, sectionCollapsed, activeFilters]);
 
-  // Load visual config from Supabase on mount
+  // Load visual config + theme from Supabase on mount
   useEffect(() => {
     if (!companyId) return;
     supabase.from('companies')
-      .select('company_data')
+      .select('company_data, theme')
       .eq('id', companyId)
       .single()
       .then(({ data }) => {
@@ -891,6 +894,9 @@ export function EndocenterProvider({ children, companyId }: { children: ReactNod
           if (remote.funnelPalette) setFunnelPalette(prev => ({ ...prev, ...remote.funnelPalette }));
           if (remote.sectionCollapsed) setSectionCollapsed(prev => ({ ...prev, ...remote.sectionCollapsed }));
           if (remote.activeFilters) setActiveFilters(prev => ({ ...prev, ...remote.activeFilters }));
+        }
+        if (data?.theme && typeof data.theme === 'object') {
+          setCompanyState(prev => ({ ...prev, theme: { ...DEFAULT_THEME, ...(data.theme as any) } }));
         }
       });
   }, [companyId]);
