@@ -830,20 +830,70 @@ export function EndocenterProvider({ children, companyId }: { children: ReactNod
     stored?.budgetEntries?.length ? stored.budgetEntries : []
   );
 
+  // Visual persistence states
+  const [chartStyles, setChartStyles] = useState<Record<string, string>>(stored?.chartStyles ?? {});
+  const [chartColors, setChartColors] = useState<Record<string, string>>(stored?.chartColors ?? {});
+  const [funnelPalette, setFunnelPalette] = useState<Record<string, string>>(stored?.funnelPalette ?? {});
+  const [sectionCollapsed, setSectionCollapsed] = useState<Record<string, boolean>>(stored?.sectionCollapsed ?? {});
+  const [activeFilters, setActiveFilters] = useState<Record<string, string>>(stored?.activeFilters ?? {});
+
+  // Debounced save to localStorage
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout>>();
+  const debouncedSave = useCallback((data: PersistedData) => {
+    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+    saveTimeoutRef.current = setTimeout(() => {
+      saveToStorage(data, companyId);
+    }, 300);
+  }, [companyId]);
+
   useEffect(() => {
-    saveToStorage({
-      company,
-      team,
-      metricEntries,
-      scheduleWeeks,
-      pipelineProjects,
-      responsibilityRoles,
-      workflowSteps,
-      deadlines,
-      crisisScenarios,
-      budgetEntries,
-    }, companyId);
-  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles, workflowSteps, deadlines, crisisScenarios, budgetEntries, companyId]);
+    debouncedSave({
+      company, team, metricEntries, scheduleWeeks, pipelineProjects,
+      responsibilityRoles, workflowSteps, deadlines, crisisScenarios, budgetEntries,
+      chartStyles, chartColors, funnelPalette, sectionCollapsed, activeFilters,
+    });
+  }, [company, team, metricEntries, scheduleWeeks, pipelineProjects, responsibilityRoles,
+      workflowSteps, deadlines, crisisScenarios, budgetEntries, chartStyles, chartColors,
+      funnelPalette, sectionCollapsed, activeFilters, debouncedSave]);
+
+  // Sync visual config to Supabase every 30s
+  useEffect(() => {
+    if (!companyId) return;
+    const interval = setInterval(async () => {
+      try {
+        const { data: current } = await supabase
+          .from('companies')
+          .select('company_data')
+          .eq('id', companyId)
+          .single();
+        const merged = {
+          ...(typeof current?.company_data === 'object' && current?.company_data !== null ? current.company_data : {}),
+          chartStyles, chartColors, funnelPalette, sectionCollapsed, activeFilters,
+        };
+        await supabase.from('companies').update({ company_data: merged }).eq('id', companyId);
+      } catch {}
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [companyId, chartStyles, chartColors, funnelPalette, sectionCollapsed, activeFilters]);
+
+  // Load visual config from Supabase on mount
+  useEffect(() => {
+    if (!companyId) return;
+    supabase.from('companies')
+      .select('company_data')
+      .eq('id', companyId)
+      .single()
+      .then(({ data }) => {
+        if (data?.company_data && typeof data.company_data === 'object') {
+          const remote = data.company_data as Record<string, any>;
+          if (remote.chartStyles) setChartStyles(prev => ({ ...prev, ...remote.chartStyles }));
+          if (remote.chartColors) setChartColors(prev => ({ ...prev, ...remote.chartColors }));
+          if (remote.funnelPalette) setFunnelPalette(prev => ({ ...prev, ...remote.funnelPalette }));
+          if (remote.sectionCollapsed) setSectionCollapsed(prev => ({ ...prev, ...remote.sectionCollapsed }));
+          if (remote.activeFilters) setActiveFilters(prev => ({ ...prev, ...remote.activeFilters }));
+        }
+      });
+  }, [companyId]);
 
   const updateMember = (id: string, updates: Partial<TeamMember>) => {
     setTeamState((prev) =>
