@@ -827,11 +827,21 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
     return undefined;
   };
 
+  const AUTO_METRIC_TYPES: MetricType[] = ['seguidores', 'alcance'];
+  const isAutoType = AUTO_METRIC_TYPES.includes(formType);
+
   const handleAdd = async () => {
-    const val = parseFloat(formValue);
-    if (isNaN(val)) return;
     // Unhide the chart type if it was hidden
     unhideChart(formType);
+
+    // For auto metrics (seguidores/alcance), value is optional - just unhide
+    if (isAutoType && !formValue.trim()) {
+      setShowForm(false);
+      return;
+    }
+
+    const val = parseFloat(formValue);
+    if (isNaN(val)) return;
     await addMetric(formType, val, formDate);
     setFormValue("");
     setShowForm(false);
