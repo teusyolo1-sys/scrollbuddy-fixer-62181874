@@ -237,9 +237,6 @@ export default function ThemeEditor({ companyId }: Props) {
                 {tab.label}
               </button>
             );
-          })}
-            </button>
-          ))}
         </div>
 
         {/* Mesh */}
