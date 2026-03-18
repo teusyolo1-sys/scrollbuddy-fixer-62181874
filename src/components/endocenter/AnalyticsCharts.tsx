@@ -741,6 +741,31 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             ))}
           </ContextMenuSubContent>
         </ContextMenuSub>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <CalendarDays className="h-3.5 w-3.5 mr-2" />
+            Período
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-48">
+            {DATE_PERIOD_OPTIONS.map((opt) => (
+              <ContextMenuItem
+                key={opt.key}
+                onClick={() => {
+                  if (opt.key === 'custom') {
+                    setShowDatePicker(true);
+                  } else {
+                    setDatePeriod(opt.key);
+                    setShowDatePicker(false);
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <span className="text-xs font-medium">{opt.label}</span>
+                {datePeriod === opt.key && <Check className="h-3 w-3 ml-auto text-primary" />}
+              </ContextMenuItem>
+            ))}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
         <ContextMenuSeparator />
         <ContextMenuItem
           onClick={onDelete}
