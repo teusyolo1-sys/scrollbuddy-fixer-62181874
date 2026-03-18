@@ -205,7 +205,7 @@ export default function ThemeEditor({ companyId }: Props) {
       {/* Border Radius */}
       <div className="ios-card p-4">
         <h4 className="text-xs font-semibold text-muted-foreground mb-3">Bordas</h4>
-        <div className="flex gap-2">
+        <div className="flex gap-2 mb-4">
           {RADIUS_PRESETS.map(preset => {
             const isActive = theme.borderRadius === preset.value;
             return (
@@ -226,6 +226,46 @@ export default function ThemeEditor({ companyId }: Props) {
               </button>
             );
           })}
+        </div>
+
+        {/* Granular radius targets */}
+        <div className="border-t border-border/30 pt-3">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] text-muted-foreground">Aplicar bordas em:</span>
+            <button
+              onClick={() => {
+                const allSelected = (theme.radiusTargets || ALL_RADIUS_TARGETS).length === ALL_RADIUS_TARGETS.length;
+                update({ radiusTargets: allSelected ? [] : [...ALL_RADIUS_TARGETS] });
+              }}
+              className="text-[10px] font-medium text-primary hover:underline"
+            >
+              {(theme.radiusTargets || ALL_RADIUS_TARGETS).length === ALL_RADIUS_TARGETS.length ? 'Desmarcar todas' : 'Selecionar todas'}
+            </button>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            {RADIUS_TARGETS.map(({ key, label }) => {
+              const targets = theme.radiusTargets || ALL_RADIUS_TARGETS;
+              const checked = targets.includes(key);
+              return (
+                <label
+                  key={key}
+                  className="flex items-center gap-2 p-2 rounded-lg hover:bg-secondary/40 cursor-pointer transition-colors"
+                >
+                  <Checkbox
+                    checked={checked}
+                    onCheckedChange={(val) => {
+                      const current = theme.radiusTargets || [...ALL_RADIUS_TARGETS];
+                      const next = val
+                        ? [...current, key]
+                        : current.filter(t => t !== key);
+                      update({ radiusTargets: next as RadiusTarget[] });
+                    }}
+                  />
+                  <span className="text-xs text-foreground">{label}</span>
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
 
