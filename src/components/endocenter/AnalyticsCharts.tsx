@@ -284,7 +284,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={scale !== 'auto' ? 55 : 40} domain={yDomain} tickFormatter={tickFormatter} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Area type="monotone" dataKey="value" stroke={color} fill={`url(#${gradientId})`} strokeWidth={2} dot={{ r: 3, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }} activeDot={{ r: 5 }} />
           </AreaChart>
