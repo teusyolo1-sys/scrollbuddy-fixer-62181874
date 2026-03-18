@@ -1,7 +1,7 @@
 import { useMemo, useState, useRef, useEffect, memo, useCallback, type CSSProperties } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette, Trash2, Ruler } from "lucide-react";
+import { BarChart3, TrendingUp, TrendingDown, Users, ShoppingCart, Target, Eye, Plus, Loader2, ChevronDown, Check, Palette, Trash2, Ruler, CalendarDays } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   RadarChart, Radar, PolarGrid, PolarAngleAxis, ScatterChart, Scatter,
@@ -540,10 +540,48 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
   }
 }
 
+/* ── Date Period Filter ── */
+type DatePeriod = 'all' | 'day' | 'week' | 'month' | 'year' | 'custom';
+
+const DATE_PERIOD_OPTIONS: { key: DatePeriod; label: string }[] = [
+  { key: 'all', label: 'Todos' },
+  { key: 'day', label: 'Dia' },
+  { key: 'week', label: 'Semana' },
+  { key: 'month', label: 'Mês' },
+  { key: 'year', label: 'Ano' },
+  { key: 'custom', label: 'Data específica' },
+];
+
+function filterByPeriod(data: { name: string; value: number; rawDate: string }[], period: DatePeriod, customDate?: string): { name: string; value: number }[] {
+  if (period === 'all') return data;
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+
+  if (period === 'custom' && customDate) {
+    return data.filter((d) => d.rawDate === customDate);
+  }
+
+  let cutoff: Date;
+  if (period === 'day') {
+    return data.filter((d) => d.rawDate === today);
+  } else if (period === 'week') {
+    cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - 7);
+  } else if (period === 'month') {
+    cutoff = new Date(now);
+    cutoff.setMonth(cutoff.getMonth() - 1);
+  } else {
+    cutoff = new Date(now);
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+  }
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  return data.filter((d) => d.rawDate >= cutoffStr);
+}
+
 /* ── Individual Metric Chart Card ── */
 const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange, onDelete }: {
   type: MetricType;
-  data: { name: string; value: number }[];
+  data: { name: string; value: number; rawDate: string }[];
   delay: number;
   chartStyle: ChartStyle;
   onStyleChange: (style: ChartStyle) => void;
@@ -555,8 +593,15 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
   const cfg = METRIC_CONFIG[type];
   const Icon = ICONS[type];
   const [scale, setScale] = useState<ChartScale>('auto');
-  const latest = data[data.length - 1]?.value ?? 0;
-  const prev = data.length > 1 ? data[data.length - 2].value : latest;
+  const [datePeriod, setDatePeriod] = useState<DatePeriod>('all');
+  const [customDate, setCustomDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredData = useMemo(() => filterByPeriod(data, datePeriod, customDate), [data, datePeriod, customDate]);
+
+  const latest = filteredData[filteredData.length - 1]?.value ?? 0;
+  const prev = filteredData.length > 1 ? filteredData[filteredData.length - 2].value : latest;
   const change = prev > 0 ? ((latest - prev) / prev * 100) : 0;
   const absDiff = latest - prev;
 
@@ -590,11 +635,11 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             </div>
 
             {/* Superávit / Déficit badge */}
-            {data.length >= 1 && (
+            {filteredData.length >= 1 && (
               <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold ${
                 absDiff > 0 ? "bg-green-500/15 text-green-400" : absDiff < 0 ? "bg-red-500/15 text-red-400" : "bg-secondary/60 text-muted-foreground"
               }`}>
-                {data.length >= 2 ? (
+                {filteredData.length >= 2 ? (
                   <>
                     <span className="text-sm">{absDiff > 0 ? "▲" : absDiff < 0 ? "▼" : "="}</span>
                     <span>{absDiff > 0 ? "+" : ""}{scale !== 'auto' ? absDiff.toLocaleString("pt-BR") : Math.abs(absDiff) >= 1000 ? `${(absDiff/1000).toFixed(1)}k` : String(absDiff)}</span>
@@ -615,12 +660,30 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             </div>
           )}
 
+          {/* Hidden date picker for custom date */}
+          {showDatePicker && (
+            <div className="mb-2 flex items-center gap-2">
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={customDate}
+                onChange={(e) => { setCustomDate(e.target.value); setDatePeriod('custom'); setShowDatePicker(false); }}
+                className="ios-input px-2 py-1 text-xs flex-1"
+                autoFocus
+              />
+              <button onClick={() => setShowDatePicker(false)} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
+            </div>
+          )}
+
           <div className="flex-1 min-h-0">
-            <ChartByStyle style={chartStyle} data={data} color={color} type={type} scale={scale} />
+            <ChartByStyle style={chartStyle} data={filteredData} color={color} type={type} scale={scale} />
           </div>
 
           <div className="mt-auto pt-1 flex items-center justify-between text-[10px] text-muted-foreground/50">
-            {scale !== 'auto' && <span className="text-primary/60 font-medium">🔍 {SCALE_OPTIONS.find(s => s.key === scale)?.label}</span>}
+            <div className="flex items-center gap-2">
+              {scale !== 'auto' && <span className="text-primary/60 font-medium">🔍 {SCALE_OPTIONS.find(s => s.key === scale)?.label}</span>}
+              {datePeriod !== 'all' && <span className="text-primary/60 font-medium">📅 {DATE_PERIOD_OPTIONS.find(p => p.key === datePeriod)?.label}{datePeriod === 'custom' && customDate ? `: ${customDate.split('-').reverse().join('/')}` : ''}</span>}
+            </div>
             <span className="ml-auto">Clique direito para alterar estilo</span>
           </div>
         </motion.div>
@@ -674,6 +737,31 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
               >
                 <span className="text-xs font-medium">{opt.label}</span>
                 {scale === opt.key && <Check className="h-3 w-3 ml-auto text-primary" />}
+              </ContextMenuItem>
+            ))}
+          </ContextMenuSubContent>
+        </ContextMenuSub>
+        <ContextMenuSub>
+          <ContextMenuSubTrigger>
+            <CalendarDays className="h-3.5 w-3.5 mr-2" />
+            Período
+          </ContextMenuSubTrigger>
+          <ContextMenuSubContent className="w-48">
+            {DATE_PERIOD_OPTIONS.map((opt) => (
+              <ContextMenuItem
+                key={opt.key}
+                onClick={() => {
+                  if (opt.key === 'custom') {
+                    setShowDatePicker(true);
+                  } else {
+                    setDatePeriod(opt.key);
+                    setShowDatePicker(false);
+                  }
+                }}
+                className="flex items-center gap-2"
+              >
+                <span className="text-xs font-medium">{opt.label}</span>
+                {datePeriod === opt.key && <Check className="h-3 w-3 ml-auto text-primary" />}
               </ContextMenuItem>
             ))}
           </ContextMenuSubContent>
@@ -845,7 +933,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   };
 
   const perMetricData = useMemo(() => {
-    const result: Record<MetricType, { name: string; value: number }[]> = {} as any;
+    const result: Record<MetricType, { name: string; value: number; rawDate: string }[]> = {} as any;
     METRIC_TYPES.forEach((type) => {
       const filtered = metrics.filter((m) => m.metric_type === type);
       if (filtered.length === 0) return;
@@ -857,20 +945,21 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, value]) => {
           const d = new Date(date + "T00:00:00");
-          return { name: `${d.getDate()}/${d.getMonth() + 1}`, value };
+          return { name: `${d.getDate()}/${d.getMonth() + 1}`, value, rawDate: date };
         });
     });
 
     if (result.leads && result.vendas && !result.conversao) {
-      const leadsByDate: Record<string, number> = {};
-      const vendasByDate: Record<string, number> = {};
-      result.leads.forEach((d) => { leadsByDate[d.name] = d.value; });
-      result.vendas.forEach((d) => { vendasByDate[d.name] = d.value; });
+      const leadsByDate: Record<string, { value: number; rawDate: string }> = {};
+      const vendasByDate: Record<string, { value: number; rawDate: string }> = {};
+      result.leads.forEach((d) => { leadsByDate[d.name] = { value: d.value, rawDate: d.rawDate }; });
+      result.vendas.forEach((d) => { vendasByDate[d.name] = { value: d.value, rawDate: d.rawDate }; });
       const allDates = [...new Set([...Object.keys(leadsByDate), ...Object.keys(vendasByDate)])].sort();
       const convData = allDates.map((name) => {
-        const l = leadsByDate[name] || 0;
-        const v = vendasByDate[name] || 0;
-        return { name, value: l > 0 ? parseFloat(((v / l) * 100).toFixed(1)) : 0 };
+        const l = leadsByDate[name]?.value || 0;
+        const v = vendasByDate[name]?.value || 0;
+        const rawDate = leadsByDate[name]?.rawDate || vendasByDate[name]?.rawDate || '';
+        return { name, value: l > 0 ? parseFloat(((v / l) * 100).toFixed(1)) : 0, rawDate };
       }).filter((d) => d.value > 0);
       if (convData.length > 0) result.conversao = convData;
     }
