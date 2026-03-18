@@ -1,12 +1,18 @@
-export type RadiusTarget = 'cards' | 'inputs' | 'tabs' | 'buttons' | 'badges' | 'modals';
+export type RadiusTarget = 'cards' | 'inputs' | 'tabs' | 'buttons' | 'badges' | 'modals' | 'avatars' | 'progress' | 'icons' | 'tooltips' | 'dropdowns' | 'containers';
 
 export const RADIUS_TARGETS: { key: RadiusTarget; label: string }[] = [
-  { key: 'cards', label: 'Cards / Contêineres' },
+  { key: 'cards', label: 'Cards / Painéis' },
+  { key: 'containers', label: 'Contêineres internos' },
   { key: 'inputs', label: 'Inputs / Selects' },
   { key: 'tabs', label: 'Barra de abas' },
   { key: 'buttons', label: 'Botões' },
   { key: 'badges', label: 'Badges / Etiquetas' },
   { key: 'modals', label: 'Modais / Diálogos' },
+  { key: 'avatars', label: 'Avatares / Ícones' },
+  { key: 'progress', label: 'Barras de progresso' },
+  { key: 'icons', label: 'Caixas de ícones' },
+  { key: 'tooltips', label: 'Tooltips / Popovers' },
+  { key: 'dropdowns', label: 'Dropdowns / Menus' },
 ];
 
 export const ALL_RADIUS_TARGETS: RadiusTarget[] = RADIUS_TARGETS.map(t => t.key);

@@ -583,7 +583,17 @@
 /* ── Radius targets: cards ── */
 [data-radius-cards="true"] .ios-card,
 [data-radius-cards="true"] .ios-card-interactive,
-[data-radius-cards="true"] .liquid-glass-card {
+[data-radius-cards="true"] .liquid-glass-card,
+[data-radius-cards="true"] [class*="rounded-lg"][class*="border"][class*="bg-card"],
+[data-radius-cards="true"] [class*="rounded-xl"][class*="border"],
+[data-radius-cards="true"] [class*="rounded-2xl"][class*="border"] {
+  border-radius: var(--theme-radius) !important;
+}
+
+/* ── Radius targets: containers (inner boxes, sections) ── */
+[data-radius-containers="true"] [class*="rounded-lg"]:not(button):not(input):not(textarea):not(select):not([role="button"]):not([role="tab"]):not([role="dialog"]),
+[data-radius-containers="true"] [class*="rounded-xl"]:not(button):not(input):not(textarea):not(select):not([role="button"]):not([role="tab"]):not([role="dialog"]),
+[data-radius-containers="true"] [class*="rounded-2xl"]:not(button):not(input):not(textarea):not(select):not([role="button"]):not([role="tab"]):not([role="dialog"]) {
   border-radius: var(--theme-radius) !important;
 }
 
@@ -591,7 +601,8 @@
 [data-radius-inputs="true"] .ios-input,
 [data-radius-inputs="true"] select,
 [data-radius-inputs="true"] input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]),
-[data-radius-inputs="true"] textarea {
+[data-radius-inputs="true"] textarea,
+[data-radius-inputs="true"] [class*="rounded-md"][class*="border"][class*="bg-background"] {
   border-radius: var(--theme-radius) !important;
 }
 
@@ -620,7 +631,9 @@
 /* ── Radius targets: badges ── */
 [data-radius-badges="true"] .ios-badge,
 [data-radius-badges="true"] [class*="badge"],
-[data-radius-badges="true"] .inline-flex.items-center.rounded-full {
+[data-radius-badges="true"] .inline-flex.items-center.rounded-full,
+[data-radius-badges="true"] [class*="rounded-full"][class*="px-"][class*="py-"],
+[data-radius-badges="true"] [class*="rounded-full"][class*="text-xs"] {
   border-radius: var(--theme-radius) !important;
 }
 
@@ -628,8 +641,60 @@
 [data-radius-modals="true"] [role="dialog"],
 [data-radius-modals="true"] [role="alertdialog"],
 [data-radius-modals="true"] [data-state][class*="DialogContent"],
-[data-radius-modals="true"] [data-state][class*="SheetContent"] {
+[data-radius-modals="true"] [data-state][class*="SheetContent"],
+[data-radius-modals="true"] .ios-modal-surface {
   border-radius: var(--theme-radius) !important;
+}
+
+/* ── Radius targets: avatars ── */
+[data-radius-avatars="true"] [class*="rounded-full"] > img,
+[data-radius-avatars="true"] [class*="avatar"],
+[data-radius-avatars="true"] [class*="Avatar"],
+[data-radius-avatars="true"] span[class*="rounded-full"][class*="flex"][class*="items-center"][class*="justify-center"],
+[data-radius-avatars="true"] .rounded-full[class*="bg-"][class*="w-"][class*="h-"] {
+  border-radius: var(--theme-radius) !important;
+}
+
+/* ── Radius targets: progress bars ── */
+[data-radius-progress="true"] [role="progressbar"],
+[data-radius-progress="true"] [class*="rounded-full"][class*="h-"][class*="bg-"],
+[data-radius-progress="true"] progress,
+[data-radius-progress="true"] [class*="progress"] {
+  border-radius: var(--theme-radius) !important;
+}
+[data-radius-progress="true"] [role="progressbar"] > div,
+[data-radius-progress="true"] [class*="progress"] > div {
+  border-radius: var(--theme-radius) !important;
+}
+
+/* ── Radius targets: icon boxes ── */
+[data-radius-icons="true"] [class*="rounded-full"][class*="flex"][class*="items-center"][class*="justify-center"]:not([class*="avatar"]),
+[data-radius-icons="true"] [class*="rounded-xl"][class*="flex"][class*="items-center"][class*="justify-center"][class*="w-"][class*="h-"],
+[data-radius-icons="true"] [class*="rounded-lg"][class*="flex"][class*="items-center"][class*="justify-center"][class*="w-"][class*="h-"] {
+  border-radius: var(--theme-radius) !important;
+}
+
+/* ── Radius targets: tooltips / popovers ── */
+[data-radius-tooltips="true"] [role="tooltip"],
+[data-radius-tooltips="true"] [data-radix-popper-content-wrapper] > div,
+[data-radius-tooltips="true"] [data-state][class*="PopoverContent"],
+[data-radius-tooltips="true"] [data-state][class*="TooltipContent"],
+[data-radius-tooltips="true"] [data-state][class*="HoverCardContent"] {
+  border-radius: var(--theme-radius) !important;
+}
+
+/* ── Radius targets: dropdowns / menus ── */
+[data-radius-dropdowns="true"] [role="menu"],
+[data-radius-dropdowns="true"] [role="listbox"],
+[data-radius-dropdowns="true"] [data-state][class*="DropdownMenuContent"],
+[data-radius-dropdowns="true"] [data-state][class*="SelectContent"],
+[data-radius-dropdowns="true"] [data-state][class*="ContextMenuContent"],
+[data-radius-dropdowns="true"] [data-state][class*="CommandList"] {
+  border-radius: var(--theme-radius) !important;
+}
+[data-radius-dropdowns="true"] [role="menuitem"],
+[data-radius-dropdowns="true"] [role="option"] {
+  border-radius: calc(var(--theme-radius) - 4px) !important;
 }
 
 [style*="--theme-font"] {
