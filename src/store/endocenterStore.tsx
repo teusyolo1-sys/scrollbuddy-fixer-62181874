@@ -1289,6 +1289,16 @@ export function EndocenterProvider({ children, companyId }: { children: ReactNod
         addBudgetEntry,
         updateBudgetEntry,
         removeBudgetEntry,
+        chartStyles,
+        setChartStyles,
+        chartColors,
+        setChartColors,
+        funnelPalette,
+        setFunnelPalette,
+        sectionCollapsed,
+        setSectionCollapsed,
+        activeFilters,
+        setActiveFilters,
       }}
     >
       {children}
