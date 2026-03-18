@@ -272,6 +272,18 @@ interface EndocenterStore {
   addBudgetEntry: (category: BudgetCategory) => void;
   updateBudgetEntry: (id: string, updates: Partial<BudgetEntry>) => void;
   removeBudgetEntry: (id: string) => void;
+
+  // Visual persistence
+  chartStyles: Record<string, string>;
+  setChartStyles: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  chartColors: Record<string, string>;
+  setChartColors: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  funnelPalette: Record<string, string>;
+  setFunnelPalette: React.Dispatch<React.SetStateAction<Record<string, string>>>;
+  sectionCollapsed: Record<string, boolean>;
+  setSectionCollapsed: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  activeFilters: Record<string, string>;
+  setActiveFilters: React.Dispatch<React.SetStateAction<Record<string, string>>>;
 }
 
 const getStorageKey = (companyId?: string) => companyId ? `endocenter_${companyId}` : "endocenter_settings";
