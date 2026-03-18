@@ -415,7 +415,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
           <BarChart data={data} barSize={16} maxBarSize={24}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={scale !== 'auto' ? 55 : 40} domain={yDomain} tickFormatter={tickFormatter} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Bar dataKey="value" radius={[4, 4, 0, 0]}>
               {data.map((entry, i) => {
