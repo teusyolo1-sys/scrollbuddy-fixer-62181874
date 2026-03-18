@@ -122,6 +122,7 @@ export default function LobbyPage() {
   const { isConfigured: totpConfigured } = useTOTP();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [walletHovered, setWalletHovered] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
   const [totpSetupOpen, setTotpSetupOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; company: CompanyCard | null }>({ open: false, company: null });
