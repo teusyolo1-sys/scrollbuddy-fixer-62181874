@@ -259,7 +259,7 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--muted-foreground))" strokeOpacity={0.25} />
             <XAxis dataKey="name" tick={tickStyle} axisLine={false} tickLine={false} />
-            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} />
+            <YAxis tick={tickStyle} axisLine={false} tickLine={false} width={40} domain={yDomain} />
             <Tooltip contentStyle={tooltipStyle} formatter={fmt} />
             <Line type="monotone" dataKey="value" stroke={color} strokeWidth={2} dot={{ r: 4, fill: color, stroke: "hsl(var(--card))", strokeWidth: 2 }} activeDot={{ r: 6, stroke: color, strokeWidth: 2, fill: "hsl(var(--card))" }} />
           </LineChart>
