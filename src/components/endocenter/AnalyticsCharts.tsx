@@ -1089,7 +1089,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
               type={type}
               data={perMetricData[type]}
               delay={i * 0.06}
-              chartStyle={chartStyles[type] || defaultStyles[type] || "area"}
+              chartStyle={(chartStyles[type] as ChartStyle) || defaultStyles[type] || "area"}
               onStyleChange={(s) => setStyleFor(type, s)}
               relatedInfo={getRelatedInfo(type)}
               color={chartColors[type] || METRIC_CONFIG[type].color}
