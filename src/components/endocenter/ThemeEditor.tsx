@@ -236,6 +236,7 @@ export default function ThemeEditor({ companyId }: Props) {
                 <Icon className="h-3 w-3" />
                 {tab.label}
               </button>
+            );
           })}
         </div>
 
