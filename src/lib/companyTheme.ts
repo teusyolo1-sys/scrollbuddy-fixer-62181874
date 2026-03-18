@@ -306,8 +306,15 @@ function hexToHSL(hex: string): { h: number; s: number; l: number } {
 
 /** Parse an hsl(...) string and return lightness 0-100, or null */
 function parseHslLightness(css: string): number | null {
+  // Match formats like: hsl(220 40% 13%), hsl(0 0% 100%)
   const m = css.match(/hsl\(\s*[\d.]+\s+[\d.]+%?\s+([\d.]+)%/);
   return m ? parseFloat(m[1]) : null;
+}
+
+/** Extract all lightness values from a CSS string containing hsl() */
+function extractHslLightnesses(css: string): number[] {
+  const matches = [...css.matchAll(/hsl\(\s*[\d.]+\s+[\d.]+%?\s+([\d.]+)%/g)];
+  return matches.map(m => parseFloat(m[1]));
 }
 
 /** Determine if a wallpaper produces a light background */
