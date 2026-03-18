@@ -15,6 +15,34 @@ import { useAuth } from "@/hooks/useAuth";
 
 const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
 
+/* ── Marketing Digital Roles ── */
+const ROLE_CATEGORIES: { category: string; roles: string[] }[] = [
+  {
+    category: "Estratégia & Gestão",
+    roles: ["Gestor de Tráfego", "Estrategista Digital", "Head de Marketing", "Gerente de Projetos", "Consultor de Marketing", "Analista de BI", "Diretor de Marketing"],
+  },
+  {
+    category: "Conteúdo & Criação",
+    roles: ["Copywriter", "Redator", "Social Media", "Produtor de Conteúdo", "Editor de Vídeo", "Motion Designer", "Fotógrafo", "Videomaker", "Roteirista"],
+  },
+  {
+    category: "Design & Visual",
+    roles: ["Designer Gráfico", "UI/UX Designer", "Web Designer", "Brand Designer", "Diretor de Arte", "Ilustrador"],
+  },
+  {
+    category: "Performance & Dados",
+    roles: ["Analista de Mídia Paga", "Analista de SEO", "Analista de Dados", "Growth Hacker", "CRO Specialist", "Analista de Performance"],
+  },
+  {
+    category: "Relacionamento & Vendas",
+    roles: ["Closer", "SDR", "Customer Success", "Community Manager", "Atendimento ao Cliente", "Influencer Manager"],
+  },
+  {
+    category: "Desenvolvimento & Tech",
+    roles: ["Desenvolvedor Web", "Desenvolvedor Front-end", "Desenvolvedor Back-end", "Automação de Marketing", "Email Marketing Specialist"],
+  },
+];
+
 /* ── Optimized iOS 26 animation presets ── */
 // Diaphragm — fast bloom with less oscillation
 const diaphragm = {
