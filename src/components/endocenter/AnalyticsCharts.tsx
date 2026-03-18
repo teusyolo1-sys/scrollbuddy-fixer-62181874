@@ -862,15 +862,16 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
     });
 
     if (result.leads && result.vendas && !result.conversao) {
-      const leadsByDate: Record<string, number> = {};
-      const vendasByDate: Record<string, number> = {};
-      result.leads.forEach((d) => { leadsByDate[d.name] = d.value; });
-      result.vendas.forEach((d) => { vendasByDate[d.name] = d.value; });
+      const leadsByDate: Record<string, { value: number; rawDate: string }> = {};
+      const vendasByDate: Record<string, { value: number; rawDate: string }> = {};
+      result.leads.forEach((d) => { leadsByDate[d.name] = { value: d.value, rawDate: d.rawDate }; });
+      result.vendas.forEach((d) => { vendasByDate[d.name] = { value: d.value, rawDate: d.rawDate }; });
       const allDates = [...new Set([...Object.keys(leadsByDate), ...Object.keys(vendasByDate)])].sort();
       const convData = allDates.map((name) => {
-        const l = leadsByDate[name] || 0;
-        const v = vendasByDate[name] || 0;
-        return { name, value: l > 0 ? parseFloat(((v / l) * 100).toFixed(1)) : 0 };
+        const l = leadsByDate[name]?.value || 0;
+        const v = vendasByDate[name]?.value || 0;
+        const rawDate = leadsByDate[name]?.rawDate || vendasByDate[name]?.rawDate || '';
+        return { name, value: l > 0 ? parseFloat(((v / l) * 100).toFixed(1)) : 0, rawDate };
       }).filter((d) => d.value > 0);
       if (convData.length > 0) result.conversao = convData;
     }
