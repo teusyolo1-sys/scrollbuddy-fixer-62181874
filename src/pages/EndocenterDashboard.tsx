@@ -251,7 +251,9 @@ export default function EndocenterDashboard() {
   const { companyId } = useParams<{ companyId: string }>();
   return (
     <EndocenterProvider companyId={companyId}>
-      <DashboardContent />
+      <CompanyThemeProvider>
+        <DashboardContent />
+      </CompanyThemeProvider>
     </EndocenterProvider>
   );
 }
