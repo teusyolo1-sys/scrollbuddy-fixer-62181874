@@ -593,8 +593,9 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             <ChartByStyle style={chartStyle} data={data} color={color} type={type} scale={scale} />
           </div>
 
-          <div className="mt-auto pt-1 text-[10px] text-muted-foreground/50 text-right">
-            Clique direito para alterar estilo
+          <div className="mt-auto pt-1 flex items-center justify-between text-[10px] text-muted-foreground/50">
+            {scale !== 'auto' && <span className="text-primary/60 font-medium">🔍 {SCALE_OPTIONS.find(s => s.key === scale)?.label}</span>}
+            <span className="ml-auto">Clique direito para alterar estilo</span>
           </div>
         </motion.div>
       </ContextMenuTrigger>
