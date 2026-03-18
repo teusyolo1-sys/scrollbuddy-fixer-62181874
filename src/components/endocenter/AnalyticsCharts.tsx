@@ -1030,7 +1030,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const dropdownOptions = METRIC_TYPES.map((t) => ({
     value: t,
     label: METRIC_CONFIG[t].label,
-    color: colorOverrides[t] || METRIC_CONFIG[t].color,
+    color: chartColors[t] || METRIC_CONFIG[t].color,
   }));
 
   const defaultStyles: Record<string, ChartStyle> = {
