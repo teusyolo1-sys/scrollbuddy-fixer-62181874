@@ -203,13 +203,15 @@ function IosDropdown({ value, onChange, options }: {
 }
 
 /* ── Scale types ── */
-export type ChartScale = 'auto' | 'unidade' | 'dezena' | 'centena' | 'milhar';
+export type ChartScale = 'auto' | 'unidade' | 'dezena' | 'centena' | 'milhar' | 'dez_milhar' | 'cem_milhar';
 const SCALE_OPTIONS: { key: ChartScale; label: string; padding: number }[] = [
   { key: 'auto', label: 'Automático', padding: 0 },
-  { key: 'unidade', label: 'Unidade (±1)', padding: 10 },
-  { key: 'dezena', label: 'Dezena (±10)', padding: 50 },
-  { key: 'centena', label: 'Centena (±100)', padding: 200 },
-  { key: 'milhar', label: 'U.Milhar (±1000)', padding: 2000 },
+  { key: 'unidade', label: '1ª Ordem — Unidade', padding: 10 },
+  { key: 'dezena', label: '2ª Ordem — Dezena', padding: 50 },
+  { key: 'centena', label: '3ª Ordem — Centena', padding: 200 },
+  { key: 'milhar', label: '4ª Ordem — U. de Milhar', padding: 2000 },
+  { key: 'dez_milhar', label: '5ª Ordem — D. de Milhar', padding: 20000 },
+  { key: 'cem_milhar', label: '6ª Ordem — C. de Milhar', padding: 200000 },
 ];
 
 function getScaleDomain(data: { value: number }[], scale: ChartScale): [number, number] | undefined {
