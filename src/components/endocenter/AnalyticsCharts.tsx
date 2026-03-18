@@ -202,19 +202,40 @@ function IosDropdown({ value, onChange, options }: {
   );
 }
 
+/* ── Scale types ── */
+export type ChartScale = 'auto' | 'unidade' | 'dezena' | 'centena' | 'milhar';
+const SCALE_OPTIONS: { key: ChartScale; label: string; padding: number }[] = [
+  { key: 'auto', label: 'Automático', padding: 0 },
+  { key: 'unidade', label: 'Unidade (±1)', padding: 10 },
+  { key: 'dezena', label: 'Dezena (±10)', padding: 50 },
+  { key: 'centena', label: 'Centena (±100)', padding: 200 },
+  { key: 'milhar', label: 'U.Milhar (±1000)', padding: 2000 },
+];
+
+function getScaleDomain(data: { value: number }[], scale: ChartScale): [number, number] | undefined {
+  if (scale === 'auto' || data.length === 0) return undefined;
+  const values = data.map((d) => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const opt = SCALE_OPTIONS.find((s) => s.key === scale)!;
+  const range = max - min;
+  const padding = Math.max(opt.padding, range * 0.2, 1);
+  return [Math.max(0, Math.floor(min - padding)), Math.ceil(max + padding)];
+}
+
 /* ── Chart renderer supporting all styles ── */
 const PIE_COLORS = ["#3b82f6", "#10b981", "#f59e0b", "#ec4899", "#8b5cf6", "#06b6d4"];
 
-function ChartByStyle({ style, data, color, type }: {
+function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
   style: ChartStyle;
   data: { name: string; value: number }[];
   color: string;
   type: string;
+  scale?: ChartScale;
 }) {
   const cfg = METRIC_CONFIG[type as MetricType];
   const gradientId = `grad-${type}-${style}-${color.replace("#", "")}`;
-  const tooltipStyle = { borderRadius: 12, border: "1px solid hsl(var(--border))", background: "hsl(var(--card))", fontSize: 11, boxShadow: "0 4px 12px rgba(0,0,0,0.2)" };
-  const tickStyle = { fontSize: 10, fill: "hsl(var(--muted-foreground))", opacity: 0.7 };
+  const yDomain = getScaleDomain(data, scale);
   const fmt = (v: number) => [cfg?.format(v) ?? v, cfg?.label ?? type];
 
   // Only compute pareto data when needed
