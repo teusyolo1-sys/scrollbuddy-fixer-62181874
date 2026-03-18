@@ -577,7 +577,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
               <div>
                 <h4 className="text-sm font-bold text-foreground">{cfg.label}</h4>
                 <div className="flex items-center gap-2">
-                  <span className="text-lg font-extrabold" style={{ color }}>{cfg.format(latest)}</span>
+                  <span className="text-lg font-extrabold" style={{ color }}>{scale !== 'auto' ? latest.toLocaleString("pt-BR") : cfg.format(latest)}</span>
                   {change !== 0 && (
                     <span className={`flex items-center gap-0.5 text-[11px] font-semibold ${change > 0 ? "text-green-500" : "text-red-500"}`}>
                       {change > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
