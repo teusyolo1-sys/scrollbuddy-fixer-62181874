@@ -86,8 +86,6 @@ export const useTabPermissions = () => {
         .eq('user_id', userId).eq('tab_key', tabKey);
       if (error) console.error('Erro ao revogar permissão:', error);
     }
-    // Invalidar cache e sincronizar com servidor
-    sessionStorage.removeItem(`cache_tab_perms_${user?.id}`);
     await fetchPermissions();
   };
 
