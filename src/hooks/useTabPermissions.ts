@@ -69,21 +69,42 @@ export const useTabPermissions = () => {
   const allowedTabs = TAB_KEYS.filter(k => hasAccess(k));
 
   const setPermission = async (userId: string, tabKey: string, granted: boolean) => {
+    // Atualização otimista imediata
+    setPermissions(prev => {
+      const filtered = prev.filter(p => !(p.user_id === userId && p.tab_key === tabKey));
+      if (granted) {
+        return [...filtered, { user_id: userId, tab_key: tabKey, granted: true }];
+      }
+      return filtered;
+    });
+
     if (granted) {
-      await supabase.from('tab_permissions').upsert(
+      const { error } = await supabase.from('tab_permissions').upsert(
         { user_id: userId, tab_key: tabKey, granted: true, granted_by: user?.id },
         { onConflict: 'user_id,tab_key' }
       );
+      if (error) console.error('Erro ao conceder permissão:', error);
     } else {
-      await supabase.from('tab_permissions').delete()
+      const { error } = await supabase.from('tab_permissions').delete()
         .eq('user_id', userId).eq('tab_key', tabKey);
+      if (error) console.error('Erro ao revogar permissão:', error);
     }
-    // Invalidar cache
+    // Invalidar cache e sincronizar com servidor
     sessionStorage.removeItem(`cache_tab_perms_${user?.id}`);
     await fetchPermissions();
   };
 
   const setAllPermissions = async (userId: string, granted: boolean) => {
+    // Atualização otimista imediata
+    setPermissions(prev => {
+      const filtered = prev.filter(p => p.user_id !== userId);
+      if (granted) {
+        const newPerms = TAB_KEYS.map(tab_key => ({ user_id: userId, tab_key, granted: true }));
+        return [...filtered, ...newPerms];
+      }
+      return filtered;
+    });
+
     if (granted) {
       const rows = TAB_KEYS.map(tab_key => ({
         user_id: userId, tab_key, granted: true, granted_by: user?.id,
@@ -92,7 +113,7 @@ export const useTabPermissions = () => {
     } else {
       await supabase.from('tab_permissions').delete().eq('user_id', userId);
     }
-    // Invalidar cache
+    // Invalidar cache e sincronizar
     sessionStorage.removeItem(`cache_tab_perms_${user?.id}`);
     await fetchPermissions();
   };
