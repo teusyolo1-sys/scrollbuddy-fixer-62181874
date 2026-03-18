@@ -19,6 +19,7 @@ import {
   ContextMenuItem,
 } from "@/components/ui/context-menu";
 import { useClientMetrics, METRIC_CONFIG, METRIC_TYPES, type MetricType } from "@/hooks/useClientMetrics";
+import { useEndocenter } from "@/store/endocenterStore";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { CHART_STYLES, ChartStyleMenuItem, type ChartStyle } from "./ChartStylePicker";
