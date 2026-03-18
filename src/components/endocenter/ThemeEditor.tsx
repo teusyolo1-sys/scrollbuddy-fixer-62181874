@@ -14,14 +14,14 @@ import {
 
 interface Props { companyId?: string; }
 
-const BG_TABS: { key: WallpaperCategory; label: string }[] = [
-  { key: 'none', label: 'Nenhum' },
-  { key: 'mesh', label: 'Mesh' },
-  { key: 'solid', label: 'Sólido' },
-  { key: 'gradient', label: 'Degradê' },
-  { key: 'pattern', label: 'Padrão' },
-  { key: 'image', label: 'Imagem' },
-  { key: 'animated', label: 'Animado' },
+const BG_TABS: { key: WallpaperCategory; label: string; icon: React.ElementType }[] = [
+  { key: 'none', label: 'Nenhum', icon: Ban },
+  { key: 'mesh', label: 'Mesh', icon: Grid3x3 },
+  { key: 'solid', label: 'Sólido', icon: Circle },
+  { key: 'gradient', label: 'Degradê', icon: Blend },
+  { key: 'pattern', label: 'Padrão', icon: Fingerprint },
+  { key: 'image', label: 'Imagem', icon: Image },
+  { key: 'animated', label: 'Animado', icon: Sparkles },
 ];
 
 export default function ThemeEditor({ companyId }: Props) {
