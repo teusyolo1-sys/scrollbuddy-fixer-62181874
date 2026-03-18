@@ -122,6 +122,7 @@ export default function LobbyPage() {
   const { isConfigured: totpConfigured } = useTOTP();
   const { theme, resolvedTheme, setTheme } = useTheme();
   const [walletHovered, setWalletHovered] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const [trashOpen, setTrashOpen] = useState(false);
   const [totpSetupOpen, setTotpSetupOpen] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ open: boolean; company: CompanyCard | null }>({ open: false, company: null });
@@ -291,18 +292,7 @@ export default function LobbyPage() {
                   </span>
                    {isAdmin && (
                     <>
-                      {/* 2FA setup button */}
-                      {!totpConfigured && (
-                        <motion.button
-                          whileTap={{ scale: 0.9 }}
-                          onClick={() => setTotpSetupOpen(true)}
-                          className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-sm font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 transition-colors"
-                          title="Configurar 2FA"
-                        >
-                          <ShieldCheck className="h-4 w-4" />
-                        </motion.button>
-                      )}
-                      {/* Wallet */}
+                      {/* Wallet stays outside the menu */}
                       <div className="relative" onMouseEnter={() => setWalletHovered(true)} onMouseLeave={() => setWalletHovered(false)}>
                         <motion.button
                           whileTap={{ scale: 0.9 }}
@@ -332,45 +322,86 @@ export default function LobbyPage() {
                           )}
                         </AnimatePresence>
                       </div>
-                      <button
-                        onClick={() => navigate("/permissions")}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary/10 border border-primary/20 text-sm font-medium text-primary hover:bg-primary/20 transition-colors"
-                        title="Gerenciar permissões"
-                      >
-                        <Shield className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={() => setTrashOpen(true)}
-                        className="flex items-center gap-2 px-3 py-2 rounded-xl bg-destructive/10 border border-destructive/20 text-sm font-medium text-destructive hover:bg-destructive/20 transition-colors"
-                        title="Lixeira"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
                     </>
                   )}
-                  <button
-                    onClick={() => {
-                      if (theme === "system") setTheme("light");
-                      else if (theme === "light") setTheme("dark");
-                      else setTheme("system");
-                    }}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
-                    title={theme === "system" ? "Tema: Automático" : theme === "dark" ? "Tema: Escuro" : "Tema: Claro"}
-                  >
-                    {theme === "system" ? (
-                      <Monitor className="h-4 w-4 text-muted-foreground" />
-                    ) : resolvedTheme === "dark" ? (
-                      <Sun className="h-4 w-4 text-amber-400" />
-                    ) : (
-                      <Moon className="h-4 w-4" />
-                    )}
-                  </button>
-                  <button
-                    onClick={async () => { await signOut(); }}
-                    className="flex items-center gap-2 px-4 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
-                  >
-                    <LogOut className="h-4 w-4" /> Sair
-                  </button>
+
+                  {/* Dropdown menu with all other actions */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setMenuOpen(!menuOpen)}
+                      className="flex items-center gap-1 px-3 py-2 rounded-xl bg-secondary/50 border border-border text-sm font-medium text-foreground hover:bg-secondary transition-colors"
+                      title="Menu"
+                    >
+                      <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${menuOpen ? "rotate-180" : ""}`} />
+                    </button>
+                    <AnimatePresence>
+                      {menuOpen && (
+                        <>
+                          <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                          <motion.div
+                            initial={{ opacity: 0, y: 4, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 4, scale: 0.95 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 400 }}
+                            className="absolute top-full right-0 mt-2 py-2 rounded-xl border border-border/60 bg-card/95 backdrop-blur-xl shadow-[var(--ios-shadow-lg)] min-w-[200px] z-50"
+                          >
+                            {isAdmin && !totpConfigured && (
+                              <button
+                                onClick={() => { setMenuOpen(false); setTotpSetupOpen(true); }}
+                                className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-amber-600 dark:text-amber-400 hover:bg-secondary/50 transition-colors"
+                              >
+                                <ShieldCheck className="h-4 w-4" />
+                                Configurar 2FA
+                              </button>
+                            )}
+                            {isAdmin && (
+                              <>
+                                <button
+                                  onClick={() => { setMenuOpen(false); navigate("/permissions"); }}
+                                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-primary hover:bg-secondary/50 transition-colors"
+                                >
+                                  <Shield className="h-4 w-4" />
+                                  Permissões
+                                </button>
+                                <button
+                                  onClick={() => { setMenuOpen(false); setTrashOpen(true); }}
+                                  className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-destructive hover:bg-secondary/50 transition-colors"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                  Lixeira
+                                </button>
+                              </>
+                            )}
+                            <button
+                              onClick={() => {
+                                if (theme === "system") setTheme("light");
+                                else if (theme === "light") setTheme("dark");
+                                else setTheme("system");
+                              }}
+                              className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-foreground hover:bg-secondary/50 transition-colors"
+                            >
+                              {theme === "system" ? (
+                                <Monitor className="h-4 w-4 text-muted-foreground" />
+                              ) : resolvedTheme === "dark" ? (
+                                <Sun className="h-4 w-4 text-amber-400" />
+                              ) : (
+                                <Moon className="h-4 w-4" />
+                              )}
+                              {theme === "system" ? "Tema: Auto" : theme === "dark" ? "Tema: Escuro" : "Tema: Claro"}
+                            </button>
+                            <div className="my-1 border-t border-border/40" />
+                            <button
+                              onClick={async () => { setMenuOpen(false); await signOut(); }}
+                              className="flex items-center gap-3 w-full px-4 py-2.5 text-sm text-foreground hover:bg-secondary/50 transition-colors"
+                            >
+                              <LogOut className="h-4 w-4" />
+                              Sair
+                            </button>
+                          </motion.div>
+                        </>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </div>
               ) : (
                 <button
