@@ -330,6 +330,7 @@ const defaultCompany: CompanyInfo = {
   subtitle: "Gestão operacional de marketing",
   month: "Março 2025",
   createdAt: new Date().toISOString(),
+  theme: DEFAULT_THEME,
 };
 
 const defaultTeam: TeamMember[] = [
