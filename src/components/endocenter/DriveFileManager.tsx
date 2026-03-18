@@ -133,9 +133,7 @@ export default function DriveFileManager({ companyId, companyName }: DriveFileMa
               <button
                 onClick={async () => {
                   if (i < currentPath.length - 1) {
-                    const newPath = currentPath.slice(0, i + 1);
-                    // Navigate directly
-                    await fetchFiles(p.id);
+                    await goToPathIndex(i);
                   }
                 }}
                 className={`hover:text-foreground transition-colors ${i === currentPath.length - 1 ? "text-foreground font-medium" : ""}`}
