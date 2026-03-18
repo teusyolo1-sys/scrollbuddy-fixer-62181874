@@ -608,12 +608,14 @@ function CompanyCardItem({
   onDelete?: () => void;
 }) {
   const gradient = gradients[index % gradients.length];
+  const [isEditing, setIsEditing] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [editingSubtitle, setEditingSubtitle] = useState(false);
   const [nameValue, setNameValue] = useState(company.name);
   const [subtitleValue, setSubtitleValue] = useState(company.subtitle);
   const nameRef = useRef<HTMLInputElement>(null);
   const subtitleRef = useRef<HTMLInputElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
 
   const bannerUpload = useFileUpload((url) => onUpdate({ bannerUrl: url }));
   const logoUpload = useFileUpload((url) => onUpdate({ logoUrl: url }));
@@ -635,14 +637,48 @@ function CompanyCardItem({
   useEffect(() => { if (editingName) nameRef.current?.focus(); }, [editingName]);
   useEffect(() => { if (editingSubtitle) subtitleRef.current?.focus(); }, [editingSubtitle]);
 
+  // Click outside to cancel editing
+  useEffect(() => {
+    if (!isEditing) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
+        setIsEditing(false);
+        setEditingName(false);
+        setEditingSubtitle(false);
+        setNameValue(company.name);
+        setSubtitleValue(company.subtitle);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isEditing, company.name, company.subtitle]);
+
+  const handleFinishEditing = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Commit any open edits
+    if (editingName) commitName();
+    if (editingSubtitle) commitSubtitle();
+    setIsEditing(false);
+    setEditingName(false);
+    setEditingSubtitle(false);
+  };
+
+  const handleStartEditing = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsEditing(true);
+  };
+
   return (
     <motion.div
+      ref={cardRef}
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: Math.min(index * 0.05, 0.15), type: "spring", damping: 22, stiffness: 300 }}
       className="liquid-glass-card border border-border/40 rounded-3xl p-0 text-left overflow-hidden group cursor-pointer hover:-translate-y-1.5 hover:shadow-xl active:scale-[0.97] transition-all duration-300"
       onClick={(e) => {
-        if (editingName || editingSubtitle) return;
+        if (isEditing || editingName || editingSubtitle) return;
         onOpen();
       }}
     >
@@ -663,9 +699,9 @@ function CompanyCardItem({
         )}
         <div className="absolute inset-0 bg-black/5" />
 
-        {/* Admin action buttons - top left */}
-        {isAdmin && (onArchive || onDelete) && (
-          <div className="absolute top-2.5 left-2.5 z-10 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+        {/* Admin action buttons - only visible in edit mode */}
+        {isAdmin && isEditing && (onArchive || onDelete) && (
+          <div className="absolute top-2.5 left-2.5 z-10 flex gap-1.5">
             {onArchive && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onArchive(); }}
@@ -687,10 +723,11 @@ function CompanyCardItem({
           </div>
         )}
 
-        {isAdmin && (
+        {/* Banner upload - only visible in edit mode */}
+        {isAdmin && isEditing && (
           <button
             onClick={(e) => { e.preventDefault(); e.stopPropagation(); bannerUpload.trigger(); }}
-            className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all opacity-0 group-hover:opacity-100"
+            className="absolute top-2.5 right-2.5 z-10 w-8 h-8 rounded-lg bg-black/40 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/60 transition-all"
             title="Alterar banner"
           >
             <ImagePlus className="h-4 w-4" />
@@ -708,10 +745,11 @@ function CompanyCardItem({
                 <Building2 className="h-6 w-6 text-white" />
               </div>
             )}
-            {isAdmin && (
+            {/* Logo upload - only visible in edit mode */}
+            {isAdmin && isEditing && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); logoUpload.trigger(); }}
-                className="absolute -bottom-1 -right-1 z-10 w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all opacity-0 group-hover:opacity-100"
+                className="absolute -bottom-1 -right-1 z-10 w-6 h-6 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-all"
                 title="Alterar logo"
               >
                 <Pencil className="h-3 w-3" />
@@ -742,10 +780,10 @@ function CompanyCardItem({
           ) : (
             <>
               <h3 className="text-lg font-bold text-foreground group-hover:text-primary transition-colors">{company.name}</h3>
-              {isAdmin && (
+              {isAdmin && isEditing && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setEditingName(true); }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-secondary"
+                  className="transition-opacity p-1 rounded-md hover:bg-secondary"
                   title="Editar nome"
                 >
                   <Pencil className="h-3 w-3 text-muted-foreground" />
@@ -769,10 +807,10 @@ function CompanyCardItem({
           ) : (
             <>
               <p className="text-sm text-muted-foreground">{company.subtitle}</p>
-              {isAdmin && (
+              {isAdmin && isEditing && (
                 <button
                   onClick={(e) => { e.stopPropagation(); setEditingSubtitle(true); }}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-md hover:bg-secondary"
+                  className="transition-opacity p-1 rounded-md hover:bg-secondary"
                   title="Editar descrição"
                 >
                   <Pencil className="h-2.5 w-2.5 text-muted-foreground" />
@@ -783,9 +821,29 @@ function CompanyCardItem({
         </div>
         <div className="flex items-center justify-between mt-4">
           <span className="ios-badge ios-status-info">{company.month}</span>
-          <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
-            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-          </div>
+          {isAdmin ? (
+            isEditing ? (
+              <button
+                onClick={handleFinishEditing}
+                className="w-8 h-8 rounded-full bg-emerald-500/15 flex items-center justify-center hover:bg-emerald-500/25 transition-colors"
+                title="Concluir edição"
+              >
+                <Check className="h-4 w-4 text-emerald-500" />
+              </button>
+            ) : (
+              <button
+                onClick={handleStartEditing}
+                className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center hover:bg-primary/10 transition-colors"
+                title="Editar empresa"
+              >
+                <Pencil className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors" />
+              </button>
+            )
+          ) : (
+            <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+            </div>
+          )}
         </div>
       </div>
     </motion.div>
