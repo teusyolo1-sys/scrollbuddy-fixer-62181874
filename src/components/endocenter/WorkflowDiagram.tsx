@@ -131,8 +131,8 @@ export default function WorkflowDiagram() {
               {i === activeIndex && (
                 <motion.div
                   layoutId="active-ring"
-                  className="absolute inset-[-3px] rounded-full border-2"
-                  style={{ borderColor: s.color }}
+                  className="absolute inset-[-3px] border-2"
+                  style={{ borderColor: s.color, borderRadius: 'inherit' }}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
