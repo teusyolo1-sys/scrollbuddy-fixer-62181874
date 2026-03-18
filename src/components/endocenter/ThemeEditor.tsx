@@ -5,9 +5,11 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useEndocenter } from '@/store/endocenterStore';
 import { useTheme } from '@/hooks/useTheme';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   DEFAULT_THEME, ACCENT_PRESETS, FONT_PRESETS, WALLPAPER_PRESETS, RADIUS_PRESETS,
-  themeToCSS, type CompanyTheme,
+  RADIUS_TARGETS, ALL_RADIUS_TARGETS, themeToCSS,
+  type CompanyTheme, type RadiusTarget,
 } from '@/lib/companyTheme';
 
 interface Props {
