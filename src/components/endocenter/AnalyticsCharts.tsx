@@ -733,6 +733,33 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const [chartStyles, setChartStyles] = useState<Record<string, ChartStyle>>({});
   const [colorOverrides, setColorOverrides] = useState<Record<string, string>>({});
 
+  // Hidden charts persisted in localStorage per company
+  const storageKey = `hidden-charts-${companyId || 'default'}`;
+  const [hiddenCharts, setHiddenCharts] = useState<MetricType[]>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  const hideChart = useCallback((type: MetricType) => {
+    setHiddenCharts((prev) => {
+      const next = [...prev, type];
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
+    });
+    // Also remove manual entries
+    removeAllByType(type);
+  }, [removeAllByType, storageKey]);
+
+  const unhideChart = useCallback((type: MetricType) => {
+    setHiddenCharts((prev) => {
+      const next = prev.filter((t) => t !== type);
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
+    });
+  }, [storageKey]);
+
   const setStyleFor = useCallback((type: string, style: ChartStyle) => {
     setChartStyles((prev) => ({ ...prev, [type]: style }));
   }, []);
