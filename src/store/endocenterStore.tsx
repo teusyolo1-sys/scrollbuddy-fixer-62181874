@@ -65,6 +65,7 @@ export interface CompanyInfo {
   month: string;
   createdAt: string;
   tabLabels?: TabLabels;
+  theme?: CompanyTheme;
 }
 
 export interface MetricEntry {
