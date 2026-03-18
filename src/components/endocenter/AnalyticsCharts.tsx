@@ -590,7 +590,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
           )}
 
           <div className="flex-1 min-h-0">
-            <ChartByStyle style={chartStyle} data={data} color={color} type={type} />
+            <ChartByStyle style={chartStyle} data={data} color={color} type={type} scale={scale} />
           </div>
 
           <div className="mt-auto pt-1 text-[10px] text-muted-foreground/50 text-right">
