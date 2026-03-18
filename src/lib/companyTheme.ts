@@ -304,6 +304,31 @@ function hexToHSL(hex: string): { h: number; s: number; l: number } {
   return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
 }
 
+/** Parse an hsl(...) string and return lightness 0-100, or null */
+function parseHslLightness(css: string): number | null {
+  const m = css.match(/hsl\(\s*[\d.]+\s+[\d.]+%?\s+([\d.]+)%/);
+  return m ? parseFloat(m[1]) : null;
+}
+
+/** Determine if a wallpaper produces a light background */
+export function isWallpaperLight(theme: CompanyTheme): boolean {
+  if (theme.wallpaper === 'none') return false;
+  if (theme.wallpaper === 'solid') {
+    const l = parseHslLightness(theme.wallpaperUrl);
+    return l !== null && l > 60;
+  }
+  if (theme.wallpaper === 'gradient') {
+    const preset = GRADIENT_PRESETS.find(g => g.name === theme.wallpaperUrl);
+    if (!preset) return false;
+    // Check if any color in the gradient is light
+    const matches = [...preset.css.matchAll(/hsl\(\s*[\d.]+\s+[\d.]+%?\s+([\d.]+)%/g)];
+    if (matches.length === 0) return false;
+    const avgL = matches.reduce((sum, m) => sum + parseFloat(m[1]), 0) / matches.length;
+    return avgL > 60;
+  }
+  return false;
+}
+
 export function themeToCSS(theme: CompanyTheme, isDark: boolean): Record<string, string> {
   const { h, s, l } = hexToHSL(theme.accentColor);
   const fontValue = theme.fontFamily === 'Inter'
@@ -311,7 +336,7 @@ export function themeToCSS(theme: CompanyTheme, isDark: boolean): Record<string,
     : `${FONT_PRESETS.find(f => f.name === theme.fontFamily)?.value || theme.fontFamily}, "Inter", sans-serif`;
   const radiusValue = RADIUS_PRESETS.find(r => r.value === theme.borderRadius)?.cssVar || '12px';
 
-  return {
+  const vars: Record<string, string> = {
     '--theme-accent': `${h} ${s}% ${isDark ? Math.min(l + 10, 70) : l}%`,
     '--theme-accent-hex': theme.accentColor,
     '--theme-accent-fg': l > 55 ? '0 0% 10%' : '0 0% 100%',
@@ -321,4 +346,12 @@ export function themeToCSS(theme: CompanyTheme, isDark: boolean): Record<string,
     '--theme-wallpaper-opacity': String(theme.wallpaperOpacity),
     '--theme-wallpaper-blur': `${theme.wallpaperBlur}px`,
   };
+
+  // When a light wallpaper is active in dark mode, force dark text for readability
+  const lightWallpaper = isWallpaperLight(theme);
+  if (lightWallpaper && isDark) {
+    vars['--theme-force-light-text'] = '1';
+  }
+
+  return vars;
 }
