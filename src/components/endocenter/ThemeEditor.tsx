@@ -308,6 +308,14 @@ export default function ThemeEditor({ companyId }: Props) {
                       backgroundSize: '12px 12px',
                     }}
                   />
+                ) : wp.pattern === 'noise' ? (
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      backgroundImage: `radial-gradient(at 20% 80%, ${isDark ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.15)'} 1px, transparent 0px)`,
+                      backgroundSize: '3px 3px',
+                    }}
+                  />
                 ) : (
                   <div className="absolute inset-0 bg-secondary/30" />
                 )}

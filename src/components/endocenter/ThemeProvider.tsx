@@ -88,6 +88,14 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
         opacity: theme.wallpaperOpacity,
       };
     }
+    if (preset?.pattern === 'noise') {
+      return {
+        backgroundImage: `radial-gradient(at 20% 80%, #fff 1px, transparent 0px)`,
+        backgroundSize: '3px 3px',
+        opacity: theme.wallpaperOpacity,
+        mixBlendMode: 'plus-lighter' as any,
+      };
+    }
 
     // CSS gradient stored directly
     if (theme.wallpaperUrl.startsWith('radial-gradient') || theme.wallpaperUrl.startsWith('linear-gradient')) {
