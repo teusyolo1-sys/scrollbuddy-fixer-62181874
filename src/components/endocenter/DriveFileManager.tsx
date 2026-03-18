@@ -69,7 +69,7 @@ export default function DriveFileManager({ companyId, companyName }: DriveFileMa
   const {
     files, loading, uploading, currentPath,
     fetchFiles, uploadFile, uploadFiles, deleteFile,
-    createSubfolder, openFolder, goBack,
+    createSubfolder, openFolder, goBack, goToPathIndex,
   } = useGoogleDrive(companyId, companyName);
 
   const { canViewSection, canEditSection } = useSectionPermissions();
