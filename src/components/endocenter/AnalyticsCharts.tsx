@@ -1078,7 +1078,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
       </AnimatePresence>
 
       {activeTypes.length >= 2 && (
-        <ConversionFunnel data={perMetricData} colorOverrides={colorOverrides} onApplyPalette={applyFunnelPalette} />
+        <ConversionFunnel data={perMetricData} colorOverrides={chartColors} onApplyPalette={applyFunnelPalette} />
       )}
 
       {activeTypes.length > 0 ? (
