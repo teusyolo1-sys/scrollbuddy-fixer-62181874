@@ -1092,7 +1092,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
               chartStyle={chartStyles[type] || defaultStyles[type] || "area"}
               onStyleChange={(s) => setStyleFor(type, s)}
               relatedInfo={getRelatedInfo(type)}
-              color={colorOverrides[type] || METRIC_CONFIG[type].color}
+              color={chartColors[type] || METRIC_CONFIG[type].color}
               onColorChange={(c) => setColorFor(type, c)}
               onDelete={() => hideChart(type)}
             />
