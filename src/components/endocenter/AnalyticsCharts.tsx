@@ -892,7 +892,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
           >
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <IosDropdown value={formType} onChange={(v) => setFormType(v as MetricType)} options={dropdownOptions} />
-              <input type="number" placeholder="Valor" value={formValue} onChange={(e) => setFormValue(e.target.value)} className="ios-input px-3 py-2 text-sm" />
+              <input type="number" placeholder={isAutoType ? "Opcional (auto)" : "Valor"} value={formValue} onChange={(e) => setFormValue(e.target.value)} className={`ios-input px-3 py-2 text-sm ${isAutoType ? 'opacity-50' : ''}`} />
               <input type="date" value={formDate} onChange={(e) => setFormDate(e.target.value)} className="ios-input px-3 py-2 text-sm" />
               <button onClick={handleAdd} className="px-4 py-2 bg-primary text-primary-foreground rounded-xl text-sm font-semibold hover:opacity-90 transition-opacity">Adicionar</button>
             </div>
