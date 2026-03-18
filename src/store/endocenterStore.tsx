@@ -879,11 +879,11 @@ export function EndocenterProvider({ children, companyId }: { children: ReactNod
     return () => clearInterval(interval);
   }, [companyId, chartStyles, chartColors, funnelPalette, sectionCollapsed, activeFilters]);
 
-  // Load visual config from Supabase on mount
+  // Load visual config + theme from Supabase on mount
   useEffect(() => {
     if (!companyId) return;
     supabase.from('companies')
-      .select('company_data')
+      .select('company_data, theme')
       .eq('id', companyId)
       .single()
       .then(({ data }) => {
@@ -894,6 +894,9 @@ export function EndocenterProvider({ children, companyId }: { children: ReactNod
           if (remote.funnelPalette) setFunnelPalette(prev => ({ ...prev, ...remote.funnelPalette }));
           if (remote.sectionCollapsed) setSectionCollapsed(prev => ({ ...prev, ...remote.sectionCollapsed }));
           if (remote.activeFilters) setActiveFilters(prev => ({ ...prev, ...remote.activeFilters }));
+        }
+        if (data?.theme && typeof data.theme === 'object') {
+          setCompanyState(prev => ({ ...prev, theme: { ...DEFAULT_THEME, ...(data.theme as any) } }));
         }
       });
   }, [companyId]);
