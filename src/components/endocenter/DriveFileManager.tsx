@@ -69,7 +69,7 @@ export default function DriveFileManager({ companyId, companyName }: DriveFileMa
   const {
     files, loading, uploading, currentPath,
     fetchFiles, uploadFile, uploadFiles, deleteFile,
-    createSubfolder, openFolder, goBack,
+    createSubfolder, openFolder, goBack, goToPathIndex,
   } = useGoogleDrive(companyId, companyName);
 
   const { canViewSection, canEditSection } = useSectionPermissions();
@@ -133,9 +133,7 @@ export default function DriveFileManager({ companyId, companyName }: DriveFileMa
               <button
                 onClick={async () => {
                   if (i < currentPath.length - 1) {
-                    const newPath = currentPath.slice(0, i + 1);
-                    // Navigate directly
-                    await fetchFiles(p.id);
+                    await goToPathIndex(i);
                   }
                 }}
                 className={`hover:text-foreground transition-colors ${i === currentPath.length - 1 ? "text-foreground font-medium" : ""}`}
@@ -174,7 +172,7 @@ export default function DriveFileManager({ companyId, companyName }: DriveFileMa
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => fetchFiles(currentFolderId)}
+            onClick={() => fetchFiles(currentFolderId, { force: true })}
             disabled={loading}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
