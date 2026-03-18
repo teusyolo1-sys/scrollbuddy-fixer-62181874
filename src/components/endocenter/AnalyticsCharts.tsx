@@ -918,6 +918,22 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
           <p className="text-xs text-muted-foreground mt-1">Clique em "Registrar" para adicionar seguidores, vendas, conversão e mais</p>
         </div>
       )}
+
+      {hiddenCharts.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Gráficos ocultos:</span>
+          {hiddenCharts.map((type) => (
+            <button
+              key={type}
+              onClick={() => unhideChart(type)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-secondary/60 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            >
+              <Plus className="h-3 w-3" />
+              {METRIC_CONFIG[type].label}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
