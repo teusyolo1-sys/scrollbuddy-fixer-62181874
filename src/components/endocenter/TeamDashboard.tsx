@@ -632,7 +632,7 @@ function ProfileModal({ member, companyId, onClose, isAdmin = false, canEdit = t
               <div className="grid sm:grid-cols-2 gap-2">
                 <input className="ios-input px-3 py-2 text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome" />
                 {isAdmin ? (
-                  <input className="ios-input px-3 py-2 text-sm" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Função" />
+                  <RoleDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} />
                 ) : (
                   <div className="ios-input px-3 py-2 text-sm text-muted-foreground bg-secondary/30 cursor-not-allowed">{form.role}</div>
                 )}
