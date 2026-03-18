@@ -548,7 +548,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
 }) {
   const cfg = METRIC_CONFIG[type];
   const Icon = ICONS[type];
-
+  const [scale, setScale] = useState<ChartScale>('auto');
   const latest = data[data.length - 1]?.value ?? 0;
   const prev = data.length > 1 ? data[data.length - 2].value : latest;
   const change = prev > 0 ? ((latest - prev) / prev * 100) : 0;
