@@ -152,6 +152,10 @@
     cursor: url('/cursors/default.svg') 1 1, default;
   }
 
+  *, *::before, *::after {
+    cursor: inherit;
+  }
+
   /* ── macOS Custom Cursors ── */
   a, button, [role="button"], label[for], select, summary,
   .cursor-pointer, [onclick], [tabindex]:not([tabindex="-1"]) {
