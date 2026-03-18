@@ -2,10 +2,19 @@ import { useEffect, useMemo } from 'react';
 import { useEndocenter } from '@/store/endocenterStore';
 import { useTheme } from '@/hooks/useTheme';
 import {
-  DEFAULT_THEME, themeToCSS, FONT_PRESETS, MESH_PRESETS, SOLID_PRESETS,
+  DEFAULT_THEME, themeToCSS, isWallpaperLight, FONT_PRESETS, MESH_PRESETS, SOLID_PRESETS,
   GRADIENT_PRESETS, PATTERN_PRESETS, ANIMATED_PRESETS, ALL_RADIUS_TARGETS,
   type CompanyTheme, type RadiusTarget,
 } from '@/lib/companyTheme';
+
+// Light-mode foreground tokens to force when a light wallpaper is used in dark mode
+const LIGHT_FOREGROUND_OVERRIDES: Record<string, string> = {
+  '--foreground': '230 25% 12%',
+  '--card-foreground': '230 25% 12%',
+  '--popover-foreground': '230 25% 12%',
+  '--secondary-foreground': '230 20% 30%',
+  '--muted-foreground': '230 8% 52%',
+};
 
 export default function CompanyThemeProvider({ children }: { children: React.ReactNode }) {
   const { company } = useEndocenter();
@@ -21,6 +30,7 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
   }, [company]);
 
   const cssVars = useMemo(() => themeToCSS(theme, isDark), [theme, isDark]);
+  const forceLightText = useMemo(() => isDark && isWallpaperLight(theme), [isDark, theme]);
 
   // Load custom font
   useEffect(() => {
@@ -45,8 +55,14 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
     base['--ring'] = cssVars['--theme-accent'];
     base['--radius'] = cssVars['--theme-radius'];
     base['fontFamily'] = cssVars['--theme-font'];
+
+    // Force dark foreground text when light wallpaper is active in dark mode
+    if (forceLightText) {
+      Object.assign(base, LIGHT_FOREGROUND_OVERRIDES);
+    }
+
     return base;
-  }, [cssVars]);
+  }, [cssVars, forceLightText]);
 
   const targets = theme.radiusTargets || ALL_RADIUS_TARGETS;
   const dataAttrs = useMemo(() => {
