@@ -733,6 +733,33 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const [chartStyles, setChartStyles] = useState<Record<string, ChartStyle>>({});
   const [colorOverrides, setColorOverrides] = useState<Record<string, string>>({});
 
+  // Hidden charts persisted in localStorage per company
+  const storageKey = `hidden-charts-${companyId || 'default'}`;
+  const [hiddenCharts, setHiddenCharts] = useState<MetricType[]>(() => {
+    try {
+      const saved = localStorage.getItem(storageKey);
+      return saved ? JSON.parse(saved) : [];
+    } catch { return []; }
+  });
+
+  const hideChart = useCallback((type: MetricType) => {
+    setHiddenCharts((prev) => {
+      const next = [...prev, type];
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
+    });
+    // Also remove manual entries
+    removeAllByType(type);
+  }, [removeAllByType, storageKey]);
+
+  const unhideChart = useCallback((type: MetricType) => {
+    setHiddenCharts((prev) => {
+      const next = prev.filter((t) => t !== type);
+      localStorage.setItem(storageKey, JSON.stringify(next));
+      return next;
+    });
+  }, [storageKey]);
+
   const setStyleFor = useCallback((type: string, style: ChartStyle) => {
     setChartStyles((prev) => ({ ...prev, [type]: style }));
   }, []);
@@ -783,7 +810,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
     return result;
   }, [metrics]);
 
-  const activeTypes = METRIC_TYPES.filter((t) => perMetricData[t]?.length > 0);
+  const activeTypes = METRIC_TYPES.filter((t) => perMetricData[t]?.length > 0 && !hiddenCharts.includes(t));
 
   const getRelatedInfo = (type: MetricType): string | undefined => {
     if (type === "conversao" && perMetricData.leads && perMetricData.vendas) return "⚡ Calculado automaticamente: Vendas ÷ Leads × 100";
@@ -803,6 +830,8 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const handleAdd = async () => {
     const val = parseFloat(formValue);
     if (isNaN(val)) return;
+    // Unhide the chart type if it was hidden
+    unhideChart(formType);
     await addMetric(formType, val, formDate);
     setFormValue("");
     setShowForm(false);
@@ -878,7 +907,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
               relatedInfo={getRelatedInfo(type)}
               color={colorOverrides[type] || METRIC_CONFIG[type].color}
               onColorChange={(c) => setColorFor(type, c)}
-              onDelete={() => removeAllByType(type)}
+              onDelete={() => hideChart(type)}
             />
           ))}
         </div>
@@ -887,6 +916,22 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
           <BarChart3 className="h-10 w-10 mx-auto mb-3 text-muted-foreground/30" />
           <p className="text-sm text-muted-foreground">Nenhuma métrica registrada ainda</p>
           <p className="text-xs text-muted-foreground mt-1">Clique em "Registrar" para adicionar seguidores, vendas, conversão e mais</p>
+        </div>
+      )}
+
+      {hiddenCharts.length > 0 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs text-muted-foreground">Gráficos ocultos:</span>
+          {hiddenCharts.map((type) => (
+            <button
+              key={type}
+              onClick={() => unhideChart(type)}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-secondary/60 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+            >
+              <Plus className="h-3 w-3" />
+              {METRIC_CONFIG[type].label}
+            </button>
+          ))}
         </div>
       )}
     </div>
