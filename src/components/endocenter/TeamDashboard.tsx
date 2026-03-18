@@ -15,6 +15,139 @@ import { useAuth } from "@/hooks/useAuth";
 
 const periodFilters: Array<MetricPeriod | "Todas"> = ["Todas", "Diária", "Semanal", "Mensal", "Anual"];
 
+/* ── Marketing Digital Roles ── */
+const ROLE_CATEGORIES: { category: string; roles: string[] }[] = [
+  {
+    category: "Estratégia & Gestão",
+    roles: ["Gestor de Tráfego", "Estrategista Digital", "Head de Marketing", "Gerente de Projetos", "Consultor de Marketing", "Analista de BI", "Diretor de Marketing"],
+  },
+  {
+    category: "Conteúdo & Criação",
+    roles: ["Copywriter", "Redator", "Social Media", "Produtor de Conteúdo", "Editor de Vídeo", "Motion Designer", "Fotógrafo", "Videomaker", "Roteirista"],
+  },
+  {
+    category: "Design & Visual",
+    roles: ["Designer Gráfico", "UI/UX Designer", "Web Designer", "Brand Designer", "Diretor de Arte", "Ilustrador"],
+  },
+  {
+    category: "Performance & Dados",
+    roles: ["Analista de Mídia Paga", "Analista de SEO", "Analista de Dados", "Growth Hacker", "CRO Specialist", "Analista de Performance"],
+  },
+  {
+    category: "Relacionamento & Vendas",
+    roles: ["Closer", "SDR", "Customer Success", "Community Manager", "Atendimento ao Cliente", "Influencer Manager"],
+  },
+  {
+    category: "Desenvolvimento & Tech",
+    roles: ["Desenvolvedor Web", "Desenvolvedor Front-end", "Desenvolvedor Back-end", "Automação de Marketing", "Email Marketing Specialist"],
+  },
+];
+
+/* ── Role Dropdown with categories ── */
+function RoleDropdown({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuStyle, setMenuStyle] = useState<React.CSSProperties>({});
+
+  useEffect(() => {
+    if (!open) return;
+    const trigger = ref.current;
+    if (trigger) {
+      const rect = trigger.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const openUp = spaceBelow < 300 && rect.top > 300;
+      setMenuStyle({
+        position: "fixed",
+        left: rect.left,
+        width: rect.width,
+        top: openUp ? Math.max(8, rect.top - 300) : rect.bottom + 4,
+        maxHeight: 300,
+        zIndex: 9999,
+      });
+    }
+    const close = (e: MouseEvent) => {
+      if (!ref.current?.contains(e.target as Node) && !menuRef.current?.contains(e.target as Node)) setOpen(false);
+    };
+    window.addEventListener("mousedown", close);
+    return () => window.removeEventListener("mousedown", close);
+  }, [open]);
+
+  const filtered = ROLE_CATEGORIES.map((cat) => ({
+    ...cat,
+    roles: cat.roles.filter((r) => r.toLowerCase().includes(search.toLowerCase())),
+  })).filter((cat) => cat.roles.length > 0);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => { setOpen(!open); setSearch(""); }}
+        className="ios-input w-full px-3 py-2 text-sm flex items-center justify-between gap-2"
+      >
+        <span className={value ? "text-foreground" : "text-muted-foreground"}>{value || "Função"}</span>
+        <motion.span animate={{ rotate: open ? 180 : 0 }} transition={{ type: "spring", damping: 18, stiffness: 400 }}>
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+        </motion.span>
+      </button>
+      {open && createPortal(
+        <motion.div
+          ref={menuRef}
+          initial={{ opacity: 0, y: -4, scale: 0.96 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ type: "spring", damping: 24, stiffness: 400 }}
+          className="bg-card border border-border/60 shadow-lg rounded-2xl overflow-hidden"
+          style={menuStyle}
+        >
+          <div className="p-2 border-b border-border/40">
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar função..."
+              className="ios-input w-full px-3 py-1.5 text-sm"
+            />
+          </div>
+          <div className="overflow-y-auto max-h-[250px] p-1">
+            {filtered.map((cat) => (
+              <div key={cat.category}>
+                <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/70">
+                  {cat.category}
+                </div>
+                {cat.roles.map((role) => (
+                  <button
+                    key={role}
+                    type="button"
+                    onClick={() => { onChange(role); setOpen(false); }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-xl hover:bg-secondary/60 transition-colors"
+                  >
+                    <span className="flex-1 text-left text-foreground">{role}</span>
+                    {value === role && <Check className="h-3.5 w-3.5 text-primary" />}
+                  </button>
+                ))}
+              </div>
+            ))}
+            {filtered.length === 0 && (
+              <div className="px-3 py-4 text-center text-xs text-muted-foreground">
+                Nenhuma função encontrada
+                <button
+                  type="button"
+                  onClick={() => { onChange(search); setOpen(false); }}
+                  className="block mx-auto mt-2 text-primary font-medium"
+                >
+                  Usar "{search}" como função personalizada
+                </button>
+              </div>
+            )}
+          </div>
+        </motion.div>,
+        document.body,
+      )}
+    </div>
+  );
+}
+
 /* ── Optimized iOS 26 animation presets ── */
 // Diaphragm — fast bloom with less oscillation
 const diaphragm = {
@@ -604,7 +737,7 @@ function ProfileModal({ member, companyId, onClose, isAdmin = false, canEdit = t
               <div className="grid sm:grid-cols-2 gap-2">
                 <input className="ios-input px-3 py-2 text-sm" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Nome" />
                 {isAdmin ? (
-                  <input className="ios-input px-3 py-2 text-sm" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} placeholder="Função" />
+                  <RoleDropdown value={form.role} onChange={(v) => setForm({ ...form, role: v })} />
                 ) : (
                   <div className="ios-input px-3 py-2 text-sm text-muted-foreground bg-secondary/30 cursor-not-allowed">{form.role}</div>
                 )}
