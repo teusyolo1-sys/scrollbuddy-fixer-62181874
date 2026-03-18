@@ -52,6 +52,7 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
 
   const cssVars = useMemo(() => themeToCSS(theme, isDark), [theme, isDark]);
   const forceLightText = useMemo(() => isDark && isWallpaperLight(theme), [isDark, theme]);
+  const forceDarkText = useMemo(() => !isDark && isWallpaperDark(theme), [isDark, theme]);
 
   // Load custom font
   useEffect(() => {
