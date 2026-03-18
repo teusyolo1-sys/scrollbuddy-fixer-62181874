@@ -540,10 +540,48 @@ function ChartByStyle({ style, data, color, type, scale = 'auto' }: {
   }
 }
 
+/* ── Date Period Filter ── */
+type DatePeriod = 'all' | 'day' | 'week' | 'month' | 'year' | 'custom';
+
+const DATE_PERIOD_OPTIONS: { key: DatePeriod; label: string }[] = [
+  { key: 'all', label: 'Todos' },
+  { key: 'day', label: 'Dia' },
+  { key: 'week', label: 'Semana' },
+  { key: 'month', label: 'Mês' },
+  { key: 'year', label: 'Ano' },
+  { key: 'custom', label: 'Data específica' },
+];
+
+function filterByPeriod(data: { name: string; value: number; rawDate: string }[], period: DatePeriod, customDate?: string): { name: string; value: number }[] {
+  if (period === 'all') return data;
+  const now = new Date();
+  const today = now.toISOString().slice(0, 10);
+
+  if (period === 'custom' && customDate) {
+    return data.filter((d) => d.rawDate === customDate);
+  }
+
+  let cutoff: Date;
+  if (period === 'day') {
+    return data.filter((d) => d.rawDate === today);
+  } else if (period === 'week') {
+    cutoff = new Date(now);
+    cutoff.setDate(cutoff.getDate() - 7);
+  } else if (period === 'month') {
+    cutoff = new Date(now);
+    cutoff.setMonth(cutoff.getMonth() - 1);
+  } else {
+    cutoff = new Date(now);
+    cutoff.setFullYear(cutoff.getFullYear() - 1);
+  }
+  const cutoffStr = cutoff.toISOString().slice(0, 10);
+  return data.filter((d) => d.rawDate >= cutoffStr);
+}
+
 /* ── Individual Metric Chart Card ── */
 const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chartStyle, onStyleChange, relatedInfo, color, onColorChange, onDelete }: {
   type: MetricType;
-  data: { name: string; value: number }[];
+  data: { name: string; value: number; rawDate: string }[];
   delay: number;
   chartStyle: ChartStyle;
   onStyleChange: (style: ChartStyle) => void;
@@ -555,8 +593,15 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
   const cfg = METRIC_CONFIG[type];
   const Icon = ICONS[type];
   const [scale, setScale] = useState<ChartScale>('auto');
-  const latest = data[data.length - 1]?.value ?? 0;
-  const prev = data.length > 1 ? data[data.length - 2].value : latest;
+  const [datePeriod, setDatePeriod] = useState<DatePeriod>('all');
+  const [customDate, setCustomDate] = useState('');
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const dateInputRef = useRef<HTMLInputElement>(null);
+
+  const filteredData = useMemo(() => filterByPeriod(data, datePeriod, customDate), [data, datePeriod, customDate]);
+
+  const latest = filteredData[filteredData.length - 1]?.value ?? 0;
+  const prev = filteredData.length > 1 ? filteredData[filteredData.length - 2].value : latest;
   const change = prev > 0 ? ((latest - prev) / prev * 100) : 0;
   const absDiff = latest - prev;
 
