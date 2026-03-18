@@ -327,11 +327,28 @@ export function isWallpaperLight(theme: CompanyTheme): boolean {
   if (theme.wallpaper === 'gradient') {
     const preset = GRADIENT_PRESETS.find(g => g.name === theme.wallpaperUrl);
     if (!preset) return false;
-    // Check if any color in the gradient is light
-    const matches = [...preset.css.matchAll(/hsl\(\s*[\d.]+\s+[\d.]+%?\s+([\d.]+)%/g)];
-    if (matches.length === 0) return false;
-    const avgL = matches.reduce((sum, m) => sum + parseFloat(m[1]), 0) / matches.length;
+    const lightnesses = extractHslLightnesses(preset.css);
+    if (lightnesses.length === 0) return false;
+    const avgL = lightnesses.reduce((a, b) => a + b, 0) / lightnesses.length;
     return avgL > 60;
+  }
+  return false;
+}
+
+/** Determine if a wallpaper produces a dark background */
+export function isWallpaperDark(theme: CompanyTheme): boolean {
+  if (theme.wallpaper === 'none') return false;
+  if (theme.wallpaper === 'solid') {
+    const l = parseHslLightness(theme.wallpaperUrl);
+    return l !== null && l < 30;
+  }
+  if (theme.wallpaper === 'gradient') {
+    const preset = GRADIENT_PRESETS.find(g => g.name === theme.wallpaperUrl);
+    if (!preset) return false;
+    const lightnesses = extractHslLightnesses(preset.css);
+    if (lightnesses.length === 0) return false;
+    const avgL = lightnesses.reduce((a, b) => a + b, 0) / lightnesses.length;
+    return avgL < 30;
   }
   return false;
 }
