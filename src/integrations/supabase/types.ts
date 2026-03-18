@@ -425,6 +425,7 @@ export type Database = {
           month: string
           name: string
           subtitle: string
+          theme: Json
           updated_at: string
         }
         Insert: {
@@ -441,6 +442,7 @@ export type Database = {
           month?: string
           name?: string
           subtitle?: string
+          theme?: Json
           updated_at?: string
         }
         Update: {
@@ -457,6 +459,7 @@ export type Database = {
           month?: string
           name?: string
           subtitle?: string
+          theme?: Json
           updated_at?: string
         }
         Relationships: []
