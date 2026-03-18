@@ -153,29 +153,42 @@
   }
 
   *, *::before, *::after {
-    cursor: inherit;
+    cursor: url('/cursors/default.svg') 1 1, default !important;
   }
 
-  /* ── macOS Custom Cursors ── */
-  a, button, [role="button"], label[for], select, summary,
-  .cursor-pointer, [onclick], [tabindex]:not([tabindex="-1"]) {
+  /* ── Pointer cursor ── */
+  a[href], button, [role="button"], [type="button"], [type="submit"], [type="reset"],
+  select, summary, .cursor-pointer, [onclick], label[for],
+  [tabindex]:not([tabindex="-1"]) {
     cursor: url('/cursors/pointer.svg') 5 1, pointer !important;
   }
 
-  input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]),
-  textarea, [contenteditable="true"] {
+  /* ── Text cursor ── */
+  input, textarea, [contenteditable="true"], [role="textbox"] {
     cursor: url('/cursors/text.svg') 4 8, text !important;
   }
 
-  .dark input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]),
-  .dark textarea, .dark [contenteditable="true"] {
+  .dark input, .dark textarea, .dark [contenteditable="true"], .dark [role="textbox"] {
     cursor: url('/cursors/text-light.svg') 4 8, text !important;
   }
 
+  /* ── Exclude non-text inputs from text cursor ── */
+  input[type="range"] {
+    cursor: url('/cursors/grab.svg') 8 8, grab !important;
+  }
+  input[type="range"]:active {
+    cursor: url('/cursors/move.svg') 7 7, grabbing !important;
+  }
+  input[type="color"], input[type="checkbox"], input[type="radio"],
+  input[type="file"], input[type="button"], input[type="submit"],
+  input[type="reset"], input[type="hidden"] {
+    cursor: url('/cursors/pointer.svg') 5 1, pointer !important;
+  }
+
+  /* ── Drag cursors ── */
   [draggable="true"], .drag-handle, .cursor-grab, [style*="cursor: grab"], [style*="cursor:grab"] {
     cursor: url('/cursors/grab.svg') 8 8, grab !important;
   }
-
   [draggable="true"]:active, .drag-handle:active, .cursor-grabbing, [style*="cursor: grabbing"], [style*="cursor:grabbing"] {
     cursor: url('/cursors/move.svg') 7 7, grabbing !important;
   }
