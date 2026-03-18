@@ -149,11 +149,6 @@ function DroppableFolderCard({
       <p className="font-medium text-sm truncate text-foreground">{file.name}</p>
       <p className="text-xs text-muted-foreground">{file.modifiedTime ? formatDate(file.modifiedTime) : ""}</p>
 
-      {isDragOver && (
-        <div className="absolute inset-0 flex items-center justify-center bg-primary/5 rounded-[inherit] pointer-events-none">
-          <p className="text-xs font-medium text-primary">Soltar aqui</p>
-        </div>
-      )}
 
       {/* Actions on hover */}
       <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
