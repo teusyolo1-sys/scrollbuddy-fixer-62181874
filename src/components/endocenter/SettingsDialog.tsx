@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { BarChart3, Building2, Settings, Target, Users, X } from "lucide-react";
+import { BarChart3, Building2, Palette, Settings, Target, Users, X } from "lucide-react";
 import CompanySettingsTab from "@/components/endocenter/settings/CompanySettingsTab";
 import TeamSettingsTab from "@/components/endocenter/settings/TeamSettingsTab";
 import RecordsSettingsTab from "@/components/endocenter/settings/RecordsSettingsTab";
 import MetricsSettingsTab from "@/components/endocenter/settings/MetricsSettingsTab";
 import GoalsSettingsTab from "@/components/endocenter/settings/GoalsSettingsTab";
+import ThemeEditor from "@/components/endocenter/ThemeEditor";
+import { useParams } from "react-router-dom";
 
 interface Props {
   open: boolean;
   onClose: () => void;
 }
 
-type TabId = "company" | "team" | "records" | "metrics" | "goals";
+type TabId = "company" | "team" | "records" | "metrics" | "goals" | "theme";
 
 const tabs: { id: TabId; label: string; icon: typeof Settings }[] = [
   { id: "company", label: "Empresa", icon: Building2 },
@@ -20,6 +22,7 @@ const tabs: { id: TabId; label: string; icon: typeof Settings }[] = [
   { id: "records", label: "Registros", icon: Settings },
   { id: "metrics", label: "Métricas", icon: BarChart3 },
   { id: "goals", label: "Metas", icon: Target },
+  { id: "theme", label: "Tema", icon: Palette },
 ];
 
 export default function SettingsDialog({ open, onClose }: Props) {
