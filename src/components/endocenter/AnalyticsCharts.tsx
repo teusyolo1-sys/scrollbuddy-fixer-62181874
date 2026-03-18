@@ -901,12 +901,11 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   const { user } = useAuth();
   const { isAdmin } = useUserRole();
   const { metrics, loading, addMetric, removeAllByType } = useClientMetrics(companyId);
+  const { chartStyles, setChartStyles, chartColors, setChartColors, funnelPalette, setFunnelPalette } = useEndocenter();
   const [showForm, setShowForm] = useState(false);
   const [formType, setFormType] = useState<MetricType>("seguidores");
   const [formValue, setFormValue] = useState("");
   const [formDate, setFormDate] = useState(new Date().toISOString().slice(0, 10));
-  const [chartStyles, setChartStyles] = useState<Record<string, ChartStyle>>({});
-  const [colorOverrides, setColorOverrides] = useState<Record<string, string>>({});
 
   // Hidden charts persisted in localStorage per company
   const storageKey = `hidden-charts-${companyId || 'default'}`;
@@ -937,19 +936,20 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
 
   const setStyleFor = useCallback((type: string, style: ChartStyle) => {
     setChartStyles((prev) => ({ ...prev, [type]: style }));
-  }, []);
+  }, [setChartStyles]);
 
   const setColorFor = useCallback((type: string, color: string) => {
-    setColorOverrides((prev) => ({ ...prev, [type]: color }));
-  }, []);
+    setChartColors((prev) => ({ ...prev, [type]: color }));
+  }, [setChartColors]);
 
-  const applyFunnelPalette = (palette: ColorPalette) => {
-    const newOverrides: Record<string, string> = { ...colorOverrides };
+  const applyFunnelPalette = useCallback((palette: ColorPalette) => {
+    const newOverrides: Record<string, string> = {};
     METRIC_TYPES.forEach((t, i) => {
       newOverrides[t] = palette.colors[i % palette.colors.length];
     });
-    setColorOverrides(newOverrides);
-  };
+    setChartColors((prev) => ({ ...prev, ...newOverrides }));
+    setFunnelPalette(newOverrides);
+  }, [setChartColors, setFunnelPalette]);
 
   const perMetricData = useMemo(() => {
     const result: Record<MetricType, { name: string; value: number; rawDate: string }[]> = {} as any;
