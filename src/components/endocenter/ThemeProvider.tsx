@@ -1,7 +1,11 @@
 import { useEffect, useMemo } from 'react';
 import { useEndocenter } from '@/store/endocenterStore';
 import { useTheme } from '@/hooks/useTheme';
-import { DEFAULT_THEME, themeToCSS, FONT_PRESETS, WALLPAPER_PRESETS, ALL_RADIUS_TARGETS, type CompanyTheme, type RadiusTarget } from '@/lib/companyTheme';
+import {
+  DEFAULT_THEME, themeToCSS, FONT_PRESETS, MESH_PRESETS, SOLID_PRESETS,
+  GRADIENT_PRESETS, PATTERN_PRESETS, ANIMATED_PRESETS, ALL_RADIUS_TARGETS,
+  type CompanyTheme, type RadiusTarget,
+} from '@/lib/companyTheme';
 
 export default function CompanyThemeProvider({ children }: { children: React.ReactNode }) {
   const { company } = useEndocenter();
@@ -23,7 +27,6 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
     if (theme.fontFamily === 'Inter') return;
     const fontConfig = FONT_PRESETS.find(f => f.name === theme.fontFamily);
     if (!fontConfig?.url) return;
-
     const linkId = 'theme-font-link';
     let link = document.getElementById(linkId) as HTMLLinkElement | null;
     if (!link) {
@@ -45,7 +48,6 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
     return base;
   }, [cssVars]);
 
-  // Build data attributes for radius targets
   const targets = theme.radiusTargets || ALL_RADIUS_TARGETS;
   const dataAttrs = useMemo(() => {
     const attrs: Record<string, string> = {};
@@ -55,51 +57,71 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
     return attrs;
   }, [targets]);
 
-  const wallpaperStyle = useMemo(() => {
+  const wallpaperNode = useMemo(() => {
     if (theme.wallpaper === 'none' || !theme.wallpaperUrl) return null;
 
-    if (theme.wallpaper === 'custom' && theme.wallpaperUrl) {
-      return {
-        backgroundImage: `url(${theme.wallpaperUrl})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed' as const,
-        opacity: theme.wallpaperOpacity,
-        filter: theme.wallpaperBlur > 0 ? `blur(${theme.wallpaperBlur}px)` : undefined,
-      };
+    const baseStyle: React.CSSProperties = {
+      position: 'fixed',
+      inset: 0,
+      pointerEvents: 'none',
+      zIndex: 0,
+      opacity: theme.wallpaperOpacity,
+      filter: theme.wallpaperBlur > 0 ? `blur(${theme.wallpaperBlur}px)` : undefined,
+    };
+
+    if (theme.wallpaper === 'mesh') {
+      const preset = MESH_PRESETS.find(m => m.name === theme.wallpaperUrl);
+      if (!preset) return null;
+      return <div style={{ ...baseStyle, background: preset.css }} />;
     }
 
-    // Preset wallpapers
-    const preset = WALLPAPER_PRESETS.find(w => w.key === theme.wallpaperUrl);
-    if (preset?.css) {
-      return { background: preset.css, opacity: theme.wallpaperOpacity };
-    }
-    if (preset?.pattern === 'dots') {
-      return {
-        backgroundImage: `radial-gradient(circle, ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'} 1px, transparent 1px)`,
-        backgroundSize: '20px 20px',
-        opacity: theme.wallpaperOpacity,
-      };
-    }
-    if (preset?.pattern === 'lines') {
-      return {
-        backgroundImage: `linear-gradient(${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'} 1px, transparent 1px), linear-gradient(90deg, ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'} 1px, transparent 1px)`,
-        backgroundSize: '40px 40px',
-        opacity: theme.wallpaperOpacity,
-      };
-    }
-    if (preset?.pattern === 'noise') {
-      return {
-        backgroundImage: `radial-gradient(at 20% 80%, #fff 1px, transparent 0px)`,
-        backgroundSize: '3px 3px',
-        opacity: theme.wallpaperOpacity,
-        mixBlendMode: 'plus-lighter' as any,
-      };
+    if (theme.wallpaper === 'solid') {
+      return <div style={{ ...baseStyle, background: theme.wallpaperUrl, opacity: 1 }} />;
     }
 
-    // CSS gradient stored directly
-    if (theme.wallpaperUrl.startsWith('radial-gradient') || theme.wallpaperUrl.startsWith('linear-gradient')) {
-      return { background: theme.wallpaperUrl, opacity: theme.wallpaperOpacity };
+    if (theme.wallpaper === 'gradient') {
+      const preset = GRADIENT_PRESETS.find(g => g.name === theme.wallpaperUrl);
+      if (!preset) return null;
+      return <div style={{ ...baseStyle, background: preset.css, opacity: 1 }} />;
+    }
+
+    if (theme.wallpaper === 'pattern') {
+      const preset = PATTERN_PRESETS.find(p => p.name === theme.wallpaperUrl);
+      if (!preset) return null;
+      const patternCss = preset.getCss(isDark);
+      return <div style={{ ...baseStyle, ...patternCss } as any} />;
+    }
+
+    if (theme.wallpaper === 'image') {
+      return (
+        <div style={{
+          ...baseStyle,
+          backgroundImage: `url(${theme.wallpaperUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+        }} />
+      );
+    }
+
+    if (theme.wallpaper === 'animated') {
+      const preset = ANIMATED_PRESETS.find(a => a.name === theme.wallpaperUrl);
+      if (!preset) return null;
+      return (
+        <>
+          <style>{preset.keyframes}</style>
+          <div
+            style={{ opacity: theme.wallpaperOpacity }}
+            dangerouslySetInnerHTML={{ __html: preset.getHtml() }}
+          />
+        </>
+      );
+    }
+
+    // Legacy: preset key (backward compat with old WALLPAPER_PRESETS)
+    const legacyMesh = MESH_PRESETS.find((_, i) => `mesh-${i}` === theme.wallpaperUrl);
+    if (legacyMesh) {
+      return <div style={{ ...baseStyle, background: legacyMesh.css }} />;
     }
 
     return null;
@@ -107,12 +129,7 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
 
   return (
     <div style={style as any} className="contents" {...dataAttrs}>
-      {wallpaperStyle && (
-        <div
-          className="fixed inset-0 pointer-events-none"
-          style={{ zIndex: 0, ...wallpaperStyle } as any}
-        />
-      )}
+      {wallpaperNode}
       {children}
     </div>
   );
