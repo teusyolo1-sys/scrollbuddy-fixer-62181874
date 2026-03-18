@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -19,6 +19,11 @@ interface DriveResponse {
   files?: DriveFile[];
   error?: string;
 }
+
+type DrivePathItem = { id: string; name: string };
+type DriveCacheEntry = { files: DriveFile[]; timestamp: number };
+
+const CACHE_TTL = 60_000;
 
 const getFunctionUrl = (action: string, params?: Record<string, string>) => {
   const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID;
@@ -46,7 +51,45 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
   const [folderId, setFolderId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
-  const [currentPath, setCurrentPath] = useState<{ id: string; name: string }[]>([]);
+  const [currentPath, setCurrentPath] = useState<DrivePathItem[]>([]);
+  const [cache, setCache] = useState<Record<string, DriveCacheEntry>>({});
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  const getCachedFiles = useCallback((id?: string, force = false) => {
+    if (!id || force) return null;
+
+    const cached = cache[id];
+    if (!cached) return null;
+    if (Date.now() - cached.timestamp > CACHE_TTL) return null;
+
+    return cached.files;
+  }, [cache]);
+
+  const storeCache = useCallback((id: string, nextFiles: DriveFile[]) => {
+    setCache((prev) => ({
+      ...prev,
+      [id]: { files: nextFiles, timestamp: Date.now() },
+    }));
+  }, []);
+
+  const invalidateCache = useCallback((targetFolderId?: string) => {
+    const id = targetFolderId || currentPath[currentPath.length - 1]?.id || folderId;
+    if (!id) return;
+
+    setCache((prev) => {
+      if (!(id in prev)) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  }, [currentPath, folderId]);
 
   const ensureFolder = useCallback(async () => {
     if (!user || !companyId || !companyName) return null;
@@ -72,11 +115,23 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
     }
   }, [user, companyId, companyName]);
 
-  const fetchFiles = useCallback(async (targetFolderId?: string) => {
+  const fetchFiles = useCallback(async (targetFolderId?: string, options: { force?: boolean } = {}) => {
     const id = targetFolderId || folderId;
-    if (!id) return;
+    if (!id) return [] as DriveFile[];
 
-    setLoading(true);
+    const cachedFiles = getCachedFiles(id, options.force);
+    if (cachedFiles) {
+      if (mountedRef.current) {
+        setFiles(cachedFiles);
+        setLoading(false);
+      }
+      return cachedFiles;
+    }
+
+    if (mountedRef.current) {
+      setLoading(true);
+    }
+
     try {
       const res = await fetch(getFunctionUrl('list', { folder_id: id }), {
         headers: await getAuthHeaders(),
@@ -88,17 +143,30 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
         throw new Error(data?.error || 'Erro ao listar arquivos');
       }
 
-      setFiles(data?.files || []);
+      const nextFiles = data?.files || [];
+
+      if (mountedRef.current) {
+        setFiles(nextFiles);
+        storeCache(id, nextFiles);
+      }
+
+      return nextFiles;
     } catch (error) {
       console.error('[GoogleDrive] fetchFiles failed', error);
       toast.error('Erro ao listar arquivos');
+      return [] as DriveFile[];
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
-  }, [folderId]);
+  }, [folderId, getCachedFiles, storeCache]);
 
   useEffect(() => {
     if (!companyId || !companyName) {
+      setFiles([]);
+      setFolderId(null);
+      setCurrentPath([]);
       setLoading(false);
       return;
     }
@@ -109,44 +177,22 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
       setLoading(true);
       const id = await ensureFolder();
 
-      if (!id || cancelled) {
-        setLoading(false);
+      if (!id || cancelled || !mountedRef.current) {
+        if (!cancelled && mountedRef.current) {
+          setLoading(false);
+        }
         return;
       }
 
       setFolderId(id);
       setCurrentPath([{ id, name: companyName }]);
-
-      try {
-        const res = await fetch(getFunctionUrl('list', { folder_id: id }), {
-          headers: await getAuthHeaders(),
-        });
-
-        const data = (await res.json()) as DriveResponse;
-
-        if (!res.ok) {
-          throw new Error(data?.error || 'Erro ao listar arquivos');
-        }
-
-        if (!cancelled) {
-          setFiles(data?.files || []);
-        }
-      } catch (error) {
-        console.error('[GoogleDrive] initial list failed', error);
-        if (!cancelled) {
-          toast.error('Erro ao listar arquivos');
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false);
-        }
-      }
+      await fetchFiles(id);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [companyId, companyName, ensureFolder]);
+  }, [companyId, companyName, ensureFolder, fetchFiles]);
 
   const uploadFile = useCallback(async (file: File) => {
     const targetFolder = currentPath.length > 0 ? currentPath[currentPath.length - 1].id : folderId;
@@ -175,14 +221,15 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
       }
 
       toast.success(`${file.name} enviado!`);
-      await fetchFiles(targetFolder);
+      invalidateCache(targetFolder);
+      await fetchFiles(targetFolder, { force: true });
     } catch (error) {
       console.error('[GoogleDrive] upload failed', error);
       toast.error('Erro no upload');
     } finally {
       setUploading(false);
     }
-  }, [folderId, currentPath, fetchFiles]);
+  }, [folderId, currentPath, fetchFiles, invalidateCache]);
 
   const uploadFiles = useCallback(async (fileList: FileList | File[]) => {
     for (const file of Array.from(fileList)) {
@@ -211,8 +258,9 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
 
     toast.success('Arquivo removido');
     const targetFolder = currentPath.length > 0 ? currentPath[currentPath.length - 1].id : folderId;
-    await fetchFiles(targetFolder || undefined);
-  }, [folderId, currentPath, fetchFiles]);
+    invalidateCache(targetFolder || undefined);
+    await fetchFiles(targetFolder || undefined, { force: true });
+  }, [folderId, currentPath, fetchFiles, invalidateCache]);
 
   const createSubfolder = useCallback(async (folderName: string) => {
     const parentId = currentPath.length > 0 ? currentPath[currentPath.length - 1].id : folderId;
@@ -235,25 +283,67 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
       }
 
       toast.success(`Pasta "${folderName}" criada`);
-      await fetchFiles(parentId);
+      invalidateCache(parentId);
+      await fetchFiles(parentId, { force: true });
       return data.folder_id;
     } catch (error) {
       console.error('[GoogleDrive] createSubfolder failed', error);
       toast.error('Erro ao criar pasta');
     }
-  }, [folderId, currentPath, fetchFiles]);
+  }, [folderId, currentPath, fetchFiles, invalidateCache]);
 
   const openFolder = useCallback(async (folder: DriveFile) => {
-    setCurrentPath((prev) => [...prev, { id: folder.id, name: folder.name }]);
+    const nextPathItem = { id: folder.id, name: folder.name };
+    const cachedFiles = getCachedFiles(folder.id);
+
+    setCurrentPath((prev) => [...prev, nextPathItem]);
+
+    if (cachedFiles) {
+      setFiles(cachedFiles);
+      setLoading(false);
+      return;
+    }
+
     await fetchFiles(folder.id);
-  }, [fetchFiles]);
+  }, [fetchFiles, getCachedFiles]);
 
   const goBack = useCallback(async () => {
     if (currentPath.length <= 1) return;
+
     const newPath = currentPath.slice(0, -1);
+    const parentId = newPath[newPath.length - 1]?.id;
+    if (!parentId) return;
+
+    const cachedFiles = getCachedFiles(parentId);
     setCurrentPath(newPath);
-    await fetchFiles(newPath[newPath.length - 1].id);
-  }, [currentPath, fetchFiles]);
+
+    if (cachedFiles) {
+      setFiles(cachedFiles);
+      setLoading(false);
+      return;
+    }
+
+    await fetchFiles(parentId);
+  }, [currentPath, fetchFiles, getCachedFiles]);
+
+  const goToPathIndex = useCallback(async (index: number) => {
+    if (index < 0 || index >= currentPath.length) return;
+
+    const newPath = currentPath.slice(0, index + 1);
+    const targetId = newPath[newPath.length - 1]?.id;
+    if (!targetId) return;
+
+    const cachedFiles = getCachedFiles(targetId);
+    setCurrentPath(newPath);
+
+    if (cachedFiles) {
+      setFiles(cachedFiles);
+      setLoading(false);
+      return;
+    }
+
+    await fetchFiles(targetId);
+  }, [currentPath, fetchFiles, getCachedFiles]);
 
   return {
     files,
@@ -268,5 +358,6 @@ export function useGoogleDrive(companyId?: string, companyName?: string) {
     createSubfolder,
     openFolder,
     goBack,
+    goToPathIndex,
   };
 }

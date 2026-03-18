@@ -172,7 +172,7 @@ export default function DriveFileManager({ companyId, companyName }: DriveFileMa
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => fetchFiles(currentFolderId)}
+            onClick={() => fetchFiles(currentFolderId, { force: true })}
             disabled={loading}
           >
             <RefreshCw className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`} />
