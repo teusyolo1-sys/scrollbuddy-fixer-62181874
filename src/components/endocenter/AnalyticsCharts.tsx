@@ -635,11 +635,11 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             </div>
 
             {/* Superávit / Déficit badge */}
-            {data.length >= 1 && (
+            {filteredData.length >= 1 && (
               <div className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-[11px] font-bold ${
                 absDiff > 0 ? "bg-green-500/15 text-green-400" : absDiff < 0 ? "bg-red-500/15 text-red-400" : "bg-secondary/60 text-muted-foreground"
               }`}>
-                {data.length >= 2 ? (
+                {filteredData.length >= 2 ? (
                   <>
                     <span className="text-sm">{absDiff > 0 ? "▲" : absDiff < 0 ? "▼" : "="}</span>
                     <span>{absDiff > 0 ? "+" : ""}{scale !== 'auto' ? absDiff.toLocaleString("pt-BR") : Math.abs(absDiff) >= 1000 ? `${(absDiff/1000).toFixed(1)}k` : String(absDiff)}</span>
@@ -660,12 +660,30 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
             </div>
           )}
 
+          {/* Hidden date picker for custom date */}
+          {showDatePicker && (
+            <div className="mb-2 flex items-center gap-2">
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={customDate}
+                onChange={(e) => { setCustomDate(e.target.value); setDatePeriod('custom'); setShowDatePicker(false); }}
+                className="ios-input px-2 py-1 text-xs flex-1"
+                autoFocus
+              />
+              <button onClick={() => setShowDatePicker(false)} className="text-xs text-muted-foreground hover:text-foreground">✕</button>
+            </div>
+          )}
+
           <div className="flex-1 min-h-0">
-            <ChartByStyle style={chartStyle} data={data} color={color} type={type} scale={scale} />
+            <ChartByStyle style={chartStyle} data={filteredData} color={color} type={type} scale={scale} />
           </div>
 
           <div className="mt-auto pt-1 flex items-center justify-between text-[10px] text-muted-foreground/50">
-            {scale !== 'auto' && <span className="text-primary/60 font-medium">🔍 {SCALE_OPTIONS.find(s => s.key === scale)?.label}</span>}
+            <div className="flex items-center gap-2">
+              {scale !== 'auto' && <span className="text-primary/60 font-medium">🔍 {SCALE_OPTIONS.find(s => s.key === scale)?.label}</span>}
+              {datePeriod !== 'all' && <span className="text-primary/60 font-medium">📅 {DATE_PERIOD_OPTIONS.find(p => p.key === datePeriod)?.label}{datePeriod === 'custom' && customDate ? `: ${customDate.split('-').reverse().join('/')}` : ''}</span>}
+            </div>
             <span className="ml-auto">Clique direito para alterar estilo</span>
           </div>
         </motion.div>
