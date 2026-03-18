@@ -117,38 +117,41 @@ function DroppableFolderCard({
         }
       `}
     >
-      {/* Folder icon — open when dragging */}
-      <div className="relative w-10 h-10 mb-3">
-        <svg
-          viewBox="0 0 24 24"
-          className={`w-10 h-10 transition-all duration-200 absolute inset-0 ${isDragOver ? "opacity-0 scale-90" : "opacity-100"}`}
-          fill="none"
-          stroke="hsl(45, 100%, 51%)"
-          strokeWidth="1.5"
-        >
-          <path
-            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
-            fill="hsl(45, 100%, 51%)"
-            fillOpacity="0.15"
-          />
-        </svg>
-        <svg
-          viewBox="0 0 24 24"
-          className={`w-10 h-10 transition-all duration-200 absolute inset-0 ${isDragOver ? "opacity-100 scale-110" : "opacity-0 scale-90"}`}
-          fill="none"
-          stroke="hsl(45, 100%, 51%)"
-          strokeWidth="1.5"
-        >
-          <path d="M5 19h14a2 2 0 001.84-2.77L18 9H6l-2.84 7.23A2 2 0 005 19z" fill="hsl(45, 100%, 51%)" fillOpacity="0.25" />
-          <path d="M3 7v2h18V7a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="hsl(45, 100%, 51%)" fillOpacity="0.15" />
-        </svg>
+      {/* All children pointer-events-none to prevent drag flicker */}
+      <div className="pointer-events-none">
+        {/* Folder icon — open when dragging */}
+        <div className="relative w-10 h-10 mb-3">
+          <svg
+            viewBox="0 0 24 24"
+            className={`w-10 h-10 transition-all duration-200 absolute inset-0 ${isDragOver ? "opacity-0 scale-90" : "opacity-100"}`}
+            fill="none"
+            stroke="hsl(45, 100%, 51%)"
+            strokeWidth="1.5"
+          >
+            <path
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"
+              fill="hsl(45, 100%, 51%)"
+              fillOpacity="0.15"
+            />
+          </svg>
+          <svg
+            viewBox="0 0 24 24"
+            className={`w-10 h-10 transition-all duration-200 absolute inset-0 ${isDragOver ? "opacity-100 scale-110" : "opacity-0 scale-90"}`}
+            fill="none"
+            stroke="hsl(45, 100%, 51%)"
+            strokeWidth="1.5"
+          >
+            <path d="M5 19h14a2 2 0 001.84-2.77L18 9H6l-2.84 7.23A2 2 0 005 19z" fill="hsl(45, 100%, 51%)" fillOpacity="0.25" />
+            <path d="M3 7v2h18V7a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" fill="hsl(45, 100%, 51%)" fillOpacity="0.15" />
+          </svg>
+        </div>
+
+        <p className="font-medium text-sm truncate text-foreground">{file.name}</p>
+        <p className="text-xs text-muted-foreground">{file.modifiedTime ? formatDate(file.modifiedTime) : ""}</p>
       </div>
 
-      <p className="font-medium text-sm truncate text-foreground">{file.name}</p>
-      <p className="text-xs text-muted-foreground">{file.modifiedTime ? formatDate(file.modifiedTime) : ""}</p>
-
-      {/* Actions on hover */}
-      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+      {/* Actions on hover — outside pointer-events-none so they remain clickable */}
+      <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-auto">
         {file.webViewLink && (
           <button
             onClick={(e) => { e.stopPropagation(); window.open(file.webViewLink, "_blank"); }}
