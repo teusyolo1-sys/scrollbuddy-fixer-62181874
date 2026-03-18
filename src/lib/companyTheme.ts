@@ -1,8 +1,22 @@
+export type RadiusTarget = 'cards' | 'inputs' | 'tabs' | 'buttons' | 'badges' | 'modals';
+
+export const RADIUS_TARGETS: { key: RadiusTarget; label: string }[] = [
+  { key: 'cards', label: 'Cards / Contêineres' },
+  { key: 'inputs', label: 'Inputs / Selects' },
+  { key: 'tabs', label: 'Barra de abas' },
+  { key: 'buttons', label: 'Botões' },
+  { key: 'badges', label: 'Badges / Etiquetas' },
+  { key: 'modals', label: 'Modais / Diálogos' },
+];
+
+export const ALL_RADIUS_TARGETS: RadiusTarget[] = RADIUS_TARGETS.map(t => t.key);
+
 export interface CompanyTheme {
   accentColor: string;
   accentName: string;
   fontFamily: string;
   borderRadius: 'sharp' | 'rounded' | 'pill';
+  radiusTargets: RadiusTarget[];
   wallpaper: 'none' | 'preset' | 'custom';
   wallpaperUrl: string;
   wallpaperOpacity: number;
@@ -16,6 +30,7 @@ export const DEFAULT_THEME: CompanyTheme = {
   accentName: 'Azul',
   fontFamily: 'Inter',
   borderRadius: 'rounded',
+  radiusTargets: [...ALL_RADIUS_TARGETS],
   wallpaper: 'none',
   wallpaperUrl: '',
   wallpaperOpacity: 0.08,

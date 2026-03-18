@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useEndocenter } from '@/store/endocenterStore';
 import { useTheme } from '@/hooks/useTheme';
-import { DEFAULT_THEME, themeToCSS, FONT_PRESETS, WALLPAPER_PRESETS, type CompanyTheme } from '@/lib/companyTheme';
+import { DEFAULT_THEME, themeToCSS, FONT_PRESETS, WALLPAPER_PRESETS, ALL_RADIUS_TARGETS, type CompanyTheme, type RadiusTarget } from '@/lib/companyTheme';
 
 export default function CompanyThemeProvider({ children }: { children: React.ReactNode }) {
   const { company } = useEndocenter();
@@ -44,6 +44,16 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
     base['fontFamily'] = cssVars['--theme-font'];
     return base;
   }, [cssVars]);
+
+  // Build data attributes for radius targets
+  const targets = theme.radiusTargets || ALL_RADIUS_TARGETS;
+  const dataAttrs = useMemo(() => {
+    const attrs: Record<string, string> = {};
+    for (const t of (ALL_RADIUS_TARGETS as RadiusTarget[])) {
+      attrs[`data-radius-${t}`] = targets.includes(t) ? 'true' : 'false';
+    }
+    return attrs;
+  }, [targets]);
 
   const wallpaperStyle = useMemo(() => {
     if (theme.wallpaper === 'none' || !theme.wallpaperUrl) return null;
@@ -88,7 +98,7 @@ export default function CompanyThemeProvider({ children }: { children: React.Rea
   }, [theme, isDark]);
 
   return (
-    <div style={style as any} className="contents">
+    <div style={style as any} className="contents" {...dataAttrs}>
       {wallpaperStyle && (
         <div
           className="fixed inset-0 pointer-events-none"
