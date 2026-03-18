@@ -558,6 +558,7 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
   const latest = data[data.length - 1]?.value ?? 0;
   const prev = data.length > 1 ? data[data.length - 2].value : latest;
   const change = prev > 0 ? ((latest - prev) / prev * 100) : 0;
+  const absDiff = latest - prev;
 
   return (
     <ContextMenu>
@@ -587,6 +588,14 @@ const MetricChartCard = memo(function MetricChartCard({ type, data, delay, chart
                 </div>
               </div>
             </div>
+
+            {/* Superávit / Déficit badge */}
+            {absDiff !== 0 && (
+              <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-bold ${absDiff > 0 ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-500"}`}>
+                {absDiff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+                <span>{absDiff > 0 ? "+" : ""}{scale !== 'auto' ? absDiff.toLocaleString("pt-BR") : absDiff >= 1000 || absDiff <= -1000 ? `${(absDiff/1000).toFixed(1)}k` : String(absDiff)}</span>
+              </div>
+            )}
           </div>
 
           {relatedInfo && (
