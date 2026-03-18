@@ -162,15 +162,13 @@
     cursor: url('/cursors/pointer.svg') 5 1, pointer !important;
   }
 
-  input[type="text"], input[type="email"], input[type="password"],
-  input[type="number"], input[type="search"], input[type="url"],
-  input[type="tel"], textarea, [contenteditable="true"] {
+  input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]),
+  textarea, [contenteditable="true"] {
     cursor: url('/cursors/text.svg') 4 8, text !important;
   }
 
-  .dark input[type="text"], .dark input[type="email"], .dark input[type="password"],
-  .dark input[type="number"], .dark input[type="search"], .dark input[type="url"],
-  .dark input[type="tel"], .dark textarea, .dark [contenteditable="true"] {
+  .dark input:not([type="range"]):not([type="color"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="hidden"]),
+  .dark textarea, .dark [contenteditable="true"] {
     cursor: url('/cursors/text-light.svg') 4 8, text !important;
   }
 
