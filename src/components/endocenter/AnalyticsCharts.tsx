@@ -845,7 +845,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
   };
 
   const perMetricData = useMemo(() => {
-    const result: Record<MetricType, { name: string; value: number }[]> = {} as any;
+    const result: Record<MetricType, { name: string; value: number; rawDate: string }[]> = {} as any;
     METRIC_TYPES.forEach((type) => {
       const filtered = metrics.filter((m) => m.metric_type === type);
       if (filtered.length === 0) return;
@@ -857,7 +857,7 @@ export default function AnalyticsCharts({ companyId }: { companyId?: string }) {
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([date, value]) => {
           const d = new Date(date + "T00:00:00");
-          return { name: `${d.getDate()}/${d.getMonth() + 1}`, value };
+          return { name: `${d.getDate()}/${d.getMonth() + 1}`, value, rawDate: date };
         });
     });
 
