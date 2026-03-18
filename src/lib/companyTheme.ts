@@ -77,6 +77,7 @@ export const WALLPAPER_PRESETS = [
   { name: 'Mesh Roxo', key: 'mesh-purple', css: 'radial-gradient(at 20% 30%, hsl(270 70% 55% / 0.15) 0%, transparent 45%), radial-gradient(at 80% 60%, hsl(300 60% 50% / 0.1) 0%, transparent 50%), radial-gradient(at 50% 80%, hsl(240 50% 55% / 0.08) 0%, transparent 50%)', pattern: '' },
   { name: 'Dots', key: 'dots', css: '', pattern: 'dots' },
   { name: 'Grid', key: 'lines', css: '', pattern: 'lines' },
+  { name: 'Noise', key: 'noise', css: '', pattern: 'noise' },
 ];
 
 export const RADIUS_PRESETS = [
